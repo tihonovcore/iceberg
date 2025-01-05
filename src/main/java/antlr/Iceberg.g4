@@ -1,6 +1,6 @@
 grammar Iceberg;
 
-root : (printStatement SEMICOLON)* EOF;
+file : (printStatement SEMICOLON)* EOF;
 
 printStatement : PRINT expression;
 
