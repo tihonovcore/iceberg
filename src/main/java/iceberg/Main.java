@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class Main {
 
     public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        var file = ParsingUtil.parse("print 2;");
+        var file = ParsingUtil.parse("print 5000; print 100; print 0; print 9;");
 
         var bytes = new Compiler().compile(file);
         System.out.println(bytesToHex(bytes));

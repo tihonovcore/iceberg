@@ -238,8 +238,10 @@ public class Compiler {
                 var attributeNameIndex = 21;
                 output.writeU2(attributeNameIndex);
 
-                var attributeLength = 0x38;
+                var codeAttributeLengthIndex = output.length();
+                var attributeLength = 0x0000;
                 output.writeU4(attributeLength);
+                var codeAttributeStartIndex = output.length();
 
                 var maxStack = 2;
                 output.writeU2(maxStack);
@@ -247,69 +249,89 @@ public class Compiler {
                 var maxLocals = 1;
                 output.writeU2(maxLocals);
 
-                var codeLength = 10;
+                var codeLengthIndex = output.length();
+                var codeLength = 0x0000;
                 output.writeU4(codeLength);
 
-                output.writeU1(OpCodes.GETSTATIC.value);
-                output.writeU2(0x0007); // Field java/lang/System.out:Ljava/io/PrintStream;
-                output.writeU1(OpCodes.SIPUSH.value);
-                output.writeU2(499);
-                output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                output.writeU2(0x000D); // Method java/io/PrintStream.println:(I)V
+                var codeStartIndex = output.length();
+                for (var print : file.printStatement()) {
+                    output.writeU1(OpCodes.GETSTATIC.value);
+                    output.writeU2(0x0007); // Field java/lang/System.out:Ljava/io/PrintStream;
+
+                    var value = Integer.parseInt(print.expression().getText());
+                    if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+                        output.writeU1(OpCodes.BIPUSH.value);
+                        output.writeU1(value);
+                    } else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+                        output.writeU1(OpCodes.SIPUSH.value);
+                        output.writeU2(value);
+                    } else {
+                        throw new IllegalStateException("not implemented");
+                    }
+
+                    output.writeU1(OpCodes.INVOKEVIRTUAL.value);
+                    output.writeU2(0x000D); // Method java/io/PrintStream.println:(I)V
+                }
                 output.writeU1(OpCodes.RETURN.value);
+
+                //fill codeLength
+                output.putU4(codeLengthIndex, output.length() - codeStartIndex);
 
                 var exceptionTableLength = 0;
                 output.writeU2(exceptionTableLength);
 
-                attributesCount = 2;
+                attributesCount = 0;
                 output.writeU2(attributesCount);
 
-                //LineNumberTable
-                attributeNameIndex = 22;
-                output.writeU2(attributeNameIndex);
+//                //LineNumberTable
+//                attributeNameIndex = 22;
+//                output.writeU2(attributeNameIndex);
+//
+//                attributeLength = 10;
+//                output.writeU4(attributeLength);
+//
+//                var lineNumberTableLength = 2;
+//                output.writeU2(lineNumberTableLength);
+//
+//                var startPc = 0;
+//                output.writeU2(startPc);
+//
+//                var lineNumber = 3;
+//                output.writeU2(lineNumber);
+//
+//                startPc = 9;
+//                output.writeU2(startPc);
+//
+//                lineNumber = 4;
+//                output.writeU2(lineNumber);
 
-                attributeLength = 10;
-                output.writeU4(attributeLength);
+//                //LocalVariableTable
+//                attributeNameIndex = 23;
+//                output.writeU2(attributeNameIndex);
+//
+//                attributeLength = 0x0C;
+//                output.writeU4(attributeLength);
+//
+//                lineNumberTableLength = 1;
+//                output.writeU2(lineNumberTableLength);
+//
+//                startPc = 0;
+//                output.writeU2(startPc);
+//
+//                var length = 10;
+//                output.writeU2(length);
+//
+//                nameIndex = 0x1C; //args
+//                output.writeU2(nameIndex);
+//
+//                descriptorIndex = 0x1D; //[String
+//                output.writeU2(descriptorIndex);
+//
+//                var index = 0;
+//                output.writeU2(index);
 
-                var lineNumberTableLength = 2;
-                output.writeU2(lineNumberTableLength);
-
-                var startPc = 0;
-                output.writeU2(startPc);
-
-                var lineNumber = 3;
-                output.writeU2(lineNumber);
-
-                startPc = 9;
-                output.writeU2(startPc);
-
-                lineNumber = 4;
-                output.writeU2(lineNumber);
-
-                //LocalVariableTable
-                attributeNameIndex = 23;
-                output.writeU2(attributeNameIndex);
-
-                attributeLength = 0x0C;
-                output.writeU4(attributeLength);
-
-                lineNumberTableLength = 1;
-                output.writeU2(lineNumberTableLength);
-
-                startPc = 0;
-                output.writeU2(startPc);
-
-                var length = 10;
-                output.writeU2(length);
-
-                nameIndex = 0x1C; //args
-                output.writeU2(nameIndex);
-
-                descriptorIndex = 0x1D; //[String
-                output.writeU2(descriptorIndex);
-
-                var index = 0;
-                output.writeU2(index);
+                //fill codeAttributeLength
+                output.putU4(codeAttributeLengthIndex, output.length() - codeAttributeStartIndex);
             }
         }
     }

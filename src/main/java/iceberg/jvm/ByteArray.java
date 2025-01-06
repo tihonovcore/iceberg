@@ -64,4 +64,8 @@ public class ByteArray {
     public byte[] bytes() {
         return Arrays.copyOf(buffer, count);
     }
+
+    public int length() {
+        return count;
+    }
 }
