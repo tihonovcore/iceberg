@@ -1,6 +1,5 @@
 package iceberg.jvm;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,7 +18,6 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
         T visitLongInfo(LongInfo constant);
     }
 
-    //TODO: use ByteArray
     public static class ConstantToBytes implements ConstantVisitor<byte[]> {
 
         private static final ConstantToBytes INSTANCE = new ConstantToBytes();
@@ -30,54 +28,46 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
 
         @Override
         public byte[] visitUtf8(Utf8 constant) {
-            var result = new ByteArrayOutputStream();
-            result.write(constant.tag());
-            result.write(constant.length & 0xFF00);
-            result.write(constant.length & 0x00FF);
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU2(constant.length);
             result.writeBytes(constant.bytes);
-            return result.toByteArray();
+            return result.bytes();
         }
 
         @Override
         public byte[] visitKlass(Klass constant) {
-            var result = new ByteArrayOutputStream();
-            result.write(constant.tag());
-            result.write(constant.nameIndex & 0xFF00);
-            result.write(constant.nameIndex & 0x00FF);
-            return result.toByteArray();
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU2(constant.nameIndex);
+            return result.bytes();
         }
 
         @Override
         public byte[] visitNameAndType(NameAndType constant) {
-            var result = new ByteArrayOutputStream();
-            result.write(constant.tag());
-            result.write(constant.nameIndex & 0xFF00);
-            result.write(constant.nameIndex & 0x00FF);
-            result.write(constant.descriptorIndex & 0xFF00);
-            result.write(constant.descriptorIndex & 0x00FF);
-            return result.toByteArray();
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU2(constant.nameIndex);
+            result.writeU2(constant.descriptorIndex);
+            return result.bytes();
         }
 
         @Override
         public byte[] visitFieldRef(FieldRef constant) {
-            var result = new ByteArrayOutputStream();
-            result.write(constant.tag());
-            result.write(constant.classIndex & 0xFF00);
-            result.write(constant.classIndex & 0x00FF);
-            result.write(constant.nameAndTypeIndex & 0xFF00);
-            result.write(constant.nameAndTypeIndex & 0x00FF);
-            return result.toByteArray();
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU2(constant.classIndex);
+            result.writeU2(constant.nameAndTypeIndex);
+            return result.bytes();
         }
 
         @Override
         public byte[] visitMethodRef(MethodRef constant) {
-            var result = new ByteArrayOutputStream();
-            result.write(constant.tag());
-            result.write(constant.classIndex & 0xFF00);
-            result.write(constant.classIndex & 0x00FF);
-            result.write(constant.nameAndTypeIndex & 0xFF00);
-            result.write(constant.nameAndTypeIndex & 0x00FF);
-            return result.toByteArray();
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU2(constant.classIndex);
+            result.writeU2(constant.nameAndTypeIndex);
+            return result.bytes();
         }
 
         @Override
