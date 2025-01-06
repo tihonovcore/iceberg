@@ -1,12 +1,13 @@
 package iceberg;
 
-import antlr.IcebergLexer;
-import antlr.IcebergParser;
+import iceberg.antlr.IcebergLexer;
+import iceberg.antlr.IcebergParser;
 import org.antlr.v4.runtime.*;
 
 public class ParsingUtil {
 
     private static class Listener extends BaseErrorListener {
+        //TODO: create informative error messages
         public boolean hasError = false;
 
         @Override
@@ -23,13 +24,13 @@ public class ParsingUtil {
         var listener = new Listener();
 
         var lexer = new IcebergLexer(CharStreams.fromString(source));
-        lexer.removeErrorListeners();
+//        lexer.removeErrorListeners();
         lexer.addErrorListener(listener);
 
         var tokens = new CommonTokenStream(lexer);
 
         var parser = new IcebergParser(tokens);
-        parser.removeErrorListeners();
+//        parser.removeErrorListeners();
         parser.addErrorListener(listener);
 
         var file = parser.file();

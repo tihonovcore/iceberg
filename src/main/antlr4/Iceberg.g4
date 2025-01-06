@@ -1,5 +1,9 @@
 grammar Iceberg;
 
+@header {
+package iceberg.antlr;
+}
+
 file : (printStatement SEMICOLON)* EOF;
 
 printStatement : PRINT expression;

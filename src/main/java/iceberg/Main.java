@@ -2,16 +2,29 @@ package iceberg;
 
 import iceberg.jvm.Compiler;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Main {
 
-    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        var file = ParsingUtil.parse("print 5000; print 100; print 0; print 9;");
+    public static void main(String[] args) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, IOException {
+        var file = ParsingUtil.parse("""
+            print 5000; print 100;
+            print 123456789;
+            \tprint 0; print 9;
+            """);
 
         var bytes = new Compiler().compile(file);
         System.out.println(bytesToHex(bytes));
+
+        var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Foo.class");
+        Files.write(path, bytes, CREATE, WRITE);
 
         var classLoader = new ByteClassLoader(Main.class.getClassLoader());
         var klass = classLoader.define(bytes);

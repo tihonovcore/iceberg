@@ -1,6 +1,7 @@
 package iceberg.jvm;
 
-import antlr.IcebergParser;
+import iceberg.antlr.IcebergBaseVisitor;
+import iceberg.antlr.IcebergParser;
 
 public class Compiler {
 
@@ -8,7 +9,21 @@ public class Compiler {
     private ByteArray output;
 
     public byte[] compile(IcebergParser.FileContext file) {
+        fillConstantPool(file);
         return codegen(file);
+    }
+
+    private void fillConstantPool(IcebergParser.FileContext file) {
+        file.accept(new IcebergBaseVisitor<>() {
+            @Override
+            public Object visitExpression(IcebergParser.ExpressionContext ctx) {
+                var value = Integer.parseInt(ctx.NUMBER().getText());
+                if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
+                    constantPool.addInteger(value);
+                }
+                return super.visitExpression(ctx);
+            }
+        });
     }
 
     private byte[] codegen(IcebergParser.FileContext file) {
@@ -129,6 +144,8 @@ public class Compiler {
             INVOKESPECIAL(0xB7),
             BIPUSH(0x10),
             SIPUSH(0x11),
+            LDC(0x12),
+            LDC_W(0x13),
             ;
 
             OpCodes(int value) {
@@ -265,6 +282,15 @@ public class Compiler {
                     } else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
                         output.writeU1(OpCodes.SIPUSH.value);
                         output.writeU2(value);
+                    } else if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
+                        var indexInPool = constantPool.findInteger(value);
+                        if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
+                            output.writeU1(OpCodes.LDC.value);
+                            output.writeU1(indexInPool);
+                        } else {
+                            output.writeU1(OpCodes.LDC_W.value);
+                            output.writeU2(indexInPool);
+                        }
                     } else {
                         throw new IllegalStateException("not implemented");
                     }

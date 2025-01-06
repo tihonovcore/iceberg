@@ -15,8 +15,11 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
         T visitNameAndType(NameAndType constant);
         T visitFieldRef(FieldRef constant);
         T visitMethodRef(MethodRef constant);
+        T visitIntegerInfo(IntegerInfo constant);
+        T visitLongInfo(LongInfo constant);
     }
 
+    //TODO: use ByteArray
     public static class ConstantToBytes implements ConstantVisitor<byte[]> {
 
         private static final ConstantToBytes INSTANCE = new ConstantToBytes();
@@ -75,6 +78,23 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
             result.write(constant.nameAndTypeIndex & 0xFF00);
             result.write(constant.nameAndTypeIndex & 0x00FF);
             return result.toByteArray();
+        }
+
+        @Override
+        public byte[] visitIntegerInfo(IntegerInfo constant) {
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU4(constant.bytes);
+            return result.bytes();
+        }
+
+        @Override
+        public byte[] visitLongInfo(LongInfo constant) {
+            var result = new ByteArray();
+            result.writeU1(constant.tag());
+            result.writeU4(constant.highBytes);
+            result.writeU4(constant.lowBytes);
+            return result.bytes();
         }
     }
 
@@ -189,7 +209,47 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
         }
     }
 
-    private List<Constant> pool;
+    public static class IntegerInfo extends Constant {
+
+        final int bytes;
+
+        public IntegerInfo(int number) {
+            this.bytes = number;
+        }
+
+        @Override
+        int tag() {
+            return 3;
+        }
+
+        @Override
+        <T> T accept(ConstantVisitor<T> visitor) {
+            return visitor.visitIntegerInfo(this);
+        }
+    }
+
+    public static class LongInfo extends Constant {
+
+        final int highBytes;
+        final int lowBytes;
+
+        public LongInfo(long number) {
+            this.highBytes = (int) (number >> 32);
+            this.lowBytes = (int) number;
+        }
+
+        @Override
+        int tag() {
+            return 5;
+        }
+
+        @Override
+        <T> T accept(ConstantVisitor<T> visitor) {
+            return visitor.visitLongInfo(this);
+        }
+    }
+
+    private final List<Constant> pool;
 
     public ConstantPool() {
         pool = new ArrayList<>();
@@ -224,6 +284,27 @@ public class ConstantPool implements Iterable<ConstantPool.Constant> {
         pool.add(new Utf8("[Ljava/lang/String;"));
         pool.add(new Utf8("SourceFile"));
         pool.add(new Utf8("Foo.java"));
+    }
+
+    public int findInteger(int value) {
+        for (int i = 0; i < pool.size(); i++) {
+            var constant = pool.get(i);
+            if (constant instanceof IntegerInfo info && info.bytes == value) {
+                return i + 1; //numeration with 1
+            }
+        }
+
+        return -1;
+    }
+
+    public void addInteger(int value) {
+        if (findInteger(value) == -1) {
+            pool.add(new IntegerInfo(value));
+        }
+    }
+
+    public void addLong(long value) {
+        throw new IllegalStateException("not implemented");
     }
 
     public int count() {

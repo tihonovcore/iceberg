@@ -54,8 +54,8 @@
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <version>${antlr.version}</version>
                 <configuration>
-                    <sourceDirectory>src/main/java</sourceDirectory>
-                    <outputDirectory>src/main/generated-sources</outputDirectory>
+                    <outputDirectory>${project.build.directory}/generated-sources/antlr4/iceberg/antlr</outputDirectory>
+                    <visitor>true</visitor>
                 </configuration>
                 <executions>
                     <execution>
