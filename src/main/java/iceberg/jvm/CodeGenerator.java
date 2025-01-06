@@ -86,18 +86,17 @@ public class CodeGenerator {
     }
 
     private void thisClass() {
-        var thisClass = 19; //todo: find in constant pool
-        output.writeU2(thisClass);
+        var thisRef = compilationUnit.thisRef;
+        output.writeU2(compilationUnit.constantPool.indexOf(thisRef));
     }
 
     private void superClass() {
-        var superClass = 2; //todo: find in constant pool
-        output.writeU2(superClass);
+        var superRef = compilationUnit.superRef;
+        output.writeU2(compilationUnit.constantPool.indexOf(superRef));
     }
 
     private void interfacesCount() {
-        var interfacesCount = 0;
-        output.writeU2(interfacesCount);
+        output.writeU2(compilationUnit.interfaces.size());
     }
 
     private void interfaces() {
@@ -105,8 +104,7 @@ public class CodeGenerator {
     }
 
     private void fieldsCount() {
-        var fieldsCount = 0;
-        output.writeU2(fieldsCount);
+        output.writeU2(compilationUnit.fields.size());
     }
 
     private void fields() {

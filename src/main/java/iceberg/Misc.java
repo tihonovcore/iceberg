@@ -30,7 +30,7 @@ public class Misc {
         }
 
         public Class<?> define(byte[] bytes) {
-            return defineClass("Foo", bytes, 0, bytes.length);
+            return defineClass("Iceberg", bytes, 0, bytes.length);
         }
     }
 }

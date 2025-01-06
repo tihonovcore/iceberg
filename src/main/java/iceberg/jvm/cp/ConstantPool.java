@@ -6,6 +6,9 @@ import java.util.List;
 
 public class ConstantPool implements Iterable<Constant> {
 
+    public final Klass OBJECT;
+    public final Klass ICEBERG;
+
     private final List<Constant> pool;
 
     public ConstantPool() {
@@ -29,18 +32,32 @@ public class ConstantPool implements Iterable<Constant> {
         pool.add(new Utf8("println"));
         pool.add(new Utf8("(I)V"));
         pool.add(new Klass(20));
-        pool.add(new Utf8("Foo"));
+        pool.add(new Utf8("Iceberg"));
         pool.add(new Utf8("Code"));
         pool.add(new Utf8("LineNumberTable"));
         pool.add(new Utf8("LocalVariableTable"));
         pool.add(new Utf8("this"));
-        pool.add(new Utf8("LFoo;"));
+        pool.add(new Utf8("LIceberg;"));
         pool.add(new Utf8("main"));
         pool.add(new Utf8("([Ljava/lang/String;)V"));
         pool.add(new Utf8("args"));
         pool.add(new Utf8("[Ljava/lang/String;"));
         pool.add(new Utf8("SourceFile"));
-        pool.add(new Utf8("Foo.java"));
+        pool.add(new Utf8("Iceberg.java"));
+
+        pool.add(new Utf8("java/lang/Object"));
+        OBJECT = new Klass(pool.size());
+        pool.add(OBJECT);
+
+        //TODO: для нескольких юнитов нужны разные имена
+        pool.add(new Utf8("Iceberg"));
+        ICEBERG = new Klass(pool.size());
+        pool.add(ICEBERG);
+
+    }
+
+    public int indexOf(Constant constant) {
+        return pool.indexOf(constant) + 1;
     }
 
     public int findInteger(int value) {
