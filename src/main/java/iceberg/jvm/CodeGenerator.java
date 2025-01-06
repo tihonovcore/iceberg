@@ -1,44 +1,30 @@
 package iceberg.jvm;
 
-import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.ConstantToBytes;
+
+import java.util.Collection;
 
 public class CodeGenerator {
 
-    private ConstantPool constantPool;
-    private ByteArray output;
+    private final CompilationUnit compilationUnit;
+    private final ByteArray output = new ByteArray();
 
-    public CodeGenerator() {
-        this.constantPool = new ConstantPool();
+    public CodeGenerator(CompilationUnit unit) {
+        this.compilationUnit = unit;
     }
 
-    public CodeGenerator(ConstantPool constantPool) {
-        this.constantPool = constantPool;
-    }
-
-    public byte[] compile(IcebergParser.FileContext file) {
-        fillConstantPool(file);
-        return codegen(file);
-    }
-
-    private void fillConstantPool(IcebergParser.FileContext file) {
-        file.accept(new IcebergBaseVisitor<>() {
-            @Override
-            public Object visitExpression(IcebergParser.ExpressionContext ctx) {
-                var value = Integer.parseInt(ctx.NUMBER().getText());
-                if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
-                    constantPool.addInteger(value);
-                }
-                return super.visitExpression(ctx);
-            }
+    public static void codegen(
+        Collection<CompilationUnit> units,
+        @Deprecated IcebergParser.FileContext file
+    ) {
+        units.forEach(unit -> {
+            var generator = new CodeGenerator(unit);
+            unit.bytes = generator.codegen(file);
         });
     }
 
     public byte[] codegen(IcebergParser.FileContext file) {
-        output = new ByteArray();
-
         magic();
         minorVersion();
         majorVersion();
@@ -72,11 +58,11 @@ public class CodeGenerator {
     }
 
     private void constantPoolCount() {
-        output.writeU2(constantPool.count());
+        output.writeU2(compilationUnit.constantPool.count());
     }
 
     private void constantPool() {
-        for (var constant : constantPool) {
+        for (var constant : compilationUnit.constantPool) {
             output.writeBytes(ConstantToBytes.toBytes(constant));
         }
     }
@@ -293,7 +279,7 @@ public class CodeGenerator {
                         output.writeU1(OpCodes.SIPUSH.value);
                         output.writeU2(value);
                     } else if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
-                        var indexInPool = constantPool.findInteger(value);
+                        var indexInPool = compilationUnit.constantPool.findInteger(value);
                         if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
                             output.writeU1(OpCodes.LDC.value);
                             output.writeU1(indexInPool);

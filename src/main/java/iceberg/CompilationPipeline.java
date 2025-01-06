@@ -32,7 +32,7 @@ public class CompilationPipeline {
         var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Foo.class");
         Files.write(path, bytes, CREATE, WRITE);
 
-        var classLoader = new Main.ByteClassLoader(Main.class.getClassLoader());
+        var classLoader = new Misc.ByteClassLoader(Misc.class.getClassLoader());
         var klass = classLoader.define(bytes);
 
         var main = Arrays.stream(klass.getMethods())
@@ -53,17 +53,17 @@ public class CompilationPipeline {
 
             //compilation process
             fillConstantPool(file, mainUnit);
+            //todo: fill units
 
             //codegen
-            var compiler = new CodeGenerator(mainUnit.constantPool);
-            mainUnit.bytes = compiler.codegen(file);
+            CodeGenerator.codegen(compilationUnits, file);
 
             return compilationUnits;
         } catch (CompilationException exception) {
             System.err.println(exception.getMessage());
         }
 
-        return null;
+        return null; //TODO: do smth
     }
 
     //TODO: move
