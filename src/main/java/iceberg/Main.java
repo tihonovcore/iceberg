@@ -1,6 +1,7 @@
 package iceberg;
 
-import iceberg.jvm.Compiler;
+import iceberg.fe.ParsingUtil;
+import iceberg.jvm.CodeGenerator;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +21,7 @@ public class Main {
             \tprint 0; print 9;
             """);
 
-        var bytes = new Compiler().compile(file);
+        var bytes = new CodeGenerator().compile(file);
         System.out.println(bytesToHex(bytes));
 
         var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Foo.class");

@@ -2,11 +2,21 @@ package iceberg.jvm;
 
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
+import iceberg.jvm.cp.ConstantPool;
+import iceberg.jvm.cp.ConstantToBytes;
 
-public class Compiler {
+public class CodeGenerator {
 
-    private ConstantPool constantPool = new ConstantPool();
+    private ConstantPool constantPool;
     private ByteArray output;
+
+    public CodeGenerator() {
+        this.constantPool = new ConstantPool();
+    }
+
+    public CodeGenerator(ConstantPool constantPool) {
+        this.constantPool = constantPool;
+    }
 
     public byte[] compile(IcebergParser.FileContext file) {
         fillConstantPool(file);
@@ -26,7 +36,7 @@ public class Compiler {
         });
     }
 
-    private byte[] codegen(IcebergParser.FileContext file) {
+    public byte[] codegen(IcebergParser.FileContext file) {
         output = new ByteArray();
 
         magic();
@@ -67,7 +77,7 @@ public class Compiler {
 
     private void constantPool() {
         for (var constant : constantPool) {
-            output.writeBytes(ConstantPool.ConstantToBytes.toBytes(constant));
+            output.writeBytes(ConstantToBytes.toBytes(constant));
         }
     }
 

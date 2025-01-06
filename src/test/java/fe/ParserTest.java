@@ -1,4 +1,7 @@
-import iceberg.ParsingUtil;
+package fe;
+
+import iceberg.fe.ParsingUtil;
+import iceberg.fe.CompilationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -6,7 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ParserTest {
+class ParserTest {
 
     @Test
     void positive() {
@@ -21,6 +24,6 @@ public class ParserTest {
         "print print;", "print -10;", "print 10", "print 0001;"
     })
     void negative(String source) {
-        assertThrows(IllegalArgumentException.class, () -> ParsingUtil.parse(source));
+        assertThrows(CompilationException.class, () -> ParsingUtil.parse(source));
     }
 }
