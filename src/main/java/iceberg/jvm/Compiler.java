@@ -54,8 +54,8 @@ public class Compiler {
     }
 
     private void constantPoolCount() {
-        output.write(constantPool.count() & 0xFF00);
-        output.write(constantPool.count() & 0x00FF);
+        output.write(constantPool.count() >> 8);
+        output.write(constantPool.count());
     }
 
     private void constantPool() {
@@ -79,20 +79,20 @@ public class Compiler {
         }
 
         var flags = AccessFlags.ACC_PUBLIC.value | AccessFlags.ACC_SUPER.value;
-        output.write(flags & 0xFF00);
-        output.write(flags & 0x00FF);
+        output.write(flags >> 8);
+        output.write(flags);
     }
 
     private void thisClass() {
         var thisClass = 19; //todo: find in constant pool
-        output.write(thisClass & 0xFF00);
-        output.write(thisClass & 0x00FF);
+        output.write(thisClass >> 8);
+        output.write(thisClass);
     }
 
     private void superClass() {
         var superClass = 2; //todo: find in constant pool
-        output.write(superClass & 0xFF00);
-        output.write(superClass & 0x00FF);
+        output.write(superClass >> 8);
+        output.write(superClass);
     }
 
     private void interfacesCount() {
@@ -115,8 +115,8 @@ public class Compiler {
 
     private void methodsCount() {
         var methodsCount = 2; //init + main
-        output.write(methodsCount & 0xFF00);
-        output.write(methodsCount & 0x00FF);
+        output.write(methodsCount >> 8);
+        output.write(methodsCount);
     }
 
     private void methods() {
@@ -152,45 +152,45 @@ public class Compiler {
 
         init : {
             var flags = AccessFlags.ACC_PUBLIC.value;
-            output.write(flags & 0xFF00);
-            output.write(flags & 0x00FF);
+            output.write(flags >> 8);
+            output.write(flags);
 
             var nameIndex = 5; //todo: find in constant pool
-            output.write(nameIndex & 0xFF00);
-            output.write(nameIndex & 0x00FF);
+            output.write(nameIndex >> 8);
+            output.write(nameIndex);
 
             var descriptorIndex = 6; //todo: find in constant pool
-            output.write(descriptorIndex & 0xFF00);
-            output.write(descriptorIndex & 0x00FF);
+            output.write(descriptorIndex >> 8);
+            output.write(descriptorIndex);
 
             var attributesCount = 1;
-            output.write(attributesCount & 0xFF00);
-            output.write(attributesCount & 0x00FF);
+            output.write(attributesCount >> 8);
+            output.write(attributesCount);
 
             code : {
                 var attributeNameIndex = 21;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 var attributeLength = 0x2F;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 var maxStack = 1;
-                output.write(maxStack & 0xFF00);
-                output.write(maxStack & 0x00FF);
+                output.write(maxStack >> 8);
+                output.write(maxStack);
 
                 var maxLocals = 1;
-                output.write(maxLocals & 0xFF00);
-                output.write(maxLocals & 0x00FF);
+                output.write(maxLocals >> 8);
+                output.write(maxLocals);
 
                 var codeLength = 5;
-                output.write(codeLength & 0xFF000000);
-                output.write(codeLength & 0x00FF0000);
-                output.write(codeLength & 0x0000FF00);
-                output.write(codeLength & 0x000000FF);
+                output.write(codeLength >> 24);
+                output.write(codeLength >> 16);
+                output.write(codeLength >> 8);
+                output.write(codeLength);
 
                 output.write(OpCodes.ALOAD_0.value);
                 output.write(OpCodes.INVOKESPECIAL.value);
@@ -199,224 +199,224 @@ public class Compiler {
                 output.write(OpCodes.RETURN.value);
 
                 var exceptionTableLength = 0;
-                output.write(exceptionTableLength & 0xFF00);
-                output.write(exceptionTableLength & 0x00FF);
+                output.write(exceptionTableLength >> 8);
+                output.write(exceptionTableLength);
 
                 attributesCount = 2;
-                output.write(attributesCount & 0xFF00);
-                output.write(attributesCount & 0x00FF);
+                output.write(attributesCount >> 8);
+                output.write(attributesCount);
 
                 //LineNumberTable
                 attributeNameIndex = 22;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 attributeLength = 6;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 var lineNumberTableLength = 1;
-                output.write(lineNumberTableLength & 0xFF00);
-                output.write(lineNumberTableLength & 0x00FF);
+                output.write(lineNumberTableLength >> 8);
+                output.write(lineNumberTableLength);
 
                 var startPc = 0;
-                output.write(startPc & 0xFF00);
-                output.write(startPc & 0x00FF);
+                output.write(startPc >> 8);
+                output.write(startPc);
 
                 var lineNumber = 1;
-                output.write(lineNumber & 0xFF00);
-                output.write(lineNumber & 0x00FF);
+                output.write(lineNumber >> 8);
+                output.write(lineNumber);
 
                 //LocalVariableTable
                 attributeNameIndex = 23;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 attributeLength = 0x0C;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 lineNumberTableLength = 1;
-                output.write(lineNumberTableLength & 0xFF00);
-                output.write(lineNumberTableLength & 0x00FF);
+                output.write(lineNumberTableLength >> 8);
+                output.write(lineNumberTableLength);
 
                 startPc = 0;
-                output.write(startPc & 0xFF00);
-                output.write(startPc & 0x00FF);
+                output.write(startPc >> 8);
+                output.write(startPc);
 
                 var length = 5;
-                output.write(length & 0xFF00);
-                output.write(length & 0x00FF);
+                output.write(length >> 8);
+                output.write(length);
 
                 nameIndex = 0x18; //this
-                output.write(nameIndex & 0xFF00);
-                output.write(nameIndex & 0x00FF);
+                output.write(nameIndex >> 8);
+                output.write(nameIndex);
 
                 descriptorIndex = 0x19; //LFoo
-                output.write(descriptorIndex & 0xFF00);
-                output.write(descriptorIndex & 0x00FF);
+                output.write(descriptorIndex >> 8);
+                output.write(descriptorIndex);
 
                 var index = 0;
-                output.write(index & 0xFF00);
-                output.write(index & 0x00FF);
+                output.write(index >> 8);
+                output.write(index);
             }
         }
 
         main : {
             var flags = AccessFlags.ACC_PUBLIC.value | AccessFlags.ACC_STATIC.value;
-            output.write(flags & 0xFF00);
-            output.write(flags & 0x00FF);
+            output.write(flags >> 8);
+            output.write(flags);
 
             var nameIndex = 26; //todo: find in constant pool
-            output.write(nameIndex & 0xFF00);
-            output.write(nameIndex & 0x00FF);
+            output.write(nameIndex >> 8);
+            output.write(nameIndex);
 
             var descriptorIndex = 27; //todo: find in constant pool
-            output.write(descriptorIndex & 0xFF00);
-            output.write(descriptorIndex & 0x00FF);
+            output.write(descriptorIndex >> 8);
+            output.write(descriptorIndex);
 
             var attributesCount = 1;
-            output.write(attributesCount & 0xFF00);
-            output.write(attributesCount & 0x00FF);
+            output.write(attributesCount >> 8);
+            output.write(attributesCount);
 
             code : {
                 var attributeNameIndex = 21;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 var attributeLength = 0x38;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 var maxStack = 2;
-                output.write(maxStack & 0xFF00);
-                output.write(maxStack & 0x00FF);
+                output.write(maxStack >> 8);
+                output.write(maxStack);
 
                 var maxLocals = 1;
-                output.write(maxLocals & 0xFF00);
-                output.write(maxLocals & 0x00FF);
+                output.write(maxLocals >> 8);
+                output.write(maxLocals);
 
                 var codeLength = 10;
-                output.write(codeLength & 0xFF000000);
-                output.write(codeLength & 0x00FF0000);
-                output.write(codeLength & 0x0000FF00);
-                output.write(codeLength & 0x000000FF);
+                output.write(codeLength >> 24);
+                output.write(codeLength >> 16);
+                output.write(codeLength >> 8);
+                output.write(codeLength);
 
                 output.write(OpCodes.GETSTATIC.value);
                 output.write(0); // Field java/lang/System.out:Ljava/io/PrintStream;
                 output.write(7); // Field java/lang/System.out:Ljava/io/PrintStream;
                 output.write(OpCodes.SIPUSH.value);
-                output.write((499 & 0xFF00) >> 8); //TODO: надо везде двигать
-                output.write(499 & 0x00FF);
+                output.write(499 >> 8);
+                output.write(499);
                 output.write(OpCodes.INVOKEVIRTUAL.value);
                 output.write(0);  // Method java/io/PrintStream.println:(I)V
                 output.write(13); // Method java/io/PrintStream.println:(I)V
                 output.write(OpCodes.RETURN.value);
 
                 var exceptionTableLength = 0;
-                output.write(exceptionTableLength & 0xFF00);
-                output.write(exceptionTableLength & 0x00FF);
+                output.write(exceptionTableLength >> 8);
+                output.write(exceptionTableLength);
 
                 attributesCount = 2;
-                output.write(attributesCount & 0xFF00);
-                output.write(attributesCount & 0x00FF);
+                output.write(attributesCount >> 8);
+                output.write(attributesCount);
 
                 //LineNumberTable
                 attributeNameIndex = 22;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 attributeLength = 10;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 var lineNumberTableLength = 2;
-                output.write(lineNumberTableLength & 0xFF00);
-                output.write(lineNumberTableLength & 0x00FF);
+                output.write(lineNumberTableLength >> 8);
+                output.write(lineNumberTableLength);
 
                 var startPc = 0;
-                output.write(startPc & 0xFF00);
-                output.write(startPc & 0x00FF);
+                output.write(startPc >> 8);
+                output.write(startPc);
 
                 var lineNumber = 3;
-                output.write(lineNumber & 0xFF00);
-                output.write(lineNumber & 0x00FF);
+                output.write(lineNumber >> 8);
+                output.write(lineNumber);
 
                 startPc = 9;
-                output.write(startPc & 0xFF00);
-                output.write(startPc & 0x00FF);
+                output.write(startPc >> 8);
+                output.write(startPc);
 
                 lineNumber = 4;
-                output.write(lineNumber & 0xFF00);
-                output.write(lineNumber & 0x00FF);
+                output.write(lineNumber >> 8);
+                output.write(lineNumber);
 
                 //LocalVariableTable
                 attributeNameIndex = 23;
-                output.write(attributeNameIndex & 0xFF00);
-                output.write(attributeNameIndex & 0x00FF);
+                output.write(attributeNameIndex >> 8);
+                output.write(attributeNameIndex);
 
                 attributeLength = 0x0C;
-                output.write(attributeLength & 0xFF000000);
-                output.write(attributeLength & 0x00FF0000);
-                output.write(attributeLength & 0x0000FF00);
-                output.write(attributeLength & 0x000000FF);
+                output.write(attributeLength >> 24);
+                output.write(attributeLength >> 16);
+                output.write(attributeLength >> 8);
+                output.write(attributeLength);
 
                 lineNumberTableLength = 1;
-                output.write(lineNumberTableLength & 0xFF00);
-                output.write(lineNumberTableLength & 0x00FF);
+                output.write(lineNumberTableLength >> 8);
+                output.write(lineNumberTableLength);
 
                 startPc = 0;
-                output.write(startPc & 0xFF00);
-                output.write(startPc & 0x00FF);
+                output.write(startPc >> 8);
+                output.write(startPc);
 
                 var length = 10;
-                output.write(length & 0xFF00);
-                output.write(length & 0x00FF);
+                output.write(length >> 8);
+                output.write(length);
 
                 nameIndex = 0x1C; //args
-                output.write(nameIndex & 0xFF00);
-                output.write(nameIndex & 0x00FF);
+                output.write(nameIndex >> 8);
+                output.write(nameIndex);
 
                 descriptorIndex = 0x1D; //[String
-                output.write(descriptorIndex & 0xFF00);
-                output.write(descriptorIndex & 0x00FF);
+                output.write(descriptorIndex >> 8);
+                output.write(descriptorIndex);
 
                 var index = 0;
-                output.write(index & 0xFF00);
-                output.write(index & 0x00FF);
+                output.write(index >> 8);
+                output.write(index);
             }
         }
     }
 
     private void attributesCount() {
         var attributeCount = 1;
-        output.write(attributeCount & 0xFF00);
-        output.write(attributeCount & 0x00FF);
+        output.write(attributeCount >> 8);
+        output.write(attributeCount);
     }
 
     private void attributes() {
         sourceFile : {
             var nameIndex = 30; //todo: find in constant pool
-            output.write(nameIndex & 0xFF00);
-            output.write(nameIndex & 0x00FF);
+            output.write(nameIndex >> 8);
+            output.write(nameIndex);
 
             final var length = 2; //always 2
-            output.write(length & 0xFF000000);
-            output.write(length & 0x00FF0000);
-            output.write(length & 0x0000FF00);
-            output.write(length & 0x000000FF);
+            output.write(length >> 24);
+            output.write(length >> 16);
+            output.write(length >> 8);
+            output.write(length);
 
             var sourceFileIndex = 31; //todo: find in constant pool
-            output.write(sourceFileIndex & 0xFF00);
-            output.write(sourceFileIndex & 0x00FF);
+            output.write(sourceFileIndex >> 8);
+            output.write(sourceFileIndex);
         }
     }
 }
