@@ -22,9 +22,23 @@ public class CompilationUnit {
 
     public static class Method {
 
+        public enum AccessFlags {
+
+            ACC_PUBLIC(0x0001),
+            ACC_STATIC(0x0008),
+            ;
+
+            AccessFlags(int value) {
+                this.value = value;
+            }
+
+            public final int value;
+        }
+
+        public int flags;
         public Utf8 name;
         public Utf8 descriptor;
-        public List<Attribute> attributes = new ArrayList<>();
+        public List<CodeAttribute> attributes = new ArrayList<>();
     }
 
     public interface Attribute {

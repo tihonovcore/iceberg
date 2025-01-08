@@ -2,10 +2,7 @@ package iceberg.jvm;
 
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.cp.ConstantToBytes;
-import iceberg.jvm.ir.IrBody;
-import iceberg.jvm.ir.IrReturn;
-import iceberg.jvm.ir.IrSuperCall;
-import iceberg.jvm.ir.IrVisitor;
+import iceberg.jvm.ir.*;
 
 import java.util.Collection;
 
@@ -121,33 +118,14 @@ public class CodeGenerator {
     }
 
     private void methods(IcebergParser.FileContext file) {
-        enum AccessFlags {
-
-            ACC_PUBLIC(0x0001),
-            ACC_STATIC(0x0008),
-            ;
-
-            AccessFlags(int value) {
-                this.value = value;
-            }
-
-            final int value;
-        }
-
-        init : {
-            var method = compilationUnit.methods.get(0);
-
-            var flags = AccessFlags.ACC_PUBLIC.value;
-            output.writeU2(flags);
-
+        for (var method : compilationUnit.methods) {
+            output.writeU2(method.flags);
             output.writeU2(compilationUnit.constantPool.indexOf(method.name));
             output.writeU2(compilationUnit.constantPool.indexOf(method.descriptor));
 
             output.writeU2(method.attributes.size());
 
-            code : {
-                var attribute = (CompilationUnit.CodeAttribute) method.attributes.get(0);
-
+            for (var attribute : method.attributes) {
                 output.writeU2(compilationUnit.constantPool.indexOf(attribute.attributeName));
 
                 var codeAttributeLength = output.lateInitU4();
@@ -170,8 +148,40 @@ public class CodeGenerator {
                     }
 
                     @Override
-                    public void visitReturn(IrReturn irReturn) {
+                    public void visitIrReturn(IrReturn irReturn) {
                         output.writeU1(OpCodes.RETURN.value);
+                    }
+
+                    @Override
+                    public void visitIrNumber(IrNumber irNumber) {
+                        var value = irNumber.value;
+                        if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+                            output.writeU1(OpCodes.BIPUSH.value);
+                            output.writeU1(value);
+                        } else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+                            output.writeU1(OpCodes.SIPUSH.value);
+                            output.writeU2(value);
+                        } else {
+                            var indexInPool = compilationUnit.constantPool.findInteger(value);
+                            if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
+                                output.writeU1(OpCodes.LDC.value);
+                                output.writeU1(indexInPool);
+                            } else {
+                                output.writeU1(OpCodes.LDC_W.value);
+                                output.writeU2(indexInPool);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void visitIrStaticCall(IrStaticCall irStaticCall) {
+                        output.writeU1(OpCodes.GETSTATIC.value);
+                        output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.fieldRef));
+
+                        irStaticCall.arguments.forEach(e -> e.accept(this));
+
+                        output.writeU1(OpCodes.INVOKEVIRTUAL.value);
+                        output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.methodRef));
                     }
                 });
                 codeLength.init();
@@ -179,75 +189,6 @@ public class CodeGenerator {
                 output.writeU2(attribute.exceptionTable.size());
                 output.writeU2(attribute.attributes.size());
 
-                codeAttributeLength.init();
-            }
-        }
-
-        main : {
-            var flags = AccessFlags.ACC_PUBLIC.value | AccessFlags.ACC_STATIC.value;
-            output.writeU2(flags);
-
-            var nameIndex = 26; //todo: find in constant pool
-            output.writeU2(nameIndex);
-
-            var descriptorIndex = 27; //todo: find in constant pool
-            output.writeU2(descriptorIndex);
-
-            var attributesCount = 1;
-            output.writeU2(attributesCount);
-
-            code : {
-                var attributeNameIndex = 21;
-                output.writeU2(attributeNameIndex);
-
-                var codeAttributeLength = output.lateInitU4();
-
-                var maxStack = 2;
-                output.writeU2(maxStack);
-
-                var maxLocals = 1;
-                output.writeU2(maxLocals);
-
-                var codeLength = output.lateInitU4();
-                for (var print : file.printStatement()) {
-                    output.writeU1(OpCodes.GETSTATIC.value);
-                    output.writeU2(0x0007); // Field java/lang/System.out:Ljava/io/PrintStream;
-
-                    var value = Integer.parseInt(print.expression().getText());
-                    if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-                        output.writeU1(OpCodes.BIPUSH.value);
-                        output.writeU1(value);
-                    } else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-                        output.writeU1(OpCodes.SIPUSH.value);
-                        output.writeU2(value);
-                    } else if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
-                        var indexInPool = compilationUnit.constantPool.findInteger(value);
-                        if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
-                            output.writeU1(OpCodes.LDC.value);
-                            output.writeU1(indexInPool);
-                        } else {
-                            output.writeU1(OpCodes.LDC_W.value);
-                            output.writeU2(indexInPool);
-                        }
-                    } else {
-                        throw new IllegalStateException("not implemented");
-                    }
-
-                    output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                    output.writeU2(0x000D); // Method java/io/PrintStream.println:(I)V
-                }
-                output.writeU1(OpCodes.RETURN.value);
-
-                //fill codeLength
-                codeLength.init();
-
-                var exceptionTableLength = 0;
-                output.writeU2(exceptionTableLength);
-
-                attributesCount = 0;
-                output.writeU2(attributesCount);
-
-                //fill codeAttributeLength
                 codeAttributeLength.init();
             }
         }

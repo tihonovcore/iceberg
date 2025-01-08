@@ -6,6 +6,7 @@ import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
 import iceberg.jvm.phases.FillConstantPoolPhase;
 import iceberg.jvm.phases.GenerateDefaultConstructor;
+import iceberg.jvm.phases.GenerateMainMethod;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -54,6 +55,7 @@ public class CompilationPipeline {
             //compilation process
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
+            new GenerateMainMethod().execute(file, mainUnit);
             //todo: fill units
 
             //codegen

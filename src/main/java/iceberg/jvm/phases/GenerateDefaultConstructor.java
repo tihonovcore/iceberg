@@ -13,6 +13,7 @@ public class GenerateDefaultConstructor implements CompilationPhase {
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         var init = new CompilationUnit.Method();
+        init.flags = CompilationUnit.Method.AccessFlags.ACC_PUBLIC.value;
         init.name = unit.constantPool.computeUtf8("<init>");
         init.descriptor = unit.constantPool.computeUtf8("()V");
         init.attributes.add(createCodeAttribute(unit));

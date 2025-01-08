@@ -4,6 +4,6 @@ public class IrReturn implements IR {
 
     @Override
     public void accept(IrVisitor visitor) {
-        visitor.visitReturn(this);
+        visitor.visitIrReturn(this);
     }
 }

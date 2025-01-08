@@ -133,6 +133,40 @@ public class ConstantPool implements Iterable<Constant> {
         return constant;
     }
 
+    public FieldRef computeFieldRef(Klass klass, NameAndType nameAndType) {
+        var classIndex = indexOf(klass);
+        var nameAndTypeIndex = indexOf(nameAndType);
+
+        for (Constant constant : pool) {
+            if (constant instanceof FieldRef info
+                && info.classIndex == classIndex
+                && info.nameAndTypeIndex == nameAndTypeIndex
+            ) {
+                return info;
+            }
+        }
+
+        var constant = new FieldRef(classIndex, nameAndTypeIndex);
+        pool.add(constant);
+
+        return constant;
+    }
+
+    public Klass computeKlass(Utf8 utf8) {
+        var nameIndex = indexOf(utf8);
+
+        for (Constant constant : pool) {
+            if (constant instanceof Klass info && info.nameIndex == nameIndex) {
+                return info;
+            }
+        }
+
+        var constant = new Klass(nameIndex);
+        pool.add(constant);
+
+        return constant;
+    }
+
     public int count() {
         return pool.size() + 1;
     }
