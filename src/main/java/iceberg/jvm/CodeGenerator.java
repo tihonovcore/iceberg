@@ -150,14 +150,13 @@ public class CodeGenerator {
         }
 
         init : {
+            var method = compilationUnit.methods.get(0);
+
             var flags = AccessFlags.ACC_PUBLIC.value;
             output.writeU2(flags);
 
-            var nameIndex = 5; //todo: find in constant pool
-            output.writeU2(nameIndex);
-
-            var descriptorIndex = 6; //todo: find in constant pool
-            output.writeU2(descriptorIndex);
+            output.writeU2(compilationUnit.constantPool.indexOf(method.name));
+            output.writeU2(compilationUnit.constantPool.indexOf(method.descriptor));
 
             var attributesCount = 1;
             output.writeU2(attributesCount);
@@ -221,10 +220,10 @@ public class CodeGenerator {
                 var length = 5;
                 output.writeU2(length);
 
-                nameIndex = 0x18; //this
+                var nameIndex = 0x18; //this
                 output.writeU2(nameIndex);
 
-                descriptorIndex = 0x19; //LFoo
+                var descriptorIndex = 0x19; //LFoo
                 output.writeU2(descriptorIndex);
 
                 var index = 0;

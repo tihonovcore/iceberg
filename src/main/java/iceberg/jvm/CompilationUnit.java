@@ -2,6 +2,7 @@ package iceberg.jvm;
 
 import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
+import iceberg.jvm.cp.Utf8;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +14,34 @@ public class CompilationUnit {
     public Klass superRef = constantPool.OBJECT;
     public List<Object> interfaces = new ArrayList<>();
     public List<Object> fields = new ArrayList<>();
-    //List<Method> methods;
-    //List<Attribute> attributes;
+    public List<Method> methods = new ArrayList<>();
+    public List<Attribute> attributes;
 
     public byte[] bytes;
+
+    public static class Method {
+
+        public Utf8 name;
+        public Utf8 descriptor;
+        public List<Attribute> attributes;
+    }
+
+    public interface Attribute {
+    }
+
+    public static class CodeAttribute implements Attribute {
+
+        public Utf8 attributeName;
+        public int maxStack;
+        public int maxLocals;
+        public byte[] code;
+        public List<Object> exceptionTable = List.of();
+        public List<Attribute> attributes;
+    }
+
+    public static class LineNumberTableAttribute implements Attribute {
+    }
+
+    public static class LocalVariableTableAttribute implements Attribute {
+    }
 }

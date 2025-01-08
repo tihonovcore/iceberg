@@ -1,6 +1,7 @@
 package iceberg.jvm.cp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -79,6 +80,19 @@ public class ConstantPool implements Iterable<Constant> {
 
     public void addLong(long value) {
         throw new IllegalStateException("not implemented");
+    }
+
+    public Utf8 computeUtf8(String value) {
+        for (Constant constant : pool) {
+            if (constant instanceof Utf8 info && Arrays.equals(info.bytes, value.getBytes())) {
+                return info;
+            }
+        }
+
+        var constant = new Utf8(value);
+        pool.add(constant);
+
+        return constant;
     }
 
     public int count() {

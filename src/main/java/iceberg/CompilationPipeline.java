@@ -1,11 +1,11 @@
 package iceberg;
 
-import iceberg.antlr.IcebergBaseVisitor;
-import iceberg.antlr.IcebergParser;
 import iceberg.fe.CompilationException;
 import iceberg.fe.ParsingUtil;
 import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
+import iceberg.jvm.phases.FillConstantPoolPhase;
+import iceberg.jvm.phases.GenerateDefaultConstructor;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -52,7 +52,8 @@ public class CompilationPipeline {
             var compilationUnits = new ArrayList<>(List.of(mainUnit));
 
             //compilation process
-            fillConstantPool(file, mainUnit);
+            new FillConstantPoolPhase().execute(file, mainUnit);
+            new GenerateDefaultConstructor().execute(file, mainUnit);
             //todo: fill units
 
             //codegen
@@ -64,19 +65,5 @@ public class CompilationPipeline {
         }
 
         return null; //TODO: do smth
-    }
-
-    //TODO: move
-    private static void fillConstantPool(IcebergParser.FileContext file, CompilationUnit unit) {
-        file.accept(new IcebergBaseVisitor<>() {
-            @Override
-            public Object visitExpression(IcebergParser.ExpressionContext ctx) {
-                var value = Integer.parseInt(ctx.NUMBER().getText());
-                if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
-                    unit.constantPool.addInteger(value);
-                }
-                return super.visitExpression(ctx);
-            }
-        });
     }
 }
