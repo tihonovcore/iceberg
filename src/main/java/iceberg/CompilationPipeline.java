@@ -49,17 +49,16 @@ public class CompilationPipeline {
         try {
             var file = ParsingUtil.parse(source);
 
-            var mainUnit = new CompilationUnit();
+            var mainUnit = new CompilationUnit(); //TODO: заполнить attributes.sourceFile
             var compilationUnits = new ArrayList<>(List.of(mainUnit));
 
             //compilation process
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
             new GenerateMainMethod().execute(file, mainUnit);
-            //todo: fill units
 
             //codegen
-            CodeGenerator.codegen(compilationUnits, file);
+            CodeGenerator.codegen(compilationUnits);
 
             return compilationUnits;
         } catch (CompilationException exception) {

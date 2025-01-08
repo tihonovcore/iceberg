@@ -14,43 +14,11 @@ public class ConstantPool implements Iterable<Constant> {
 
     public ConstantPool() {
         pool = new ArrayList<>();
-        pool.add(new MethodRef(2, 3));
-        pool.add(new Klass(4));
-        pool.add(new NameAndType(5, 6));
-        pool.add(new Utf8("java/lang/Object"));
-        pool.add(new Utf8("<init>"));
-        pool.add(new Utf8("()V"));
-        pool.add(new FieldRef(8, 9));
-        pool.add(new Klass(10));
-        pool.add(new NameAndType(11, 12));
-        pool.add(new Utf8("java/lang/System"));
-        pool.add(new Utf8("out"));
-        pool.add(new Utf8("Ljava/io/PrintStream;"));
-        pool.add(new MethodRef(14, 15));
-        pool.add(new Klass(16));
-        pool.add(new NameAndType(17, 18));
-        pool.add(new Utf8("java/io/PrintStream"));
-        pool.add(new Utf8("println"));
-        pool.add(new Utf8("(I)V"));
-        pool.add(new Klass(20));
-        pool.add(new Utf8("Iceberg"));
-        pool.add(new Utf8("Code"));
-        pool.add(new Utf8("LineNumberTable"));
-        pool.add(new Utf8("LocalVariableTable"));
-        pool.add(new Utf8("this"));
-        pool.add(new Utf8("LIceberg;"));
-        pool.add(new Utf8("main"));
-        pool.add(new Utf8("([Ljava/lang/String;)V"));
-        pool.add(new Utf8("args"));
-        pool.add(new Utf8("[Ljava/lang/String;"));
-        pool.add(new Utf8("SourceFile"));
-        pool.add(new Utf8("Iceberg.java"));
 
         pool.add(new Utf8("java/lang/Object"));
         OBJECT = new Klass(pool.size());
         pool.add(OBJECT);
 
-        //TODO: для нескольких юнитов нужны разные имена
         pool.add(new Utf8("Iceberg"));
         ICEBERG = new Klass(pool.size());
         pool.add(ICEBERG);

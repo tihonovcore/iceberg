@@ -1,6 +1,5 @@
 package iceberg.jvm;
 
-import iceberg.antlr.IcebergParser;
 import iceberg.jvm.cp.ConstantToBytes;
 import iceberg.jvm.ir.*;
 
@@ -15,17 +14,14 @@ public class CodeGenerator {
         this.compilationUnit = unit;
     }
 
-    public static void codegen(
-        Collection<CompilationUnit> units,
-        @Deprecated IcebergParser.FileContext file
-    ) {
+    public static void codegen(Collection<CompilationUnit> units) {
         units.forEach(unit -> {
             var generator = new CodeGenerator(unit);
-            unit.bytes = generator.codegen(file);
+            unit.bytes = generator.codegen();
         });
     }
 
-    public byte[] codegen(IcebergParser.FileContext file) {
+    public byte[] codegen() {
         magic();
         minorVersion();
         majorVersion();
@@ -39,7 +35,7 @@ public class CodeGenerator {
         fieldsCount();
         fields();
         methodsCount();
-        methods(file);
+        methods();
         attributesCount();
         attributes();
 
@@ -113,11 +109,10 @@ public class CodeGenerator {
     }
 
     private void methodsCount() {
-        var methodsCount = 2; //init + main
-        output.writeU2(methodsCount);
+        output.writeU2(compilationUnit.methods.size());
     }
 
-    private void methods(IcebergParser.FileContext file) {
+    private void methods() {
         for (var method : compilationUnit.methods) {
             output.writeU2(method.flags);
             output.writeU2(compilationUnit.constantPool.indexOf(method.name));
@@ -195,20 +190,22 @@ public class CodeGenerator {
     }
 
     private void attributesCount() {
-        var attributeCount = 1;
+        var attributeCount = 0; //todo: use compilationUnit
         output.writeU2(attributeCount);
     }
 
     private void attributes() {
-        sourceFile : {
-            var nameIndex = 30; //todo: find in constant pool
-            output.writeU2(nameIndex);
-
-            final var length = 2; //always 2
-            output.writeU4(length);
-
-            var sourceFileIndex = 31; //todo: find in constant pool
-            output.writeU2(sourceFileIndex);
-        }
+//        sourceFile : {
+//        pool.add(new Utf8("SourceFile"));
+//            var nameIndex = 30; //todo: find in constant pool
+//            output.writeU2(nameIndex);
+//
+//            final var length = 2; //always 2
+//            output.writeU4(length);
+//
+//        pool.add(new Utf8("Iceberg.java"));
+//            var sourceFileIndex = 31; //todo: find in constant pool
+//            output.writeU2(sourceFileIndex);
+//        }
     }
 }
