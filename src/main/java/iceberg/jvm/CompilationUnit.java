@@ -3,6 +3,7 @@ package iceberg.jvm;
 import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
 import iceberg.jvm.cp.Utf8;
+import iceberg.jvm.ir.IrBody;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class CompilationUnit {
         public int maxStack;
         public int maxLocals;
         public byte[] code;
+        public IrBody body;
         public List<Object> exceptionTable = List.of();
         public List<Attribute> attributes = List.of();
     }

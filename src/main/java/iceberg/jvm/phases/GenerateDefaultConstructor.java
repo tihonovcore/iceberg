@@ -4,6 +4,9 @@ import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ByteArray;
 import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.OpCodes;
+import iceberg.jvm.ir.IrBody;
+import iceberg.jvm.ir.IrSuperCall;
+import iceberg.jvm.ir.IrReturn;
 
 public class GenerateDefaultConstructor implements CompilationPhase {
 
@@ -35,6 +38,16 @@ public class GenerateDefaultConstructor implements CompilationPhase {
         code.writeU2(unit.constantPool.indexOf(methodRef));
         code.writeU1(OpCodes.RETURN.value);
         attribute.code = code.bytes();
+
+        {
+            var callSuperStatement = new IrSuperCall(methodRef);
+            var returnStatement = new IrReturn();
+
+            var body = new IrBody();
+            body.statements.add(callSuperStatement);
+            body.statements.add(returnStatement);
+            attribute.body = body;
+        }
 
         return attribute;
     }

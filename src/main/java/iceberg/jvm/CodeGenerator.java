@@ -2,6 +2,10 @@ package iceberg.jvm;
 
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.cp.ConstantToBytes;
+import iceberg.jvm.ir.IrBody;
+import iceberg.jvm.ir.IrReturn;
+import iceberg.jvm.ir.IrSuperCall;
+import iceberg.jvm.ir.IrVisitor;
 
 import java.util.Collection;
 
@@ -150,8 +154,27 @@ public class CodeGenerator {
 
                 output.writeU2(attribute.maxStack);
                 output.writeU2(attribute.maxLocals);
-                output.writeU4(attribute.code.length);
-                output.writeBytes(attribute.code);
+
+                var codeLength = output.lateInitU4();
+                attribute.body.accept(new IrVisitor() {
+                    @Override
+                    public void visitIrBody(IrBody irBody) {
+                        irBody.statements.forEach(s -> s.accept(this));
+                    }
+
+                    @Override
+                    public void visitIrSuperCall(IrSuperCall irSuperCall) {
+                        output.writeU1(OpCodes.ALOAD_0.value);
+                        output.writeU1(OpCodes.INVOKESPECIAL.value);
+                        output.writeU2(compilationUnit.constantPool.indexOf(irSuperCall.methodRef));
+                    }
+
+                    @Override
+                    public void visitReturn(IrReturn irReturn) {
+                        output.writeU1(OpCodes.RETURN.value);
+                    }
+                });
+                codeLength.init();
 
                 output.writeU2(attribute.exceptionTable.size());
                 output.writeU2(attribute.attributes.size());
@@ -186,8 +209,6 @@ public class CodeGenerator {
                 output.writeU2(maxLocals);
 
                 var codeLength = output.lateInitU4();
-
-                var codeStartIndex = output.length();
                 for (var print : file.printStatement()) {
                     output.writeU1(OpCodes.GETSTATIC.value);
                     output.writeU2(0x0007); // Field java/lang/System.out:Ljava/io/PrintStream;
