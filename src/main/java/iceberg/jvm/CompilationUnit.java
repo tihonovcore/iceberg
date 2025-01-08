@@ -4,10 +4,12 @@ import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
 import iceberg.jvm.cp.Utf8;
 import iceberg.jvm.ir.IrBody;
+import iceberg.jvm.target.SourceAttribute;
 
 import java.util.ArrayList;
 import java.util.List;
 
+//TODO: move all classes to jvm.target
 public class CompilationUnit {
 
     public ConstantPool constantPool = new ConstantPool();
@@ -16,7 +18,7 @@ public class CompilationUnit {
     public List<Object> interfaces = new ArrayList<>();
     public List<Object> fields = new ArrayList<>();
     public List<Method> methods = new ArrayList<>();
-    public List<Attribute> attributes;
+    public List<SourceAttribute> attributes = new ArrayList<>();
 
     public byte[] bytes;
 
@@ -52,11 +54,5 @@ public class CompilationUnit {
         public IrBody body;
         public List<Object> exceptionTable = List.of();
         public List<Attribute> attributes = List.of();
-    }
-
-    public static class LineNumberTableAttribute implements Attribute {
-    }
-
-    public static class LocalVariableTableAttribute implements Attribute {
     }
 }

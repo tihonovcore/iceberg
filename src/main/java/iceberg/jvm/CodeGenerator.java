@@ -190,22 +190,15 @@ public class CodeGenerator {
     }
 
     private void attributesCount() {
-        var attributeCount = 0; //todo: use compilationUnit
-        output.writeU2(attributeCount);
+        output.writeU2(compilationUnit.attributes.size());
     }
 
     private void attributes() {
-//        sourceFile : {
-//        pool.add(new Utf8("SourceFile"));
-//            var nameIndex = 30; //todo: find in constant pool
-//            output.writeU2(nameIndex);
-//
-//            final var length = 2; //always 2
-//            output.writeU4(length);
-//
-//        pool.add(new Utf8("Iceberg.java"));
-//            var sourceFileIndex = 31; //todo: find in constant pool
-//            output.writeU2(sourceFileIndex);
-//        }
+        for (var attribute : compilationUnit.attributes) {
+            output.writeU2(compilationUnit.constantPool.indexOf(attribute.attributeName));
+            final var length = 2; //always 2
+            output.writeU4(length);
+            output.writeU2(compilationUnit.constantPool.indexOf(attribute.sourceFileName));
+        }
     }
 }

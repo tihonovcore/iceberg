@@ -7,6 +7,7 @@ import iceberg.jvm.CodeGenerator;
 import iceberg.jvm.phases.FillConstantPoolPhase;
 import iceberg.jvm.phases.GenerateDefaultConstructor;
 import iceberg.jvm.phases.GenerateMainMethod;
+import iceberg.jvm.target.SourceAttribute;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +50,12 @@ public class CompilationPipeline {
         try {
             var file = ParsingUtil.parse(source);
 
-            var mainUnit = new CompilationUnit(); //TODO: заполнить attributes.sourceFile
+            var mainUnit = new CompilationUnit();
+            mainUnit.attributes.add(new SourceAttribute(
+                mainUnit.constantPool.computeUtf8("SourceFile"),
+                mainUnit.constantPool.computeUtf8("Iceberg.ib")
+            ));
+
             var compilationUnits = new ArrayList<>(List.of(mainUnit));
 
             //compilation process
