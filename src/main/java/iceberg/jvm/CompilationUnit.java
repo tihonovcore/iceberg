@@ -23,7 +23,7 @@ public class CompilationUnit {
 
         public Utf8 name;
         public Utf8 descriptor;
-        public List<Attribute> attributes;
+        public List<Attribute> attributes = new ArrayList<>();
     }
 
     public interface Attribute {
@@ -36,7 +36,7 @@ public class CompilationUnit {
         public int maxLocals;
         public byte[] code;
         public List<Object> exceptionTable = List.of();
-        public List<Attribute> attributes;
+        public List<Attribute> attributes = List.of();
     }
 
     public static class LineNumberTableAttribute implements Attribute {

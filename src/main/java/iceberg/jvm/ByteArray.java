@@ -61,6 +61,26 @@ public class ByteArray {
         putU1(index + 3, i);
     }
 
+    public class LateInitU4 {
+
+        private final int index;
+        private final int start;
+
+        LateInitU4() {
+            this.index = length();
+            writeU4(0x0000);
+            this.start = length();
+        }
+
+        public void init() {
+            putU4(index, length() - start);
+        }
+    }
+
+    public LateInitU4 lateInitU4() {
+        return new LateInitU4();
+    }
+
     public byte[] bytes() {
         return Arrays.copyOf(buffer, count);
     }

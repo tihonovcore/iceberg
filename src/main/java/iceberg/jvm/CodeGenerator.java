@@ -130,25 +130,6 @@ public class CodeGenerator {
             final int value;
         }
 
-        enum OpCodes {
-            ALOAD_0(0x2A),
-            RETURN(0xB1),
-            GETSTATIC(0xB2),
-            INVOKEVIRTUAL(0xB6),
-            INVOKESPECIAL(0xB7),
-            BIPUSH(0x10),
-            SIPUSH(0x11),
-            LDC(0x12),
-            LDC_W(0x13),
-            ;
-
-            OpCodes(int value) {
-                this.value = value;
-            }
-
-            final int value;
-        }
-
         init : {
             var method = compilationUnit.methods.get(0);
 
@@ -158,76 +139,24 @@ public class CodeGenerator {
             output.writeU2(compilationUnit.constantPool.indexOf(method.name));
             output.writeU2(compilationUnit.constantPool.indexOf(method.descriptor));
 
-            var attributesCount = 1;
-            output.writeU2(attributesCount);
+            output.writeU2(method.attributes.size());
 
             code : {
-                var attributeNameIndex = 21;
-                output.writeU2(attributeNameIndex);
+                var attribute = (CompilationUnit.CodeAttribute) method.attributes.get(0);
 
-                var attributeLength = 0x2F;
-                output.writeU4(attributeLength);
+                output.writeU2(compilationUnit.constantPool.indexOf(attribute.attributeName));
 
-                var maxStack = 1;
-                output.writeU2(maxStack);
+                var codeAttributeLength = output.lateInitU4();
 
-                var maxLocals = 1;
-                output.writeU2(maxLocals);
+                output.writeU2(attribute.maxStack);
+                output.writeU2(attribute.maxLocals);
+                output.writeU4(attribute.code.length);
+                output.writeBytes(attribute.code);
 
-                var codeLength = 5;
-                output.writeU4(codeLength);
+                output.writeU2(attribute.exceptionTable.size());
+                output.writeU2(attribute.attributes.size());
 
-                output.writeU1(OpCodes.ALOAD_0.value);
-                output.writeU1(OpCodes.INVOKESPECIAL.value);
-                output.writeU2(0x0001); // Method java/lang/Object."<init>":()V
-                output.writeU1(OpCodes.RETURN.value);
-
-                var exceptionTableLength = 0;
-                output.writeU2(exceptionTableLength);
-
-                attributesCount = 2;
-                output.writeU2(attributesCount);
-
-                //LineNumberTable
-                attributeNameIndex = 22;
-                output.writeU2(attributeNameIndex);
-
-                attributeLength = 6;
-                output.writeU4(attributeLength);
-
-                var lineNumberTableLength = 1;
-                output.writeU2(lineNumberTableLength);
-
-                var startPc = 0;
-                output.writeU2(startPc);
-
-                var lineNumber = 1;
-                output.writeU2(lineNumber);
-
-                //LocalVariableTable
-                attributeNameIndex = 23;
-                output.writeU2(attributeNameIndex);
-
-                attributeLength = 0x0C;
-                output.writeU4(attributeLength);
-
-                lineNumberTableLength = 1;
-                output.writeU2(lineNumberTableLength);
-
-                startPc = 0;
-                output.writeU2(startPc);
-
-                var length = 5;
-                output.writeU2(length);
-
-                var nameIndex = 0x18; //this
-                output.writeU2(nameIndex);
-
-                var descriptorIndex = 0x19; //LFoo
-                output.writeU2(descriptorIndex);
-
-                var index = 0;
-                output.writeU2(index);
+                codeAttributeLength.init();
             }
         }
 
@@ -248,10 +177,7 @@ public class CodeGenerator {
                 var attributeNameIndex = 21;
                 output.writeU2(attributeNameIndex);
 
-                var codeAttributeLengthIndex = output.length();
-                var attributeLength = 0x0000;
-                output.writeU4(attributeLength);
-                var codeAttributeStartIndex = output.length();
+                var codeAttributeLength = output.lateInitU4();
 
                 var maxStack = 2;
                 output.writeU2(maxStack);
@@ -259,9 +185,7 @@ public class CodeGenerator {
                 var maxLocals = 1;
                 output.writeU2(maxLocals);
 
-                var codeLengthIndex = output.length();
-                var codeLength = 0x0000;
-                output.writeU4(codeLength);
+                var codeLength = output.lateInitU4();
 
                 var codeStartIndex = output.length();
                 for (var print : file.printStatement()) {
@@ -294,7 +218,7 @@ public class CodeGenerator {
                 output.writeU1(OpCodes.RETURN.value);
 
                 //fill codeLength
-                output.putU4(codeLengthIndex, output.length() - codeStartIndex);
+                codeLength.init();
 
                 var exceptionTableLength = 0;
                 output.writeU2(exceptionTableLength);
@@ -302,55 +226,8 @@ public class CodeGenerator {
                 attributesCount = 0;
                 output.writeU2(attributesCount);
 
-//                //LineNumberTable
-//                attributeNameIndex = 22;
-//                output.writeU2(attributeNameIndex);
-//
-//                attributeLength = 10;
-//                output.writeU4(attributeLength);
-//
-//                var lineNumberTableLength = 2;
-//                output.writeU2(lineNumberTableLength);
-//
-//                var startPc = 0;
-//                output.writeU2(startPc);
-//
-//                var lineNumber = 3;
-//                output.writeU2(lineNumber);
-//
-//                startPc = 9;
-//                output.writeU2(startPc);
-//
-//                lineNumber = 4;
-//                output.writeU2(lineNumber);
-
-//                //LocalVariableTable
-//                attributeNameIndex = 23;
-//                output.writeU2(attributeNameIndex);
-//
-//                attributeLength = 0x0C;
-//                output.writeU4(attributeLength);
-//
-//                lineNumberTableLength = 1;
-//                output.writeU2(lineNumberTableLength);
-//
-//                startPc = 0;
-//                output.writeU2(startPc);
-//
-//                var length = 10;
-//                output.writeU2(length);
-//
-//                nameIndex = 0x1C; //args
-//                output.writeU2(nameIndex);
-//
-//                descriptorIndex = 0x1D; //[String
-//                output.writeU2(descriptorIndex);
-//
-//                var index = 0;
-//                output.writeU2(index);
-
                 //fill codeAttributeLength
-                output.putU4(codeAttributeLengthIndex, output.length() - codeAttributeStartIndex);
+                codeAttributeLength.init();
             }
         }
     }

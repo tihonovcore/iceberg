@@ -95,6 +95,44 @@ public class ConstantPool implements Iterable<Constant> {
         return constant;
     }
 
+    public NameAndType computeNameAndType(Utf8 name, Utf8 descriptor) {
+        var nameIndex = indexOf(name);
+        var descriptorIndex = indexOf(descriptor);
+
+        for (Constant constant : pool) {
+            if (constant instanceof NameAndType info
+                && info.nameIndex == nameIndex
+                && info.descriptorIndex == descriptorIndex
+            ) {
+                return info;
+            }
+        }
+
+        var constant = new NameAndType(nameIndex, descriptorIndex);
+        pool.add(constant);
+
+        return constant;
+    }
+
+    public MethodRef computeMethodRef(Klass klass, NameAndType nameAndType) {
+        var classIndex = indexOf(klass);
+        var nameAndTypeIndex = indexOf(nameAndType);
+
+        for (Constant constant : pool) {
+            if (constant instanceof MethodRef info
+                && info.classIndex == classIndex
+                && info.nameAndTypeIndex == nameAndTypeIndex
+            ) {
+                return info;
+            }
+        }
+
+        var constant = new MethodRef(classIndex, nameAndTypeIndex);
+        pool.add(constant);
+
+        return constant;
+    }
+
     public int count() {
         return pool.size() + 1;
     }
