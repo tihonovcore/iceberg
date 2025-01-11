@@ -14,11 +14,11 @@ class PrintTest {
     @Test
     void numbers() {
         var file = ParsingUtil.parse("print 20; print 0; print 1; print -10;");
-        assertThat(file.printStatement())
+        assertThat(file.statement())
             .hasSize(4)
-            .allMatch(print -> {
+            .allMatch(stmt -> {
                 try {
-                    Integer.parseInt(print.expression().getText());
+                    Integer.parseInt(stmt.printStatement().expression().getText());
                     return true;
                 } catch (Exception ignore) {
                     return false;
@@ -29,9 +29,9 @@ class PrintTest {
     @Test
     void skipWs() {
         var file = ParsingUtil.parse("\nprint\t\r    27 \t\n; \t");
-        assertThat(file.printStatement()).hasSize(1);
+        assertThat(file.statement()).hasSize(1);
 
-        var expression = file.printStatement(0).expression();
+        var expression = file.statement(0).printStatement().expression();
         assertThat(expression.getText()).isEqualTo("27");
     }
 
@@ -42,7 +42,7 @@ class PrintTest {
     })
     void booleans(String source) {
         var file = ParsingUtil.parse(source);
-        assertThat(file.printStatement()).hasSize(1);
+        assertThat(file.statement()).hasSize(1);
     }
 
     @ParameterizedTest
@@ -75,7 +75,7 @@ class PrintTest {
     })
     void strings(String source) {
         var file = ParsingUtil.parse(source);
-        assertThat(file.printStatement()).hasSize(1);
+        assertThat(file.statement()).hasSize(1);
     }
 
     @ParameterizedTest

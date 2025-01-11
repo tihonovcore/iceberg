@@ -4,7 +4,11 @@ grammar Iceberg;
 package iceberg.antlr;
 }
 
-file : (printStatement SEMICOLON)* EOF;
+file : (statement SEMICOLON)* EOF;
+
+statement
+  : printStatement
+  ;
 
 printStatement : PRINT expression;
 

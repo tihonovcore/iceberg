@@ -38,7 +38,7 @@ public class GenerateMainMethod implements CompilationPhase {
             @Override
             public IR visitFile(IcebergParser.FileContext ctx) {
                 var irBody = new IrBody();
-                for (var statement : ctx.printStatement()) {
+                for (var statement : ctx.statement()) {
                     irBody.statements.add(statement.accept(this));
                 }
                 irBody.statements.add(new IrReturn());
