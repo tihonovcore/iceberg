@@ -1,15 +1,14 @@
 package iceberg.jvm.ir;
 
-public class IrNumber implements IrExpression {
+public class IrNumber extends IrExpression {
 
     public final long value;
-    public final IcebergType type;
 
     public IrNumber(long value) {
-        this.value = value;
-        this.type = Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE
+        super(Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE
             ? IcebergType.i32
-            : IcebergType.i64;
+            : IcebergType.i64);
+        this.value = value;
     }
 
     @Override

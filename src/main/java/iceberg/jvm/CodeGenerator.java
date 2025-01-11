@@ -173,6 +173,15 @@ public class CodeGenerator {
                     }
 
                     @Override
+                    public void visitIrBool(IrBool irBool) {
+                        if (irBool.value) {
+                            output.writeU1(OpCodes.ICONST_1.value);
+                        } else {
+                            output.writeU1(OpCodes.ICONST_0.value);
+                        }
+                    }
+
+                    @Override
                     public void visitIrStaticCall(IrStaticCall irStaticCall) {
                         output.writeU1(OpCodes.GETSTATIC.value);
                         output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.fieldRef));

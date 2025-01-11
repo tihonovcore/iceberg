@@ -1,5 +1,10 @@
 package iceberg.jvm.ir;
 
-public interface IrExpression extends IR {
+public abstract class IrExpression implements IR {
 
+    public final IcebergType type;
+
+    protected IrExpression(IcebergType type) {
+        this.type = type;
+    }
 }

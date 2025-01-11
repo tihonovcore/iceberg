@@ -6,7 +6,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-public class PrintNumbersTest extends Base {
+public class PrintConstantsTest extends Base {
 
     @ParameterizedTest
     @MethodSource
@@ -33,6 +33,19 @@ public class PrintNumbersTest extends Base {
             Arguments.of("print -2147483647;", "-2147483647\n"),
             Arguments.of("print -2147483648;", "-2147483648\n"),
             Arguments.of("print -9223372036854775808;", "-9223372036854775808\n")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void bool(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> bool() {
+        return Stream.of(
+            Arguments.of("print true;", "true\n"),
+            Arguments.of("print false;", "false\n")
         );
     }
 }

@@ -7,4 +7,5 @@ public interface IrVisitor {
     void visitIrReturn(IrReturn irReturn);
     void visitIrStaticCall(IrStaticCall irStaticCall);
     void visitIrNumber(IrNumber irNumber);
+    void visitIrBool(IrBool irBool);
 }

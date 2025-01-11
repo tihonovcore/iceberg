@@ -9,10 +9,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class ParserTest {
+class PrintTest {
 
     @Test
-    void positive() {
+    void numbers() {
         var file = ParsingUtil.parse("print 20; print 0; print 1; print -10;");
         assertThat(file.printStatement())
             .hasSize(4)
@@ -26,9 +26,33 @@ class ParserTest {
             });
     }
 
+    @Test
+    void skipWs() {
+        var file = ParsingUtil.parse("\nprint\t\r    27 \t\n; \t");
+        assertThat(file.printStatement()).hasSize(1);
+
+        var expression = file.printStatement(0).expression();
+        assertThat(expression.getText()).isEqualTo("27");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {
-        "print print;", "print 10", "print 0001;"
+        "print false;",
+        "print true;",
+    })
+    void booleans(String source) {
+        var file = ParsingUtil.parse(source);
+        assertThat(file.printStatement()).hasSize(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "print print;",
+        "print 10",
+        "print 0001;",
+        "pRINt 10;",
+        "print False;",
+        "print TRUE;",
     })
     void negative(String source) {
         assertThrows(CompilationException.class, () -> ParsingUtil.parse(source));

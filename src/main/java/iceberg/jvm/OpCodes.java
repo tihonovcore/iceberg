@@ -1,6 +1,8 @@
 package iceberg.jvm;
 
 public enum OpCodes {
+    ICONST_0(0x03),
+    ICONST_1(0x04),
     ALOAD_0(0x2A),
     RETURN(0xB1),
     GETSTATIC(0xB2),
