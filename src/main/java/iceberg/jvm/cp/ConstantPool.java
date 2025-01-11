@@ -46,8 +46,22 @@ public class ConstantPool implements Iterable<Constant> {
         }
     }
 
+    public int findLong(long value) {
+        for (int i = 0; i < pool.size(); i++) {
+            var constant = pool.get(i);
+            if (constant instanceof LongInfo info && info.value() == value) {
+                return i + 1; //numeration with 1
+            }
+        }
+
+        return -1;
+    }
+
     public void addLong(long value) {
-        throw new IllegalStateException("not implemented");
+        if (findLong(value) == -1) {
+            pool.add(new LongInfo(value));
+            pool.add(new Noop()); // long take 2 indexes from pool
+        }
     }
 
     public Utf8 computeUtf8(String value) {

@@ -4,6 +4,8 @@ import iceberg.antlr.IcebergParser;
 import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.ir.*;
 
+import java.util.Map;
+
 public class GenerateMainMethod implements CompilationPhase {
 
     @Override
@@ -25,8 +27,8 @@ public class GenerateMainMethod implements CompilationPhase {
     ) {
         var attribute = new CompilationUnit.CodeAttribute();
         attribute.attributeName = unit.constantPool.computeUtf8("Code");
-        attribute.maxStack = 2; //TODO: how to evaluate?
-        attribute.maxLocals = 1; //TODO: how to evaluate?
+        attribute.maxStack = 100; //TODO: how to evaluate?
+        attribute.maxLocals = 100; //TODO: how to evaluate?
 
         var system = unit.constantPool.computeKlass(
             unit.constantPool.computeUtf8("java/lang/System")
@@ -37,19 +39,26 @@ public class GenerateMainMethod implements CompilationPhase {
         );
         var field = unit.constantPool.computeFieldRef(system, out);
 
-        var printStream = unit.constantPool.computeKlass(
-            unit.constantPool.computeUtf8("java/io/PrintStream")
-        );
-        var println = unit.constantPool.computeNameAndType(
-            unit.constantPool.computeUtf8("println"),
-            unit.constantPool.computeUtf8("(I)V")
-        );
-        var method = unit.constantPool.computeMethodRef(printStream, println);
-
         var irBody = new IrBody();
         for (var statement : file.printStatement()) {
-            var value = Integer.parseInt(statement.expression().getText());
+            var value = Long.parseLong(statement.expression().getText());
             var constant = new IrNumber(value);
+
+            var printStream = unit.constantPool.computeKlass(
+                unit.constantPool.computeUtf8("java/io/PrintStream")
+            );
+            var println = unit.constantPool.computeNameAndType(
+                unit.constantPool.computeUtf8("println"),
+                unit.constantPool.computeUtf8(
+                    Map.of(
+                        IcebergType.i32, "(I)V",
+                        IcebergType.i64, "(J)V",
+                        IcebergType.bool, "(B)V",
+                        IcebergType.string, "(Ljava/lang/String;)V"
+                    ).get(constant.type)
+                )
+            );
+            var method = unit.constantPool.computeMethodRef(printStream, println);
 
             var irStaticCall = new IrStaticCall(field, method, constant);
 

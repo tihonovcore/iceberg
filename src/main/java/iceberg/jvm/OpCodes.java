@@ -10,6 +10,7 @@ public enum OpCodes {
     SIPUSH(0x11),
     LDC(0x12),
     LDC_W(0x13),
+    LDC_W2(0x14),
     ;
 
     OpCodes(int value) {

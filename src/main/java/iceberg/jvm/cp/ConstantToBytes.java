@@ -70,4 +70,9 @@ public class ConstantToBytes implements ConstantVisitor<byte[]> {
         result.writeU4(constant.lowBytes);
         return result.bytes();
     }
+
+    @Override
+    public byte[] visitNoop(Noop constant) {
+        return new byte[0];
+    }
 }

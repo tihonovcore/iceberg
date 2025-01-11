@@ -11,10 +11,13 @@ public class FillConstantPoolPhase implements CompilationPhase {
         file.accept(new IcebergBaseVisitor<>() {
             @Override
             public Object visitExpression(IcebergParser.ExpressionContext ctx) {
-                var value = Integer.parseInt(ctx.NUMBER().getText());
-                if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
-                    unit.constantPool.addInteger(value);
+                long value = Long.parseLong(ctx.NUMBER().getText());
+                if (value < Integer.MIN_VALUE || Integer.MAX_VALUE < value) {
+                    unit.constantPool.addLong(value);
+                } else if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
+                    unit.constantPool.addInteger((int) value);
                 }
+
                 return super.visitExpression(ctx);
             }
         });

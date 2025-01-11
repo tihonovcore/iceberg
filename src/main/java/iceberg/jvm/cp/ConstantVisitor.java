@@ -9,4 +9,5 @@ public interface ConstantVisitor<T> {
     T visitMethodRef(MethodRef constant);
     T visitIntegerInfo(IntegerInfo constant);
     T visitLongInfo(LongInfo constant);
+    T visitNoop(Noop constant);
 }

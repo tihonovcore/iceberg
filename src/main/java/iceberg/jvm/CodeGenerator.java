@@ -152,12 +152,12 @@ public class CodeGenerator {
                         var value = irNumber.value;
                         if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
                             output.writeU1(OpCodes.BIPUSH.value);
-                            output.writeU1(value);
+                            output.writeU1((int) value);
                         } else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
                             output.writeU1(OpCodes.SIPUSH.value);
-                            output.writeU2(value);
-                        } else {
-                            var indexInPool = compilationUnit.constantPool.findInteger(value);
+                            output.writeU2((int) value);
+                        } else if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
+                            var indexInPool = compilationUnit.constantPool.findInteger((int) value);
                             if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
                                 output.writeU1(OpCodes.LDC.value);
                                 output.writeU1(indexInPool);
@@ -165,6 +165,10 @@ public class CodeGenerator {
                                 output.writeU1(OpCodes.LDC_W.value);
                                 output.writeU2(indexInPool);
                             }
+                        } else {
+                            var indexInPool = compilationUnit.constantPool.findLong(value);
+                            output.writeU1(OpCodes.LDC_W2.value);
+                            output.writeU2(indexInPool);
                         }
                     }
 

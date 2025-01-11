@@ -10,6 +10,10 @@ public class LongInfo extends Constant {
         this.lowBytes = (int) number;
     }
 
+    public long value() {
+        return ((long) highBytes << 32) | (lowBytes & 0xFFFFFFFFL);
+    }
+
     @Override
     int tag() {
         return 5;
