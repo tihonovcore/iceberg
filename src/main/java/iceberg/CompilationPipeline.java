@@ -31,7 +31,7 @@ public class CompilationPipeline {
             """;
         var bytes = compile(dummySource).iterator().next().bytes;
 
-        var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Foo.class");
+        var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Iceberg.class");
         Files.write(path, bytes, CREATE, WRITE);
 
         var classLoader = new Misc.ByteClassLoader(Misc.class.getClassLoader());
