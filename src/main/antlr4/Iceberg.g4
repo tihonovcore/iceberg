@@ -12,6 +12,7 @@ expression
   : NUMBER
   | FALSE
   | TRUE
+  | STRING
   ;
 
 PRINT : 'print';
@@ -19,6 +20,17 @@ PRINT : 'print';
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE: 'false';
 TRUE: 'true';
+
+STRING
+    : '"' (ESCAPE | CHAR)* '"'
+    ;
+fragment ESCAPE
+    : '\\"'
+    | '\\n'
+    ;
+fragment CHAR
+    : ~ ["\\]
+    ;
 
 SEMICOLON : ';';
 

@@ -1,5 +1,6 @@
 package e2e;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -47,5 +48,75 @@ public class PrintConstantsTest extends Base {
             Arguments.of("print true;", "true\n"),
             Arguments.of("print false;", "false\n")
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void string(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> string() {
+        return Stream.of(
+            Arguments.of("""
+                print "foo";
+                """, "foo\n"),
+            Arguments.of("""
+                print "бар";
+                """, "бар\n"),
+            Arguments.of("""
+                print "Ǡ Ѩ ɚ ȡ";
+                """, "Ǡ Ѩ ɚ ȡ\n"),
+            Arguments.of("""
+                print "12345";
+                """, "12345\n"),
+            Arguments.of("""
+                print "\\"foo";
+                """, "\"foo\n"),
+            Arguments.of("""
+                print "\\"foo\\"";
+                """, "\"foo\"\n"),
+            Arguments.of("""
+                print "foo\\"";
+                """, "foo\"\n"),
+            Arguments.of("""
+                print "foo\\"bar";
+                """, "foo\"bar\n"),
+            Arguments.of("""
+                print "\\nfoo";
+                """, "\nfoo\n"),
+            Arguments.of("""
+                print "\\nfoo\\n";
+                """, "\nfoo\n\n"),
+            Arguments.of(
+                """
+                print "foo\\n";
+                """, "foo\n\n"),
+            Arguments.of("""
+                print "foo\\nbar";
+                """, "foo\nbar\n")
+        );
+    }
+
+    @Test
+    void multiline() {
+        execute("""
+            print 123;
+            print -123;
+            print false;
+            print "from \\"рога и копыта\\" inc";
+            print "on top\\non bottom";
+            print 123456789;
+            print 12345678987654321;
+            """, """
+            123
+            -123
+            false
+            from "рога и копыта" inc
+            on top
+            on bottom
+            123456789
+            12345678987654321
+            """);
     }
 }

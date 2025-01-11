@@ -77,6 +77,21 @@ public class ConstantPool implements Iterable<Constant> {
         return constant;
     }
 
+    public StringInfo computeString(String value) {
+        var utf8Index = indexOf(computeUtf8(value));
+
+        for (Constant constant : pool) {
+            if (constant instanceof StringInfo info && info.stringIndex == utf8Index) {
+                return info;
+            }
+        }
+
+        var constant = new StringInfo(utf8Index);
+        pool.add(constant);
+
+        return constant;
+    }
+
     public NameAndType computeNameAndType(Utf8 name, Utf8 descriptor) {
         var nameIndex = indexOf(name);
         var descriptorIndex = indexOf(descriptor);

@@ -55,6 +55,14 @@ public class ConstantToBytes implements ConstantVisitor<byte[]> {
     }
 
     @Override
+    public byte[] visitStringInfo(StringInfo constant) {
+        var result = new ByteArray();
+        result.writeU1(constant.tag());
+        result.writeU2(constant.stringIndex);
+        return result.bytes();
+    }
+
+    @Override
     public byte[] visitIntegerInfo(IntegerInfo constant) {
         var result = new ByteArray();
         result.writeU1(constant.tag());

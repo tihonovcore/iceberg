@@ -182,6 +182,18 @@ public class CodeGenerator {
                     }
 
                     @Override
+                    public void visitIrString(IrString irString) {
+                        var indexInPool = compilationUnit.constantPool.indexOf(irString.value);
+                        if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
+                            output.writeU1(OpCodes.LDC.value);
+                            output.writeU1(indexInPool);
+                        } else {
+                            output.writeU1(OpCodes.LDC_W.value);
+                            output.writeU2(indexInPool);
+                        }
+                    }
+
+                    @Override
                     public void visitIrStaticCall(IrStaticCall irStaticCall) {
                         output.writeU1(OpCodes.GETSTATIC.value);
                         output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.fieldRef));

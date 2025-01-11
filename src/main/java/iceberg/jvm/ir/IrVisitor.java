@@ -8,4 +8,5 @@ public interface IrVisitor {
     void visitIrStaticCall(IrStaticCall irStaticCall);
     void visitIrNumber(IrNumber irNumber);
     void visitIrBool(IrBool irBool);
+    void visitIrString(IrString irString);
 }

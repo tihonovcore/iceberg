@@ -47,6 +47,39 @@ class PrintTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+        """
+        print "foo";
+        """, """
+        print "бар";
+        """, """
+        print "Ǡ Ѩ ɚ ȡ";
+        """, """
+        print "12345";
+        """, """
+        print "\\"foo";
+        """, """
+        print "\\"foo\\"";
+        """, """
+        print "foo\\"";
+        """, """
+        print "foo\\"bar";
+        """, """
+        print "\\nfoo";
+        """, """
+        print "\\nfoo\\n";
+        """, """
+        print "foo\\n";
+        """, """
+        print "foo\\nbar";
+        """
+    })
+    void strings(String source) {
+        var file = ParsingUtil.parse(source);
+        assertThat(file.printStatement()).hasSize(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
         "print print;",
         "print 10",
         "print 0001;",

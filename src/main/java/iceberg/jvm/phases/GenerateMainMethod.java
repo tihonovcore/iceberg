@@ -82,6 +82,14 @@ public class GenerateMainMethod implements CompilationPhase {
                     case IcebergLexer.NUMBER -> new IrNumber(Long.parseLong(node.getText()));
                     case IcebergLexer.FALSE -> new IrBool(false);
                     case IcebergLexer.TRUE -> new IrBool(true);
+                    case IcebergLexer.STRING -> {
+                        var text = node.getText();
+                        var string = text
+                            .substring(1, text.length() - 1)
+                            .replace("\\\"", "\"")
+                            .replace("\\n", "\n");
+                        yield new IrString(unit.constantPool.computeString(string));
+                    }
                     default -> null;
                 };
             }

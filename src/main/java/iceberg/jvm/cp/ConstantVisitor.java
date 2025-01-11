@@ -7,6 +7,7 @@ public interface ConstantVisitor<T> {
     T visitNameAndType(NameAndType constant);
     T visitFieldRef(FieldRef constant);
     T visitMethodRef(MethodRef constant);
+    T visitStringInfo(StringInfo constant);
     T visitIntegerInfo(IntegerInfo constant);
     T visitLongInfo(LongInfo constant);
     T visitNoop(Noop constant);
