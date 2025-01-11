@@ -13,6 +13,8 @@ public enum OpCodes {
     LDC(0x12),
     LDC_W(0x13),
     LDC_W2(0x14),
+    IAND(0x7E),
+    IOR(0x80),
     ;
 
     OpCodes(int value) {

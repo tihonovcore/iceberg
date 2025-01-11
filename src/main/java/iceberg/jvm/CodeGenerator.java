@@ -148,6 +148,16 @@ public class CodeGenerator {
                     }
 
                     @Override
+                    public void visitIrBinaryExpression(IrBinaryExpression irExpression) {
+                        irExpression.left.accept(this);
+                        irExpression.right.accept(this);
+                        switch (irExpression.operator) {
+                            case OR -> output.writeU1(OpCodes.IOR.value);
+                            case AND -> output.writeU1(OpCodes.IAND.value);
+                        }
+                    }
+
+                    @Override
                     public void visitIrNumber(IrNumber irNumber) {
                         var value = irNumber.value;
                         if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {

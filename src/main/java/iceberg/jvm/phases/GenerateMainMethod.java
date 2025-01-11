@@ -77,6 +77,30 @@ public class GenerateMainMethod implements CompilationPhase {
             }
 
             @Override
+            public IR visitLogicalOrExpression(IcebergParser.LogicalOrExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
+                    return new IrBinaryExpression(left, right, IcebergBinaryOperator.OR, IcebergType.bool);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+
+            @Override
+            public IR visitLogicalAndExpression(IcebergParser.LogicalAndExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
+                    return new IrBinaryExpression(left, right, IcebergBinaryOperator.AND, IcebergType.bool);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+
+            @Override
             public IR visitTerminal(TerminalNode node) {
                 return switch (node.getSymbol().getType()) {
                     case IcebergLexer.NUMBER -> new IrNumber(Long.parseLong(node.getText()));
