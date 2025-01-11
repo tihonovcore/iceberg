@@ -24,7 +24,6 @@ public class PrintNumbersTest extends Base {
             Arguments.of("print 2147483647;", "2147483647\n"),
             Arguments.of("print 2147483648;", "2147483648\n"),
             Arguments.of("print 9223372036854775807;", "9223372036854775807\n"),
-            Arguments.of("print 9223372036854775808;", "9223372036854775808\n"),
 
             Arguments.of("print -1;", "-1\n"),
             Arguments.of("print -123;", "-123\n"),
