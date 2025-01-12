@@ -4,9 +4,7 @@ import iceberg.fe.CompilationException;
 import iceberg.fe.ParsingUtil;
 import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
-import iceberg.jvm.phases.FillConstantPoolPhase;
-import iceberg.jvm.phases.GenerateDefaultConstructor;
-import iceberg.jvm.phases.GenerateMainMethod;
+import iceberg.jvm.phases.*;
 import iceberg.jvm.target.SourceAttribute;
 
 import java.io.IOException;
@@ -62,6 +60,7 @@ public class CompilationPipeline {
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
             new GenerateMainMethod().execute(file, mainUnit);
+            new ByteCodeGenerationPhase().execute(file, mainUnit);
 
             //codegen
             CodeGenerator.codegen(compilationUnits);

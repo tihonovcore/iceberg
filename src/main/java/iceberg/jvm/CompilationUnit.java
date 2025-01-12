@@ -51,7 +51,10 @@ public class CompilationUnit {
         public Utf8 attributeName;
         public int maxStack;
         public int maxLocals;
+
         public IrBody body;
+        public byte[] code;
+
         public List<Object> exceptionTable = List.of();
         public List<Attribute> attributes = List.of();
     }
