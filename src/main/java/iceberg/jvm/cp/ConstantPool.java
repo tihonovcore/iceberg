@@ -25,6 +25,10 @@ public class ConstantPool implements Iterable<Constant> {
 
     }
 
+    public Constant load(int i) {
+        return pool.get(i - 1); //numeration from 1
+    }
+
     public int indexOf(Constant constant) {
         return pool.indexOf(constant) + 1;
     }

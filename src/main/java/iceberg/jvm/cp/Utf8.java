@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 public class Utf8 extends Constant {
 
     final int length;
-    final byte[] bytes;
+    public final byte[] bytes;
 
     public Utf8(String s) {
         bytes = s.getBytes(StandardCharsets.UTF_8);

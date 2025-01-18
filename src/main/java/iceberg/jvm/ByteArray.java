@@ -61,6 +61,24 @@ public class ByteArray {
         putU1(index + 3, i);
     }
 
+    public class LateInitJump {
+
+        private final int index;
+
+        LateInitJump() {
+            this.index = length();
+            writeU2(0x0000);
+        }
+
+        public void jump() {
+            putU2(index, length() - index + 1);
+        }
+    }
+
+    public LateInitJump lateInitJump() {
+        return new LateInitJump();
+    }
+
     public class LateInitU4 {
 
         private final int index;

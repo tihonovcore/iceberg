@@ -1,7 +1,7 @@
 package iceberg.jvm;
 
 import iceberg.jvm.cp.ConstantToBytes;
-import iceberg.jvm.ir.*;
+import iceberg.jvm.target.StackMapAttribute;
 
 import java.util.Collection;
 
@@ -133,6 +133,31 @@ public class CodeGenerator {
 
                 output.writeU2(attribute.exceptionTable.size());
                 output.writeU2(attribute.attributes.size());
+
+                for (var stackMapAttribute : attribute.attributes) {
+                    output.writeU2(compilationUnit.constantPool.indexOf(stackMapAttribute.attributeName));
+
+                    var stackMapAttributeLength = output.lateInitU4();
+
+                    output.writeU2(stackMapAttribute.entries.size());
+                    for (var entry : stackMapAttribute.entries) {
+                        output.writeU1(entry.frameType); //always full
+                        output.writeU2(entry.offsetDelta);
+
+                        output.writeU2(entry.locals.size());
+                        //TODO: fill locals
+
+                        output.writeU2(entry.stack.size());
+                        for (var frame : entry.stack) {
+                            output.writeU1(frame.tag());
+                            if (frame instanceof StackMapAttribute.ObjectVariableInfo obj) {
+                                output.writeU2(obj.cpoolIndex);
+                            }
+                        }
+                    }
+
+                    stackMapAttributeLength.init();
+                }
 
                 codeAttributeLength.init();
             }

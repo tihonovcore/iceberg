@@ -43,7 +43,9 @@ public class ExpressionsTest extends Base {
             Arguments.of("print false or true and false;", "false\n"),
             Arguments.of("print false and true or false;", "false\n")
 
-            //TODO: нужно поддержать ленивость, но это скорее всего через basicBlock
+            //TODO: проверять ленивость, например, x != null && x.foo()
+            // сейчас мешает семантическая проверка что обе части bool
+            // то есть нельзя проверить false or 100 или false or null, нужны переменные
         );
     }
 
@@ -74,6 +76,10 @@ public class ExpressionsTest extends Base {
             Arguments.of("print \"foo\" or false;"),
             Arguments.of("print \"foo\" and true;"),
             Arguments.of("print \"foo\" and false;")
+
+            //TODO: проверять ленивость, например, x != null && x.foo()
+            // сейчас мешает семантическая проверка что обе части bool
+            // то есть нельзя проверить false or 100 или false or null, нужны переменные
         );
     }
 }

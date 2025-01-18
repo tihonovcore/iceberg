@@ -2,8 +2,8 @@ package iceberg.jvm.cp;
 
 public class NameAndType extends Constant {
 
-    final int nameIndex;
-    final int descriptorIndex;
+    public final int nameIndex;
+    public final int descriptorIndex;
 
     public NameAndType(int nameIndex, int descriptorIndex) {
         this.nameIndex = nameIndex;

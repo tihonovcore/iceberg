@@ -5,6 +5,7 @@ import iceberg.jvm.cp.Klass;
 import iceberg.jvm.cp.Utf8;
 import iceberg.jvm.ir.IrBody;
 import iceberg.jvm.target.SourceAttribute;
+import iceberg.jvm.target.StackMapAttribute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +57,6 @@ public class CompilationUnit {
         public byte[] code;
 
         public List<Object> exceptionTable = List.of();
-        public List<Attribute> attributes = List.of();
+        public List<StackMapAttribute> attributes = new ArrayList<>();
     }
 }

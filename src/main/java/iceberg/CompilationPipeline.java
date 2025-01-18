@@ -60,7 +60,9 @@ public class CompilationPipeline {
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
             new GenerateMainMethod().execute(file, mainUnit);
+
             new ByteCodeGenerationPhase().execute(file, mainUnit);
+            new EvaluateStackMapAttributePhase().execute(file, mainUnit);
 
             //codegen
             CodeGenerator.codegen(compilationUnits);

@@ -15,7 +15,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 .filter(CompilationUnit.CodeAttribute.class::isInstance)
                 .findAny().orElseThrow();
             generateBytecode(attribute, unit);
-        });;
+        });
     }
 
     private void generateBytecode(
@@ -43,11 +43,33 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
             @Override
             public void visitIrBinaryExpression(IrBinaryExpression irExpression) {
-                irExpression.left.accept(this);
-                irExpression.right.accept(this);
                 switch (irExpression.operator) {
-                    case OR -> output.writeU1(OpCodes.IOR.value);
-                    case AND -> output.writeU1(OpCodes.IAND.value);
+                    case OR -> {
+                        irExpression.left.accept(this);
+                        output.writeU1(OpCodes.IFEQ.value);
+                        var toElse = output.lateInitJump();
+
+                        output.writeU1(OpCodes.ICONST_1.value);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toAfterIf = output.lateInitJump();
+
+                        toElse.jump();
+                        irExpression.right.accept(this);
+                        toAfterIf.jump();
+                    }
+                    case AND -> {
+                        irExpression.left.accept(this);
+                        output.writeU1(OpCodes.IFEQ.value);
+                        var toElse = output.lateInitJump();
+
+                        irExpression.right.accept(this);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toAfterIf = output.lateInitJump();
+
+                        toElse.jump();
+                        output.writeU1(OpCodes.ICONST_0.value);
+                        toAfterIf.jump();
+                    }
                 }
             }
 
