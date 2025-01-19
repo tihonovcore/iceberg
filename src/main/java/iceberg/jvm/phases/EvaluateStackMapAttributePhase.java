@@ -165,15 +165,12 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
     private String load(ConstantPool constantPool, int index) {
         var constant = constantPool.load(index);
         if (constant instanceof FieldRef ref) {
-            constant = constantPool.load(ref.nameAndTypeIndex);
-            if (constant instanceof NameAndType nameAndType) {
-                constant = constantPool.load(nameAndType.descriptorIndex);
-                if (constant instanceof Utf8 utf8) {
-                    var typeDescriptor = new String(utf8.bytes);
-                    //TODO: decode descriptor - for int it will be I (not int)
-                    return typeDescriptor.substring(1, typeDescriptor.length() - 1);
-                }
-            }
+            var nameAndType = (NameAndType) constantPool.load(ref.nameAndTypeIndex);
+            var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
+            var typeDescriptor = new String(utf8.bytes);
+
+            //TODO: decode descriptor - for int it will be I (not int)
+            return typeDescriptor.substring(1, typeDescriptor.length() - 1);
         }
 
         if (constant instanceof IntegerInfo) {
