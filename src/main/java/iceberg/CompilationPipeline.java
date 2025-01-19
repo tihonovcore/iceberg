@@ -26,6 +26,8 @@ public class CompilationPipeline {
             print 5000; print 100;
             print 123456789;
             \tprint 0; print 9;
+            print false or true;
+            print "foo";
             """;
         var bytes = compile(dummySource).iterator().next().bytes;
 

@@ -112,6 +112,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 }
                 case INVOKEVIRTUAL -> {
                     snapshot.pop();
+                    snapshot.pop(); //NOTE: now it pops argument of System.out.println
                     //TODO: pop arguments
                 }
                 case INVOKESPECIAL -> {
