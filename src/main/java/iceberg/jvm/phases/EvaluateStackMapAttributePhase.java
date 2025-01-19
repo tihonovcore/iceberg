@@ -131,8 +131,11 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case IFEQ -> snapshot.pop();
                 case IFNE -> snapshot.pop();
                 case GOTO -> { /* do nothing */ }
-                case INEG -> { /* do nothing */ }
-                case LNEG -> { /* do nothing */ }
+                case INEG -> { /* pop + push */ }
+                case LNEG -> { /* pop + push */ }
+                case IADD -> { snapshot.pop(); snapshot.pop(); snapshot.push("int"); }
+                case LADD -> { snapshot.pop(); snapshot.pop(); snapshot.push("long"); }
+                case I2L -> { snapshot.pop(); snapshot.push("long"); }
                 default -> throw new IllegalStateException("not implemented");
             }
 
@@ -158,6 +161,9 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case LDC -> 2;
                 case LDC_W -> 3;
                 case LDC_W2 -> 3;
+                case I2L -> 1;
+                case IADD -> 1;
+                case LADD -> 1;
                 case INEG -> 1;
                 case LNEG -> 1;
                 case IFEQ -> 3;

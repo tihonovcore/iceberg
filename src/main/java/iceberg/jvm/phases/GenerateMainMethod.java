@@ -77,6 +77,27 @@ public class GenerateMainMethod implements CompilationPhase {
             }
 
             @Override
+            public IR visitAdditionExpression(IcebergParser.AdditionExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                IcebergType result;
+                if (left.type == IcebergType.i64 && right.type == IcebergType.i64) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i64 && right.type == IcebergType.i32) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i64) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
+                    result = IcebergType.i32;
+                } else {
+                    throw new IllegalStateException("not implemented");
+                }
+
+                return new IrBinaryExpression(left, right, IcebergBinaryOperator.PLUS, result);
+            }
+
+            @Override
             public IR visitUnaryMinusExpression(IcebergParser.UnaryMinusExpressionContext ctx) {
                 var value = (IrExpression) ctx.atom().accept(this);
                 if (value.type == IcebergType.i32 || value.type == IcebergType.i64) {

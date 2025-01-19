@@ -83,6 +83,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                         toElse.jump();
                         irExpression.right.accept(this);
                         toAfterIf.jump();
+
+                        return;
                     }
                     case AND -> {
                         irExpression.left.accept(this);
@@ -96,6 +98,49 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                         toElse.jump();
                         output.writeU1(OpCodes.ICONST_0.value);
                         toAfterIf.jump();
+
+                        return;
+                    }
+                }
+
+                irExpression.left.accept(this);
+                if (irExpression.type == IcebergType.i64) {
+                    if (irExpression.left.type == IcebergType.i32) {
+                        output.writeU1(OpCodes.I2L.value);
+                    }
+                }
+
+                irExpression.right.accept(this);
+                if (irExpression.type == IcebergType.i64) {
+                    if (irExpression.right.type == IcebergType.i32) {
+                        output.writeU1(OpCodes.I2L.value);
+                    }
+                }
+
+                switch (irExpression.operator) {
+                    case PLUS -> {
+                        switch (irExpression.type) {
+                            case i32 -> output.writeU1(OpCodes.IADD.value);
+                            case i64 -> output.writeU1(OpCodes.LADD.value);
+                        }
+                    }
+                    case MULT -> {
+                    }
+                    case DIV -> {
+                    }
+                    case SUB -> {
+                    }
+                    case GE -> {
+                    }
+                    case LE -> {
+                    }
+                    case GT -> {
+                    }
+                    case LH -> {
+                    }
+                    case EQ -> {
+                    }
+                    case NEQ -> {
                     }
                 }
             }
