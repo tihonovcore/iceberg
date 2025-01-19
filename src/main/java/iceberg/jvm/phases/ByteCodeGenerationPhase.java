@@ -58,6 +58,13 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
                         toEnd.jump();
                     }
+                    case MINUS -> {
+                        irExpression.value.accept(this);
+                        switch (irExpression.type) {
+                            case i32 -> output.writeU1(OpCodes.INEG.value);
+                            case i64 -> output.writeU1(OpCodes.LNEG.value);
+                        }
+                    }
                 }
             }
 

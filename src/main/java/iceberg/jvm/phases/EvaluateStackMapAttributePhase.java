@@ -131,6 +131,8 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case IFEQ -> snapshot.pop();
                 case IFNE -> snapshot.pop();
                 case GOTO -> { /* do nothing */ }
+                case INEG -> { /* do nothing */ }
+                case LNEG -> { /* do nothing */ }
                 default -> throw new IllegalStateException("not implemented");
             }
 

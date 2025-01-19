@@ -59,6 +59,7 @@ public class CompilationPipeline {
             var compilationUnits = new ArrayList<>(List.of(mainUnit));
 
             //compilation process
+            new DetectInvalidSyntaxPhase().execute(file, mainUnit);
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
             new GenerateMainMethod().execute(file, mainUnit);
@@ -72,8 +73,7 @@ public class CompilationPipeline {
             return compilationUnits;
         } catch (CompilationException exception) {
             System.err.println(exception.getMessage());
+            throw exception;
         }
-
-        return null; //TODO: do smth
     }
 }

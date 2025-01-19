@@ -77,6 +77,15 @@ public class GenerateMainMethod implements CompilationPhase {
             }
 
             @Override
+            public IR visitUnaryMinusExpression(IcebergParser.UnaryMinusExpressionContext ctx) {
+                var value = (IrExpression) ctx.atom().accept(this);
+                if (value.type == IcebergType.i32 || value.type == IcebergType.i64) {
+                    return new IrUnaryExpression(value, IcebergUnaryOperator.MINUS, value.type);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+
             @Override
             public IR visitNegateExpression(IcebergParser.NegateExpressionContext ctx) {
                 var value = (IrExpression) ctx.atom().accept(this);

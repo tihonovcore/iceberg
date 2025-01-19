@@ -15,6 +15,8 @@ public enum OpCodes {
     LDC(0x12),
     LDC_W(0x13),
     LDC_W2(0x14),
+    INEG(0x74),
+    LNEG(0x75),
     IFEQ(0x99),
     IFNE(0x9A),
     GOTO(0xA7),
