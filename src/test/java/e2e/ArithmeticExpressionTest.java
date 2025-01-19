@@ -1,10 +1,13 @@
 package e2e;
 
+import iceberg.fe.CompilationException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ArithmeticExpressionTest extends Base {
 
@@ -30,14 +33,14 @@ public class ArithmeticExpressionTest extends Base {
 
     @ParameterizedTest
     @MethodSource
-    void unary_negative(String source, String expected) {
-        execute(source, expected);
+    void unary_negative(String source) {
+        assertThrows(CompilationException.class, () -> execute(source, null));
     }
 
     static Stream<Arguments> unary_negative() {
         return Stream.of(
-            Arguments.of("print --100;", "100\n"),
-            Arguments.of("print ---100;", "-100\n")
+            Arguments.of("print --100;"),
+            Arguments.of("print ---100;")
         );
     }
 }
