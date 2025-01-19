@@ -131,6 +131,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case IFEQ -> snapshot.pop();
                 case IFNE -> snapshot.pop();
                 case GOTO -> { /* do nothing */ }
+                default -> throw new IllegalStateException("not implemented");
             }
 
             if (OpCodes.GOTO == curr || OpCodes.IFEQ == curr || OpCodes.IFNE == curr) {
@@ -155,6 +156,8 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case LDC -> 2;
                 case LDC_W -> 3;
                 case LDC_W2 -> 3;
+                case INEG -> 1;
+                case LNEG -> 1;
                 case IFEQ -> 3;
                 case IFNE -> 3;
                 case GOTO -> throw new IllegalStateException("Безусловный переход");

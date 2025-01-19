@@ -42,6 +42,26 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrUnaryExpression(IrUnaryExpression irExpression) {
+                switch (irExpression.operator) {
+                    case NOT -> {
+                        irExpression.value.accept(this);
+                        output.writeU1(OpCodes.IFEQ.value);
+                        var toTrue = output.lateInitJump();
+
+                        output.writeU1(OpCodes.ICONST_0.value);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toEnd = output.lateInitJump();
+
+                        toTrue.jump();
+                        output.writeU1(OpCodes.ICONST_1.value);
+
+                        toEnd.jump();
+                    }
+                }
+            }
+
+            @Override
             public void visitIrBinaryExpression(IrBinaryExpression irExpression) {
                 switch (irExpression.operator) {
                     case OR -> {

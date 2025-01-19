@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ExpressionsTest extends Base {
+public class LogicExpressionTest extends Base {
 
     @ParameterizedTest
     @MethodSource
@@ -41,11 +41,20 @@ public class ExpressionsTest extends Base {
             Arguments.of("print false or true and true;", "true\n"),
             Arguments.of("print false and true or true;", "true\n"),
             Arguments.of("print false or true and false;", "false\n"),
-            Arguments.of("print false and true or false;", "false\n")
+            Arguments.of("print false and true or false;", "false\n"),
 
             //TODO: проверять ленивость, например, x != null && x.foo()
             // сейчас мешает семантическая проверка что обе части bool
             // то есть нельзя проверить false or 100 или false or null, нужны переменные
+
+            Arguments.of("print not true;", "false\n"),
+            Arguments.of("print not false;", "true\n"),
+
+            Arguments.of("print not (true);", "false\n"),
+            Arguments.of("print not (false);", "true\n"),
+
+            Arguments.of("print not (false or true);", "false\n"),
+            Arguments.of("print not (true and false);", "true\n")
         );
     }
 
@@ -75,11 +84,14 @@ public class ExpressionsTest extends Base {
             Arguments.of("print \"foo\" or true;"),
             Arguments.of("print \"foo\" or false;"),
             Arguments.of("print \"foo\" and true;"),
-            Arguments.of("print \"foo\" and false;")
+            Arguments.of("print \"foo\" and false;"),
 
             //TODO: проверять ленивость, например, x != null && x.foo()
             // сейчас мешает семантическая проверка что обе части bool
             // то есть нельзя проверить false or 100 или false or null, нужны переменные
+
+            Arguments.of("print not 1;"),
+            Arguments.of("print not \"foo\";")
         );
     }
 }

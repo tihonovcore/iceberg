@@ -14,7 +14,7 @@ printStatement : PRINT expression;
 
 expression
   : NOT atom                                              #negateExpression
-  | MINUS atom                                            #unariMinusExpression
+  | MINUS atom                                            #unaryMinusExpression
   | left=expression (STAR | SLASH)      right=expression  #multiplicationExpression
   | left=expression (PLUS | MINUS)      right=expression  #additionExpression
   | left=expression (LE | GE | LT | GT) right=expression  #relationalExpression

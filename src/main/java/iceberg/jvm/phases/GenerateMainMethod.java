@@ -77,6 +77,17 @@ public class GenerateMainMethod implements CompilationPhase {
             }
 
             @Override
+            @Override
+            public IR visitNegateExpression(IcebergParser.NegateExpressionContext ctx) {
+                var value = (IrExpression) ctx.atom().accept(this);
+                if (value.type == IcebergType.bool) {
+                    return new IrUnaryExpression(value, IcebergUnaryOperator.NOT, value.type);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+
+            @Override
             public IR visitLogicalOrExpression(IcebergParser.LogicalOrExpressionContext ctx) {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);
