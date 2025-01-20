@@ -4,13 +4,26 @@ grammar Iceberg;
 package iceberg.antlr;
 }
 
-file : (statement SEMICOLON)* EOF;
+file : statement* EOF;
 
 statement
-  : printStatement
+  : printStatement SEMICOLON
+  | ifStatement
+  | whileStatement
+  | block
   ;
 
 printStatement : PRINT expression;
+
+ifStatement
+  : IF expression THEN statement (ELSE statement)?
+  ;
+
+whileStatement
+  : WHILE expression THEN statement
+  ;
+
+block : OPEN_BRACE statement* CLOSE_BRACE;
 
 expression
   : NOT atom                                              #negateExpression
@@ -38,6 +51,8 @@ STAR  : '*';
 SLASH : '/';
 OPEN_PARENTHESIS  : '(';
 CLOSE_PARENTHESIS : ')';
+OPEN_BRACE        : '{';
+CLOSE_BRACE       : '}';
 
 EQ : '==';
 NEQ : '!=';
@@ -52,6 +67,10 @@ AND : 'and';
 OR  : 'or';
 
 PRINT : 'print';
+WHILE : 'while';
+IF    : 'if';
+THEN  : 'then';
+ELSE  : 'else';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';
