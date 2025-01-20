@@ -94,7 +94,34 @@ public class GenerateMainMethod implements CompilationPhase {
                     throw new IllegalStateException("not implemented");
                 }
 
-                return new IrBinaryExpression(left, right, IcebergBinaryOperator.PLUS, result);
+                var operator = ctx.PLUS() != null
+                    ? IcebergBinaryOperator.PLUS
+                    : IcebergBinaryOperator.SUB;
+                return new IrBinaryExpression(left, right, operator, result);
+            }
+
+            @Override
+            public IR visitMultiplicationExpression(IcebergParser.MultiplicationExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                IcebergType result;
+                if (left.type == IcebergType.i64 && right.type == IcebergType.i64) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i64 && right.type == IcebergType.i32) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i64) {
+                    result = IcebergType.i64;
+                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
+                    result = IcebergType.i32;
+                } else {
+                    throw new IllegalStateException("not implemented");
+                }
+
+                var operator = ctx.STAR() != null
+                    ? IcebergBinaryOperator.MULT
+                    : IcebergBinaryOperator.DIV;
+                return new IrBinaryExpression(left, right, operator, result);
             }
 
             @Override

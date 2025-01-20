@@ -124,11 +124,23 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                             case i64 -> output.writeU1(OpCodes.LADD.value);
                         }
                     }
+                    case SUB -> {
+                        switch (irExpression.type) {
+                            case i32 -> output.writeU1(OpCodes.ISUB.value);
+                            case i64 -> output.writeU1(OpCodes.LSUB.value);
+                        }
+                    }
                     case MULT -> {
+                        switch (irExpression.type) {
+                            case i32 -> output.writeU1(OpCodes.IMUL.value);
+                            case i64 -> output.writeU1(OpCodes.LMUL.value);
+                        }
                     }
                     case DIV -> {
-                    }
-                    case SUB -> {
+                        switch (irExpression.type) {
+                            case i32 -> output.writeU1(OpCodes.IDIV.value);
+                            case i64 -> output.writeU1(OpCodes.LDIV.value);
+                        }
                     }
                     case GE -> {
                     }
