@@ -154,13 +154,14 @@ public class GenerateMainMethod implements CompilationPhase {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);
 
-                var operator = ctx.EQ() != null
-                    ? IcebergBinaryOperator.EQ
-                    : IcebergBinaryOperator.NEQ;
-
                 var integers = Set.of(IcebergType.i32, IcebergType.i64);
                 if (left.type == right.type || integers.containsAll(Set.of(left.type, right.type))) {
-                    return new IrBinaryExpression(left, right, operator, IcebergType.bool);
+                    var binary = new IrBinaryExpression(left, right, IcebergBinaryOperator.EQ, IcebergType.bool);
+                    if (ctx.EQ() != null) {
+                        return binary;
+                    }
+
+                    return new IrUnaryExpression(binary, IcebergUnaryOperator.NOT, IcebergType.bool);
                 } else {
                     throw new IllegalArgumentException();
                 }

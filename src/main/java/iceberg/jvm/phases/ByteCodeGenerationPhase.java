@@ -175,8 +175,20 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                         toEnd.jump();
                     }
                     case EQ -> {
-                    }
-                    case NEQ -> {
+                        if (irExpression.left.type == IcebergType.i64 || irExpression.right.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LCMP.value);
+                            output.writeU1(OpCodes.ICONST_0.value);
+                        }
+
+                        output.writeU1(OpCodes.IF_ICMPEQ.value);
+                        var toTrue = output.lateInitJump();
+                        output.writeU1(OpCodes.ICONST_0.value);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toEnd = output.lateInitJump();
+
+                        toTrue.jump();
+                        output.writeU1(OpCodes.ICONST_1.value);
+                        toEnd.jump();
                     }
                 }
             }
