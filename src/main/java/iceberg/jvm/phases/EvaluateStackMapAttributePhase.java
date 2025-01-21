@@ -86,6 +86,12 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
         }
     }
 
+    private static final Set<OpCodes> JUMP_OP_CODES = Set.of(
+        OpCodes.GOTO, OpCodes.IFEQ, OpCodes.IFNE,
+        OpCodes.IF_ICMPEQ, OpCodes.IF_ICMPNE, OpCodes.IF_ICMPLT,
+        OpCodes.IF_ICMPLE, OpCodes.IF_ICMPGT, OpCodes.IF_ICMPGE
+    );
+
     private void dfs(
         byte[] code, int i,
         ConstantPool constantPool,
@@ -153,10 +159,19 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     snapshot.pop();
                     snapshot.push("long");
                 }
+                case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> {
+                    snapshot.pop();
+                    snapshot.pop();
+                }
+                case LCMP -> {
+                    snapshot.pop();
+                    snapshot.pop();
+                    snapshot.push("int");
+                }
                 default -> throw new IllegalStateException("not implemented");
             }
 
-            if (OpCodes.GOTO == curr || OpCodes.IFEQ == curr || OpCodes.IFNE == curr) {
+            if (JUMP_OP_CODES.contains(curr)) {
                 var jump = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                 dfs(code, i + jump, constantPool, new Snapshot(snapshot), snapshots);
             }
@@ -186,6 +201,8 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case IFEQ -> 3;
                 case IFNE -> 3;
                 case GOTO -> throw new IllegalStateException("Безусловный переход");
+                case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> 3;
+                case LCMP -> 1;
             };
         }
     }

@@ -8,6 +8,7 @@ import iceberg.jvm.ir.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Map;
+import java.util.Set;
 
 public class GenerateMainMethod implements CompilationPhase {
 
@@ -122,6 +123,47 @@ public class GenerateMainMethod implements CompilationPhase {
                     ? IcebergBinaryOperator.MULT
                     : IcebergBinaryOperator.DIV;
                 return new IrBinaryExpression(left, right, operator, result);
+            }
+
+            @Override
+            public IR visitRelationalExpression(IcebergParser.RelationalExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                var integers = Set.of(IcebergType.i32, IcebergType.i64);
+                if (integers.contains(left.type) && integers.contains(right.type)) {
+                    IcebergBinaryOperator operator;
+                    if (ctx.GE() != null) operator = IcebergBinaryOperator.LE;
+                    else if (ctx.GT() != null) operator = IcebergBinaryOperator.LT;
+                    else if (ctx.LE() != null) operator = IcebergBinaryOperator.LE;
+                    else if (ctx.LT() != null) operator = IcebergBinaryOperator.LT;
+                    else throw new IllegalArgumentException();
+
+                    if (ctx.LT() != null || ctx.LE() != null) {
+                        return new IrBinaryExpression(left, right, operator, IcebergType.bool);
+                    } else {
+                        return new IrBinaryExpression(right, left, operator, IcebergType.bool);
+                    }
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+
+            @Override
+            public IR visitEqualityExression(IcebergParser.EqualityExressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+
+                var operator = ctx.EQ() != null
+                    ? IcebergBinaryOperator.EQ
+                    : IcebergBinaryOperator.NEQ;
+
+                var integers = Set.of(IcebergType.i32, IcebergType.i64);
+                if (left.type == right.type || integers.containsAll(Set.of(left.type, right.type))) {
+                    return new IrBinaryExpression(left, right, operator, IcebergType.bool);
+                } else {
+                    throw new IllegalArgumentException();
+                }
             }
 
             @Override

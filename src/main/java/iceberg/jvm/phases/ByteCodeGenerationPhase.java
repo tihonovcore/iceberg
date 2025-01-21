@@ -104,14 +104,14 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 }
 
                 irExpression.left.accept(this);
-                if (irExpression.type == IcebergType.i64) {
+                if (irExpression.left.type != irExpression.right.type) {
                     if (irExpression.left.type == IcebergType.i32) {
                         output.writeU1(OpCodes.I2L.value);
                     }
                 }
 
                 irExpression.right.accept(this);
-                if (irExpression.type == IcebergType.i64) {
+                if (irExpression.left.type != irExpression.right.type) {
                     if (irExpression.right.type == IcebergType.i32) {
                         output.writeU1(OpCodes.I2L.value);
                     }
@@ -142,13 +142,37 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                             case i64 -> output.writeU1(OpCodes.LDIV.value);
                         }
                     }
-                    case GE -> {
-                    }
                     case LE -> {
+                        if (irExpression.left.type == IcebergType.i64 || irExpression.right.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LCMP.value);
+                            output.writeU1(OpCodes.ICONST_0.value);
+                        }
+
+                        output.writeU1(OpCodes.IF_ICMPLE.value);
+                        var toTrue = output.lateInitJump();
+                        output.writeU1(OpCodes.ICONST_0.value);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toEnd = output.lateInitJump();
+
+                        toTrue.jump();
+                        output.writeU1(OpCodes.ICONST_1.value);
+                        toEnd.jump();
                     }
-                    case GT -> {
-                    }
-                    case LH -> {
+                    case LT -> {
+                        if (irExpression.left.type == IcebergType.i64 || irExpression.right.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LCMP.value);
+                            output.writeU1(OpCodes.ICONST_0.value);
+                        }
+
+                        output.writeU1(OpCodes.IF_ICMPLT.value);
+                        var toTrue = output.lateInitJump();
+                        output.writeU1(OpCodes.ICONST_0.value);
+                        output.writeU1(OpCodes.GOTO.value);
+                        var toEnd = output.lateInitJump();
+
+                        toTrue.jump();
+                        output.writeU1(OpCodes.ICONST_1.value);
+                        toEnd.jump();
                     }
                     case EQ -> {
                     }

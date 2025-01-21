@@ -4,7 +4,7 @@ public enum IcebergBinaryOperator {
 
     MULT, DIV,
     PLUS, SUB,
-    GE, LE, GT, LH,
+    LE, LT,
     EQ, NEQ,
     AND,
     OR,
