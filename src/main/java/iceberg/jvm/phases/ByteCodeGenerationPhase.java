@@ -249,6 +249,17 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
                 output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.methodRef));
             }
+
+            @Override
+            public void visitIrMethodCall(IrMethodCall irMethodCall) {
+                irMethodCall.receiver.accept(this);
+                for (var argument : irMethodCall.arguments) {
+                    argument.accept(this);
+                }
+
+                output.writeU1(OpCodes.INVOKEVIRTUAL.value);
+                output.writeU2(compilationUnit.constantPool.indexOf(irMethodCall.methodRef));
+            }
         });
 
         attribute.code = output.bytes();

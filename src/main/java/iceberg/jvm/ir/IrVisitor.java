@@ -6,6 +6,7 @@ public interface IrVisitor {
     void visitIrSuperCall(IrSuperCall irSuperCall);
     void visitIrReturn(IrReturn irReturn);
     void visitIrStaticCall(IrStaticCall irStaticCall);
+    void visitIrMethodCall(IrMethodCall irMethodCall);
     void visitIrNumber(IrNumber irNumber);
     void visitIrUnaryExpression(IrUnaryExpression irExpression);
     void visitIrBinaryExpression(IrBinaryExpression irExpression);

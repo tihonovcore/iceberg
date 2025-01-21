@@ -114,12 +114,20 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case RETURN -> snapshot.stack.clear();
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
-                    snapshot.push(load(constantPool, index));
+                    snapshot.push(load(constantPool, index).type);
                 }
                 case INVOKEVIRTUAL -> {
-                    snapshot.pop();
-                    snapshot.pop(); //NOTE: now it pops argument of System.out.println
-                    //TODO: pop arguments
+                    var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
+                    var type = (CallableJavaType) load(constantPool, index);
+
+                    snapshot.pop(); //receiver
+                    for (int arg = 0; arg < type.arguments.size(); arg++) {
+                        snapshot.pop();
+                    }
+
+                    if (!type.type.equals("void")) {
+                        snapshot.push(type.type);
+                    }
                 }
                 case INVOKESPECIAL -> {
                     snapshot.pop();
@@ -128,11 +136,11 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case BIPUSH -> snapshot.push("int");
                 case SIPUSH -> snapshot.push("int");
                 case LDC -> {
-                    snapshot.push(load(constantPool, code[i + 1]));
+                    snapshot.push(load(constantPool, code[i + 1]).type);
                 }
                 case LDC_W, LDC_W2 -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
-                    snapshot.push(load(constantPool, index));
+                    snapshot.push(load(constantPool, index).type);
                 }
                 case IFEQ -> snapshot.pop();
                 case IFNE -> snapshot.pop();
@@ -207,27 +215,77 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
         }
     }
 
-    private String load(ConstantPool constantPool, int index) {
+    private static class JavaType {
+
+        final String type;
+
+        public JavaType(String type) {
+            this.type = type;
+        }
+    }
+
+    private static class CallableJavaType extends JavaType {
+
+        final List<String> arguments;
+
+        private CallableJavaType(List<String> arguments, String returnType) {
+            super(returnType);
+            this.arguments = arguments;
+        }
+    }
+
+    private JavaType load(ConstantPool constantPool, int index) {
         var constant = constantPool.load(index);
+
+        if (constant instanceof MethodRef ref) {
+            var nameAndType = (NameAndType) constantPool.load(ref.nameAndTypeIndex);
+            var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
+            var typeDescriptor = new String(utf8.bytes);
+
+            if ("(Ljava/lang/Object;)Z".equals(typeDescriptor)) { //String::equals
+                return new CallableJavaType(
+                    List.of("java/lang/Object"), "boolean"
+                );
+            } else if ("(Z)V".equals(typeDescriptor)) { //System.out::println
+                return new CallableJavaType(
+                    List.of("boolean"), "void"
+                );
+            } else if ("(I)V".equals(typeDescriptor)) { //System.out::println
+                return new CallableJavaType(
+                    List.of("int"), "void"
+                );
+            } else if ("(J)V".equals(typeDescriptor)) { //System.out::println
+                return new CallableJavaType(
+                    List.of("long"), "void"
+                );
+            } else if ("(Ljava/lang/String;)V".equals(typeDescriptor)) { //System.out::println
+                return new CallableJavaType(
+                    List.of("java/lang/String"), "void"
+                );
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
         if (constant instanceof FieldRef ref) {
             var nameAndType = (NameAndType) constantPool.load(ref.nameAndTypeIndex);
             var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
             var typeDescriptor = new String(utf8.bytes);
 
             //TODO: decode descriptor - for int it will be I (not int)
-            return typeDescriptor.substring(1, typeDescriptor.length() - 1);
+            return new JavaType(typeDescriptor.substring(1, typeDescriptor.length() - 1));
         }
 
         if (constant instanceof IntegerInfo) {
-            return "int";
+            return new JavaType("int");
         }
 
         if (constant instanceof LongInfo) {
-            return "long";
+            return new JavaType("long");
         }
 
         if (constant instanceof StringInfo) {
-            return "java/lang/String";
+            return new JavaType("java/lang/String");
         }
 
         throw new IllegalStateException();

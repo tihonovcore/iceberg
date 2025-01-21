@@ -154,6 +154,24 @@ public class GenerateMainMethod implements CompilationPhase {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);
 
+                if (left.type == IcebergType.string && right.type == IcebergType.string) {
+                    var string = unit.constantPool.computeKlass(
+                        unit.constantPool.computeUtf8("java/lang/String")
+                    );
+                    var equals = unit.constantPool.computeNameAndType(
+                        unit.constantPool.computeUtf8("equals"),
+                        unit.constantPool.computeUtf8("(Ljava/lang/Object;)Z")
+                    );
+                    var method = unit.constantPool.computeMethodRef(string, equals);
+
+                    var call = new IrMethodCall(method, IcebergType.bool, left, right);
+                    if (ctx.EQ() != null) {
+                        return call;
+                    }
+
+                    return new IrUnaryExpression(call, IcebergUnaryOperator.NOT, IcebergType.bool);
+                }
+
                 var integers = Set.of(IcebergType.i32, IcebergType.i64);
                 if (left.type == right.type || integers.containsAll(Set.of(left.type, right.type))) {
                     var binary = new IrBinaryExpression(left, right, IcebergBinaryOperator.EQ, IcebergType.bool);

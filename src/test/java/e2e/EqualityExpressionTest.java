@@ -37,7 +37,9 @@ public class EqualityExpressionTest extends Base {
             Arguments.of("print true == true and false;", "false\n"),
             Arguments.of("print true or true == false;", "true\n"),
             Arguments.of("print false or true == false;", "false\n"),
-            Arguments.of("print false or true == true;", "true\n")
+            Arguments.of("print false or true == true;", "true\n"),
+            Arguments.of("print \"foo\" == \"foo\";", "true\n"),
+            Arguments.of("print \"foo\" == \"bar\";", "false\n")
         );
     }
 
@@ -70,7 +72,9 @@ public class EqualityExpressionTest extends Base {
             Arguments.of("print true != true and false;", "false\n"),
             Arguments.of("print true or true != false;", "true\n"),
             Arguments.of("print false or true != false;", "true\n"),
-            Arguments.of("print false or true != true;", "false\n")
+            Arguments.of("print false or true != true;", "false\n"),
+            Arguments.of("print \"foo\" != \"foo\";", "false\n"),
+            Arguments.of("print \"foo\" != \"bar\";", "true\n")
         );
     }
 }
