@@ -84,8 +84,6 @@ class PrintTest {
         "print 10",
         "print 0001;",
         "pRINt 10;",
-        "print False;",
-        "print TRUE;",
     })
     void negative(String source) {
         assertThrows(CompilationException.class, () -> ParsingUtil.parse(source));

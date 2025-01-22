@@ -76,13 +76,25 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             stack.add(value);
         }
 
-        public void pop() {
-            stack.remove(stack.size() - 1);
+        public String pop() {
+            return stack.remove(stack.size() - 1);
         }
 
         @Override
         public String toString() {
             return "vars: " + variables + ", " + "stack: " + stack;
+        }
+
+        public String get(byte index) {
+            return variables.get(index);
+        }
+
+        public void set(byte index, String type) {
+            if (index == variables.size()) {
+                variables.add(type);
+            } else {
+                variables.set(index, type);
+            }
         }
     }
 
@@ -176,6 +188,14 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     snapshot.pop();
                     snapshot.push("int");
                 }
+                case ISTORE -> {
+                    var index = code[i + 1];
+                    snapshot.set(index, snapshot.pop());
+                }
+                case ILOAD -> {
+                    var index = code[i + 1];
+                    snapshot.push(snapshot.get(index));
+                }
                 default -> throw new IllegalStateException("not implemented");
             }
 
@@ -211,6 +231,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case GOTO -> throw new IllegalStateException("Безусловный переход");
                 case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> 3;
                 case LCMP -> 1;
+                case ILOAD, ISTORE -> 2;
             };
         }
     }

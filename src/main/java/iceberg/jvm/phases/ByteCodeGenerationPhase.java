@@ -260,6 +260,26 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
                 output.writeU2(compilationUnit.constantPool.indexOf(irMethodCall.methodRef));
             }
+
+            @Override
+            public void visitIrVariable(IrVariable irVariable) {
+                if (irVariable.initializer != null) {
+                    irVariable.initializer.accept(this);
+                } else {
+                    //use null or do nothing?
+                }
+
+                output.writeU1(OpCodes.ISTORE.value);
+                //TODO: detect index
+                output.writeU1(0);
+            }
+
+            @Override
+            public void visitIrReadVariable(IrReadVariable irReadVariable) {
+                output.writeU1(OpCodes.ILOAD.value);
+                //TODO: detect index by irReadVariable.definition
+                output.writeU1(0);
+            }
         });
 
         attribute.code = output.bytes();

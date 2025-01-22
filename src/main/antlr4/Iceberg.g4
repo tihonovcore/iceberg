@@ -8,12 +8,19 @@ file : statement* EOF;
 
 statement
   : printStatement SEMICOLON
+  | defStatement SEMICOLON
   | ifStatement
   | whileStatement
   | block
   ;
 
 printStatement : PRINT expression;
+
+defStatement
+  : DEF name=ID
+  ( COLON type=ID (ASSIGN expression)?
+  | ASSIGN expression
+  );
 
 ifStatement
   : IF expression THEN statement (ELSE statement)?
@@ -43,6 +50,7 @@ atom
   | FALSE
   | TRUE
   | STRING
+  | ID
   ;
 
 PLUS  : '+';
@@ -76,6 +84,11 @@ NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';
 TRUE   : 'true';
 NULL   : 'null';
+
+DEF    : 'def';
+COLON  : ':';
+ASSIGN : '=';
+ID     : [A-Za-z_][A-Za-z_0-9]*;
 
 STRING
   : '"' (ESCAPE | CHAR)* '"'

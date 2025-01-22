@@ -7,8 +7,7 @@ import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.ir.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GenerateMainMethod implements CompilationPhase {
 
@@ -36,13 +35,31 @@ public class GenerateMainMethod implements CompilationPhase {
 
         attribute.body = (IrBody) file.accept(new IcebergBaseVisitor<IR>() {
 
+            private final List<Map<String, IrVariable>> scopes = new ArrayList<>();
+
             @Override
             public IR visitFile(IcebergParser.FileContext ctx) {
+                scopes.add(new HashMap<>());
+
                 var irBody = new IrBody();
                 for (var statement : ctx.statement()) {
                     irBody.statements.add(statement.accept(this));
                 }
                 irBody.statements.add(new IrReturn());
+
+                return irBody;
+            }
+
+            @Override
+            public IR visitBlock(IcebergParser.BlockContext ctx) {
+                scopes.add(new HashMap<>());
+
+                var irBody = new IrBody();
+                for (var statement : ctx.statement()) {
+                    irBody.statements.add(statement.accept(this));
+                }
+
+                scopes.removeLast();
 
                 return irBody;
             }
@@ -99,6 +116,33 @@ public class GenerateMainMethod implements CompilationPhase {
                     ? IcebergBinaryOperator.PLUS
                     : IcebergBinaryOperator.SUB;
                 return new IrBinaryExpression(left, right, operator, result);
+            }
+
+            @Override
+            public IR visitDefStatement(IcebergParser.DefStatementContext ctx) {
+                var name = ctx.name.getText();
+                for (var scope : scopes) {
+                    if (scope.containsKey(name)) {
+                        throw new IllegalArgumentException("'%s' is already defined".formatted(name));
+                    }
+                }
+
+                if (ctx.expression() != null) {
+                    var initializer = (IrExpression) ctx.expression().accept(this);
+                    if (ctx.type != null && IcebergType.valueOf(ctx.type.getText()) != initializer.type) {
+                        //TODO: для i64 можно сделать каст из i32
+                        throw new IllegalStateException();
+                    }
+
+                    var variable = new IrVariable(initializer.type, initializer);
+
+                    var scope = scopes.get(scopes.size() - 1);
+                    scope.put(name, variable);
+
+                    return new IrVariable(initializer.type, initializer);
+                }
+
+                throw new IllegalArgumentException();
             }
 
             @Override
@@ -242,6 +286,17 @@ public class GenerateMainMethod implements CompilationPhase {
                             .replace("\\\"", "\"")
                             .replace("\\n", "\n");
                         yield new IrString(unit.constantPool.computeString(string));
+                    }
+                    case IcebergLexer.ID -> {
+                        var name = node.getSymbol().getText();
+                        for (int i = scopes.size() - 1; i >= 0; i--) {
+                            var scope = scopes.get(i);
+                            if (scope.containsKey(name)) {
+                                yield new IrReadVariable(scope.get(name));
+                            }
+                        }
+
+                        throw new IllegalArgumentException("'%s' is not defined".formatted(name));
                     }
                     default -> null;
                 };
