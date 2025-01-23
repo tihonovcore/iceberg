@@ -34,7 +34,7 @@ public class CompilationPipeline {
         var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Iceberg.class");
         Files.write(path, bytes, CREATE, WRITE);
 
-        var classLoader = new Misc.ByteClassLoader(Misc.class.getClassLoader());
+        var classLoader = new Misc.ByteClassLoader();
         var klass = classLoader.define(bytes);
 
         var main = Arrays.stream(klass.getMethods())

@@ -25,10 +25,6 @@ public class Misc {
 
     public static class ByteClassLoader extends ClassLoader {
 
-        public ByteClassLoader(ClassLoader parent) {
-            super(parent);
-        }
-
         public Class<?> define(byte[] bytes) {
             return defineClass("Iceberg", bytes, 0, bytes.length);
         }
