@@ -41,6 +41,14 @@ public class StackMapAttribute implements CompilationUnit.Attribute {
         }
     }
 
+    public static class LongVariableInfo extends VerificationTypeInfo {
+
+        @Override
+        public int tag() {
+            return 4;
+        }
+    }
+
     public static class ObjectVariableInfo extends VerificationTypeInfo {
 
         public final int cpoolIndex;

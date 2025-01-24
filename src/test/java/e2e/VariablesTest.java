@@ -101,7 +101,51 @@ public class VariablesTest extends Base {
         );
     }
 
-    //todo: i64
+    @ParameterizedTest
+    @MethodSource
+    void i64(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> i64() {
+        return Stream.of(
+            Arguments.of("""
+                def x = 111222333444;
+                print x + 5;""", "111222333449\n"),
+            Arguments.of("""
+                def x = 111222333444 - 2 * 11;
+                print -x + x * 3;""", "222444666844\n"),
+            Arguments.of("""
+                def x = 111222333444;
+                def y = 111222333443;
+                print x + y;""", "222444666887\n"),
+            Arguments.of("""
+                def x = 111222333444;
+                def y = 111222333443;
+                {
+                    print x + y;
+                }""", "222444666887\n"),
+            Arguments.of("""
+                def x = 111222333444;
+                {
+                    def y = 111222333443;
+                    print x + y;
+                }
+                def y = 2;
+                print x + y;
+                """, "222444666887\n111222333446\n"),
+            Arguments.of("""
+                def x = 111222333444;
+                {
+                    def y = 111222333443;
+                    print x < y or x >= y;
+                }
+                def y = 100;
+                print x * y <= -y;
+                """, "true\nfalse\n")
+        );
+    }
+
     //todo: string
 
     //todo: type + init

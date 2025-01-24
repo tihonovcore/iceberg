@@ -274,15 +274,29 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     //use null or do nothing?
                 }
 
-                var index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
-                output.writeU1(OpCodes.ISTORE.value);
+                switch (irVariable.type) {
+                    case i32, bool -> output.writeU1(OpCodes.ISTORE.value);
+                    case i64 -> output.writeU1(OpCodes.LSTORE.value);
+                    case string -> throw new IllegalStateException();
+                }
+
+                int index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
                 output.writeU1(index);
+
+                if (irVariable.type == IcebergType.i64) {
+                    indexes.put(new IrVariable(IcebergType.i64, null), indexes.size());
+                }
             }
 
             @Override
             public void visitIrReadVariable(IrReadVariable irReadVariable) {
+                switch (irReadVariable.definition.type) {
+                    case i32, bool -> output.writeU1(OpCodes.ILOAD.value);
+                    case i64 -> output.writeU1(OpCodes.LLOAD.value);
+                    case string -> throw new IllegalStateException();
+                }
+
                 var index = indexes.get(irReadVariable.definition);
-                output.writeU1(OpCodes.ILOAD.value);
                 output.writeU1(index);
             }
         });

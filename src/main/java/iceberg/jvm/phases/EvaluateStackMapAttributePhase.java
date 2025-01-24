@@ -42,6 +42,10 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 for (var type : snapshot.variables) {
                     if ("int".equals(type)) {
                         full.locals.add(new StackMapAttribute.IntegerVariableInfo());
+                    } else if ("long".equals(type)) {
+                        full.locals.add(new StackMapAttribute.LongVariableInfo());
+                    } else {
+                        throw new IllegalStateException();
                     }
                 }
                 for (var type : snapshot.stack) {
@@ -63,8 +67,9 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
     }
 
     private static class Snapshot {
-        List<String> variables;
-        List<String> stack;
+
+        final List<String> variables;
+        final List<String> stack;
 
         public Snapshot() {
             this.variables = new ArrayList<>();
@@ -81,7 +86,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
         }
 
         public String pop() {
-            return stack.remove(stack.size() - 1);
+            return stack.removeLast();
         }
 
         @Override
@@ -90,15 +95,33 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
         }
 
         public String get(byte index) {
-            return variables.get(index);
+            return variables.get(mapIndex(index));
         }
 
         public void set(byte index, String type) {
-            if (index == variables.size()) {
+            if (mapIndex(index) == variables.size()) {
                 variables.add(type);
             } else {
-                variables.set(index, type);
+                variables.set(mapIndex(index), type);
             }
+        }
+
+        //every long takes two indexes from array
+        private byte mapIndex(byte index) {
+            byte current = 0;
+            for (byte i = 0; i < variables.size(); i++) {
+                if (current == index) {
+                    return i;
+                }
+
+                if ("long".equals(variables.get(i))) {
+                    current += 2;
+                } else {
+                    current += 1;
+                }
+            }
+
+            return (byte) variables.size();
         }
     }
 
@@ -126,7 +149,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             switch (curr) {
                 case ICONST_0 -> snapshot.push("int");
                 case ICONST_1 -> snapshot.push("int");
-                case ALOAD_0 -> snapshot.push(snapshot.variables.get(0));
+                case ALOAD_0 -> snapshot.push(snapshot.get((byte) 0));
                 case RETURN -> snapshot.stack.clear();
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
@@ -156,7 +179,9 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 }
                 case LDC_W, LDC_W2 -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
-                    snapshot.push(load(constantPool, index).type);
+                    var type = load(constantPool, index).type;
+
+                    snapshot.push(type);
                 }
                 case IFEQ -> snapshot.pop();
                 case IFNE -> snapshot.pop();
@@ -192,11 +217,11 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     snapshot.pop();
                     snapshot.push("int");
                 }
-                case ISTORE -> {
+                case ISTORE, LSTORE -> {
                     var index = code[i + 1];
                     snapshot.set(index, snapshot.pop());
                 }
-                case ILOAD -> {
+                case ILOAD, LLOAD -> {
                     var index = code[i + 1];
                     snapshot.push(snapshot.get(index));
                 }
@@ -235,7 +260,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case GOTO -> throw new IllegalStateException("Безусловный переход");
                 case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> 3;
                 case LCMP -> 1;
-                case ILOAD, ISTORE -> 2;
+                case ILOAD, ISTORE, LLOAD, LSTORE -> 2;
             };
         }
     }
