@@ -13,11 +13,11 @@ public class VariablesTest extends Base {
 
     @ParameterizedTest
     @MethodSource
-    void withInit(String source, String expected) {
+    void i32(String source, String expected) {
         execute(source, expected);
     }
 
-    static Stream<Arguments> withInit() {
+    static Stream<Arguments> i32() {
         return Stream.of(
             Arguments.of("""
                 def x = 100;
@@ -63,16 +63,51 @@ public class VariablesTest extends Base {
                 print x == y;
                 """, "true\nfalse\n")
         );
-
-        //todo: bool
-        //todo: i64
-        //todo: string
-
-        //todo: type + init
-        //todo: type and init later
-
-        //todo: type=i64 and init is i32
     }
+
+    @ParameterizedTest
+    @MethodSource
+    void bool(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> bool() {
+        return Stream.of(
+            Arguments.of("""
+                def x = false;
+                print x or true;""", "true\n"),
+            Arguments.of("""
+                def x = false or true and true;
+                print not x or x and x;""", "true\n"),
+            Arguments.of("""
+                def x = false;
+                def y = true;
+                print x or y;""", "true\n"),
+            Arguments.of("""
+                def x = false;
+                def y = true;
+                {
+                    print x or y;
+                }""", "true\n"),
+            Arguments.of("""
+                def x = true;
+                {
+                    def y = true;
+                    print x and y;
+                }
+                def y = false;
+                print x and y;
+                """, "true\nfalse\n")
+        );
+    }
+
+    //todo: i64
+    //todo: string
+
+    //todo: type + init
+    //todo: type and init later
+
+    //todo: type=i64 and init is i32
 
     @ParameterizedTest
     @MethodSource
