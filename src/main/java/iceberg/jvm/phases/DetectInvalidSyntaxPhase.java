@@ -1,8 +1,8 @@
 package iceberg.jvm.phases;
 
+import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.fe.CompilationException;
 import iceberg.jvm.CompilationUnit;
 
 public class DetectInvalidSyntaxPhase implements CompilationPhase {
@@ -14,7 +14,7 @@ public class DetectInvalidSyntaxPhase implements CompilationPhase {
             public Object visitUnaryMinusExpression(IcebergParser.UnaryMinusExpressionContext ctx) {
                 var number = ctx.atom().NUMBER();
                 if (number != null && number.getText().startsWith("-")) {
-                    throw new CompilationException("invalid syntax");
+                    throw new SemanticException("invalid syntax");
                 }
 
                 return super.visitUnaryMinusExpression(ctx);

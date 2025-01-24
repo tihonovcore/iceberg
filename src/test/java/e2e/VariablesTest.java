@@ -1,10 +1,13 @@
 package e2e;
 
+import iceberg.SemanticException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class VariablesTest extends Base {
 
@@ -69,7 +72,29 @@ public class VariablesTest extends Base {
         //todo: type and init later
 
         //todo: type=i64 and init is i32
+    }
 
-        //todo: negative
+    @ParameterizedTest
+    @MethodSource
+    void negative(String source) {
+        assertThrows(SemanticException.class, () -> execute(source, null));
+    }
+
+    static Stream<Arguments> negative() {
+        return Stream.of(
+            Arguments.of("""
+                def x = 100;
+                def x = 200;"""),
+            Arguments.of("""
+                def x = 100;
+                print y;"""),
+            Arguments.of("""
+                def x = 100;
+                {
+                    def x = 200;
+                }"""),
+            Arguments.of("""
+                def x: string = 100;""")
+        );
     }
 }

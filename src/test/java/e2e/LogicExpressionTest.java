@@ -1,5 +1,6 @@
 package e2e;
 
+import iceberg.SemanticException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,7 +62,7 @@ public class LogicExpressionTest extends Base {
     @ParameterizedTest
     @MethodSource
     void logic_negative(String source) {
-        assertThrows(IllegalArgumentException.class, () -> execute(source, null));
+        assertThrows(SemanticException.class, () -> execute(source, null));
     }
 
     static Stream<Arguments> logic_negative() {

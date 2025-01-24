@@ -1,5 +1,6 @@
 package iceberg.jvm.phases;
 
+import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
@@ -109,7 +110,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
                     result = IcebergType.i32;
                 } else {
-                    throw new IllegalStateException("not implemented");
+                    throw new SemanticException();
                 }
 
                 var operator = ctx.PLUS() != null
@@ -123,7 +124,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 var name = ctx.name.getText();
                 for (var scope : scopes) {
                     if (scope.containsKey(name)) {
-                        throw new IllegalArgumentException("'%s' is already defined".formatted(name));
+                        throw new SemanticException("'%s' is already defined".formatted(name));
                     }
                 }
 
@@ -131,7 +132,7 @@ public class GenerateMainMethod implements CompilationPhase {
                     var initializer = (IrExpression) ctx.expression().accept(this);
                     if (ctx.type != null && IcebergType.valueOf(ctx.type.getText()) != initializer.type) {
                         //TODO: для i64 можно сделать каст из i32
-                        throw new IllegalStateException();
+                        throw new SemanticException();
                     }
 
                     var variable = new IrVariable(initializer.type, initializer);
@@ -142,7 +143,7 @@ public class GenerateMainMethod implements CompilationPhase {
                     return variable;
                 }
 
-                throw new IllegalArgumentException();
+                throw new SemanticException();
             }
 
             @Override
@@ -160,7 +161,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
                     result = IcebergType.i32;
                 } else {
-                    throw new IllegalStateException("not implemented");
+                    throw new SemanticException();
                 }
 
                 var operator = ctx.STAR() != null
@@ -189,7 +190,7 @@ public class GenerateMainMethod implements CompilationPhase {
                         return new IrBinaryExpression(right, left, operator, IcebergType.bool);
                     }
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -225,7 +226,7 @@ public class GenerateMainMethod implements CompilationPhase {
 
                     return new IrUnaryExpression(binary, IcebergUnaryOperator.NOT, IcebergType.bool);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -235,7 +236,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 if (value.type == IcebergType.i32 || value.type == IcebergType.i64) {
                     return new IrUnaryExpression(value, IcebergUnaryOperator.MINUS, value.type);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -245,7 +246,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 if (value.type == IcebergType.bool) {
                     return new IrUnaryExpression(value, IcebergUnaryOperator.NOT, value.type);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -257,7 +258,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
                     return new IrBinaryExpression(left, right, IcebergBinaryOperator.OR, IcebergType.bool);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -269,7 +270,7 @@ public class GenerateMainMethod implements CompilationPhase {
                 if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
                     return new IrBinaryExpression(left, right, IcebergBinaryOperator.AND, IcebergType.bool);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new SemanticException();
                 }
             }
 
@@ -296,7 +297,7 @@ public class GenerateMainMethod implements CompilationPhase {
                             }
                         }
 
-                        throw new IllegalArgumentException("'%s' is not defined".formatted(name));
+                        throw new SemanticException("'%s' is not defined".formatted(name));
                     }
                     default -> null;
                 };

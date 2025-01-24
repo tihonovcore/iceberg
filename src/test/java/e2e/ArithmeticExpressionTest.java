@@ -1,6 +1,6 @@
 package e2e;
 
-import iceberg.fe.CompilationException;
+import iceberg.SemanticException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,19 +28,6 @@ public class ArithmeticExpressionTest extends Base {
             Arguments.of("print -(2147483648);", "-2147483648\n"),
             Arguments.of("print -(111222333444);", "-111222333444\n"),
             Arguments.of("print -(9223372036854775807);", "-9223372036854775807\n")
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void unary_negative(String source) {
-        assertThrows(CompilationException.class, () -> execute(source, null));
-    }
-
-    static Stream<Arguments> unary_negative() {
-        return Stream.of(
-            Arguments.of("print --100;"),
-            Arguments.of("print ---100;")
         );
     }
 
@@ -182,6 +169,24 @@ public class ArithmeticExpressionTest extends Base {
             Arguments.of("print (111222333444 - 222444666888) / 111222333444;", "-1\n"),
 
             Arguments.of("print 5 * (300 - 200) / 2 + 4;", "254\n")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void negative(String source) {
+        assertThrows(SemanticException.class, () -> execute(source, null));
+    }
+
+    static Stream<Arguments> negative() {
+        return Stream.of(
+            Arguments.of("print --100;"),
+            Arguments.of("print -false;"),
+            Arguments.of("print -\"foo\";"),
+            Arguments.of("print false == 100;"),
+            Arguments.of("print false >= 100;"),
+            Arguments.of("print false * true;"),
+            Arguments.of("print false + true;")
         );
     }
 }
