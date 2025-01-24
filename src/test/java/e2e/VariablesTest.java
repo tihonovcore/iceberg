@@ -10,16 +10,66 @@ public class VariablesTest extends Base {
 
     @ParameterizedTest
     @MethodSource
-    void def(String source, String expected) {
+    void withInit(String source, String expected) {
         execute(source, expected);
     }
 
-    static Stream<Arguments> def() {
+    static Stream<Arguments> withInit() {
         return Stream.of(
             Arguments.of("""
-                def x = 10;
-                print x;
-                """, "10\n")
+                def x = 100;
+                print x + 2;""", "102\n"),
+            Arguments.of("""
+                def x = 2 + 2 * 2;
+                print x + x * x;""", "42\n"),
+            Arguments.of("""
+                def x = 2;
+                def y = 98;
+                print x + y;""", "100\n"),
+            Arguments.of("""
+                def x = 2;
+                def y = 98;
+                {
+                    print x + y;
+                }""", "100\n"),
+            Arguments.of("""
+                def x = 2;
+                {
+                    def y = 10;
+                    print x * y;
+                }
+                def y = 100;
+                print x * y;
+                """, "20\n200\n"),
+            Arguments.of("""
+                def x = 2;
+                {
+                    def y = 10;
+                    print x < y or x >= y;
+                }
+                def y = 100;
+                print x * y <= -y;
+                """, "true\nfalse\n"),
+            Arguments.of("""
+                def x = 2;
+                {
+                    def y = x;
+                    print x == y;
+                }
+                def y = 100;
+                print x == y;
+                """, "true\nfalse\n")
         );
+
+        //todo: bool
+        //todo: i64
+        //todo: string
+
+        //todo: type + init
+        //todo: type and init later
+
+        //todo: type=i64 and init is i32
+
+        //todo: negative
     }
 }

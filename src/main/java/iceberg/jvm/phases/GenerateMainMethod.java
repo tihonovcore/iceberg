@@ -136,10 +136,10 @@ public class GenerateMainMethod implements CompilationPhase {
 
                     var variable = new IrVariable(initializer.type, initializer);
 
-                    var scope = scopes.get(scopes.size() - 1);
+                    var scope = scopes.getLast();
                     scope.put(name, variable);
 
-                    return new IrVariable(initializer.type, initializer);
+                    return variable;
                 }
 
                 throw new IllegalArgumentException();

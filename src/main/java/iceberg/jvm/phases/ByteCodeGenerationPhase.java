@@ -6,6 +6,9 @@ import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.OpCodes;
 import iceberg.jvm.ir.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ByteCodeGenerationPhase implements CompilationPhase {
 
     @Override
@@ -261,6 +264,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 output.writeU2(compilationUnit.constantPool.indexOf(irMethodCall.methodRef));
             }
 
+            private final Map<IrVariable, Integer> indexes = new HashMap<>();
+
             @Override
             public void visitIrVariable(IrVariable irVariable) {
                 if (irVariable.initializer != null) {
@@ -269,16 +274,16 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     //use null or do nothing?
                 }
 
+                var index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
                 output.writeU1(OpCodes.ISTORE.value);
-                //TODO: detect index
-                output.writeU1(0);
+                output.writeU1(index);
             }
 
             @Override
             public void visitIrReadVariable(IrReadVariable irReadVariable) {
+                var index = indexes.get(irReadVariable.definition);
                 output.writeU1(OpCodes.ILOAD.value);
-                //TODO: detect index by irReadVariable.definition
-                output.writeU1(0);
+                output.writeU1(index);
             }
         });
 

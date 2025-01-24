@@ -145,7 +145,12 @@ public class CodeGenerator {
                         output.writeU2(entry.offsetDelta);
 
                         output.writeU2(entry.locals.size());
-                        //TODO: fill locals
+                        for (var frame : entry.locals) {
+                            output.writeU1(frame.tag());
+                            if (frame instanceof StackMapAttribute.ObjectVariableInfo obj) {
+                                output.writeU2(obj.cpoolIndex);
+                            }
+                        }
 
                         output.writeU2(entry.stack.size());
                         for (var frame : entry.stack) {

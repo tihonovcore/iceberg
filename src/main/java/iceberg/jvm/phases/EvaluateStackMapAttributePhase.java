@@ -39,7 +39,11 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 stackMapAttribute.entries.add(full);
 
                 var snapshot = snapshots.get(curr);
-                //TODO: fill vars
+                for (var type : snapshot.variables) {
+                    if ("int".equals(type)) {
+                        full.locals.add(new StackMapAttribute.IntegerVariableInfo());
+                    }
+                }
                 for (var type : snapshot.stack) {
                     if ("int".equals(type)) {
                         full.stack.add(new StackMapAttribute.IntegerVariableInfo());
