@@ -197,6 +197,16 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrCast(IrCast irCast) {
+                if (irCast.type == IcebergType.i64 && irCast.irExpression.type == IcebergType.i32) {
+                    irCast.irExpression.accept(this);
+                    output.writeU1(OpCodes.I2L.value);
+                } else {
+                    throw new IllegalStateException();
+                }
+            }
+
+            @Override
             public void visitIrNumber(IrNumber irNumber) {
                 var value = irNumber.value;
                 if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {

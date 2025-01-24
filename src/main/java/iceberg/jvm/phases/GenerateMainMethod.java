@@ -130,9 +130,14 @@ public class GenerateMainMethod implements CompilationPhase {
 
                 if (ctx.expression() != null) {
                     var initializer = (IrExpression) ctx.expression().accept(this);
-                    if (ctx.type != null && IcebergType.valueOf(ctx.type.getText()) != initializer.type) {
-                        //TODO: для i64 можно сделать каст из i32
-                        throw new SemanticException();
+
+                    if (ctx.type != null) {
+                        var specifiedType = IcebergType.valueOf(ctx.type.getText());
+                        if (specifiedType == IcebergType.i64 && initializer.type == IcebergType.i32) {
+                            initializer = new IrCast(initializer, IcebergType.i64);
+                        } else if (specifiedType != initializer.type) {
+                            throw new SemanticException();
+                        }
                     }
 
                     var variable = new IrVariable(initializer.type, initializer);

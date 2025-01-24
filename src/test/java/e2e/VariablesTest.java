@@ -148,10 +148,32 @@ public class VariablesTest extends Base {
 
     //todo: string
 
-    //todo: type + init
-    //todo: type and init later
+    @ParameterizedTest
+    @MethodSource
+    void typedInit(String source, String expected) {
+        execute(source, expected);
+    }
 
-    //todo: type=i64 and init is i32
+    static Stream<Arguments> typedInit() {
+        return Stream.of(
+            Arguments.of("""
+                def x: i32 = 100;
+                print x + 5;""", "105\n"),
+            Arguments.of("""
+                def x: i64 = 100;
+                print x - 1;""", "99\n"),
+            Arguments.of("""
+                def x: i64 = 111222333444;
+                print x - 2 * 11;""", "111222333422\n"),
+            Arguments.of("""
+                def x: bool = false;
+                print x or not x;""", "true\n")
+            //todo: string
+            //todo: type and init later
+        );
+    }
+
+    //todo: assign
 
     @ParameterizedTest
     @MethodSource
