@@ -5,9 +5,9 @@ import iceberg.jvm.ByteArray;
 import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.OpCodes;
 import iceberg.jvm.ir.*;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ByteCodeGenerationPhase implements CompilationPhase {
 
@@ -27,9 +27,25 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
     ) {
         var output = new ByteArray();
         attribute.body.accept(new IrVisitor() {
+
+            private final List<Set<IrVariable>> scopes = new ArrayList<>();
+
             @Override
             public void visitIrBody(IrBody irBody) {
+                scopes.add(new HashSet<>());
+
                 irBody.statements.forEach(s -> s.accept(this));
+
+                scopes.removeLast().forEach(irVariable -> {
+                    indexes.remove(irVariable);
+
+                    if (irVariable.type == IcebergType.i64) {
+                        var longPlaceholder = indexes.keySet().stream()
+                            .filter(LongPlaceholder.class::isInstance)
+                            .findFirst().orElseThrow();
+                        indexes.remove(longPlaceholder);
+                    }
+                });
             }
 
             @Override
@@ -294,11 +310,21 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     case string -> output.writeU1(OpCodes.ASTORE.value);
                 }
 
+                //TODO: use put
                 int index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
                 output.writeU1(index);
 
                 if (irVariable.type == IcebergType.i64) {
-                    indexes.put(new IrVariable(IcebergType.i64, null), indexes.size());
+                    indexes.put(new LongPlaceholder(IcebergType.i64, null), indexes.size());
+                }
+
+                scopes.getLast().add(irVariable);
+            }
+
+            static class LongPlaceholder extends IrVariable {
+
+                public LongPlaceholder(IcebergType type, @Nullable IrExpression initializer) {
+                    super(type, initializer);
                 }
             }
 
@@ -326,6 +352,27 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
                 var index = indexes.get(irAssignVariable.definition);
                 output.writeU1(index);
+            }
+
+            @Override
+            public void visitIrIfStatement(IrIfStatement irIfStatement) {
+                irIfStatement.condition.accept(this);
+
+                output.writeU1(OpCodes.IFEQ.value);
+                var toElseOrEnd = output.lateInitJump();
+
+                irIfStatement.thenStatement.accept(this);
+
+                if (irIfStatement.elseStatement != null) {
+                    output.writeU1(OpCodes.GOTO.value);
+                    var toEnd = output.lateInitJump();
+
+                    toElseOrEnd.jump();
+                    irIfStatement.elseStatement.accept(this);
+                    toEnd.jump();
+                } else {
+                    toElseOrEnd.jump();
+                }
             }
         });
 

@@ -28,7 +28,9 @@ assignStatement
   ;
 
 ifStatement
-  : IF expression THEN statement (ELSE statement)?
+  : IF condition=expression
+    THEN thenStatement=statement
+    (ELSE elseStatement=statement)?
   ;
 
 whileStatement
