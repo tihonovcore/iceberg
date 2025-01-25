@@ -281,7 +281,11 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 if (irVariable.initializer != null) {
                     irVariable.initializer.accept(this);
                 } else {
-                    //use null or do nothing?
+                    switch (irVariable.type) {
+                        case i32, bool -> output.writeU1(OpCodes.ICONST_0.value);
+                        case i64 -> output.writeU1(OpCodes.LCONST_0.value);
+                        case string -> output.writeU1(OpCodes.ACONST_NULL.value);
+                    }
                 }
 
                 switch (irVariable.type) {
@@ -307,6 +311,20 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 }
 
                 var index = indexes.get(irReadVariable.definition);
+                output.writeU1(index);
+            }
+
+            @Override
+            public void visitIrAssignVariable(IrAssignVariable irAssignVariable) {
+                irAssignVariable.expression.accept(this);
+
+                switch (irAssignVariable.definition.type) {
+                    case i32, bool -> output.writeU1(OpCodes.ISTORE.value);
+                    case i64 -> output.writeU1(OpCodes.LSTORE.value);
+                    case string -> output.writeU1(OpCodes.ASTORE.value);
+                }
+
+                var index = indexes.get(irAssignVariable.definition);
                 output.writeU1(index);
             }
         });

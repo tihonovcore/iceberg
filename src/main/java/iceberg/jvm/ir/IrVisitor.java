@@ -11,6 +11,7 @@ public interface IrVisitor {
     void visitIrCast(IrCast irCast);
     void visitIrNumber(IrNumber irNumber);
     void visitIrReadVariable(IrReadVariable irReadVariable);
+    void visitIrAssignVariable(IrAssignVariable irAssignVariable);
     void visitIrUnaryExpression(IrUnaryExpression irExpression);
     void visitIrBinaryExpression(IrBinaryExpression irExpression);
     void visitIrBool(IrBool irBool);

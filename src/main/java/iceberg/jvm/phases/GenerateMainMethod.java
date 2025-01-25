@@ -128,8 +128,9 @@ public class GenerateMainMethod implements CompilationPhase {
                     }
                 }
 
+                IrExpression initializer = null;
                 if (ctx.expression() != null) {
-                    var initializer = (IrExpression) ctx.expression().accept(this);
+                    initializer = (IrExpression) ctx.expression().accept(this);
 
                     if (ctx.type != null) {
                         var specifiedType = IcebergType.valueOf(ctx.type.getText());
@@ -139,16 +140,44 @@ public class GenerateMainMethod implements CompilationPhase {
                             throw new SemanticException();
                         }
                     }
-
-                    var variable = new IrVariable(initializer.type, initializer);
-
-                    var scope = scopes.getLast();
-                    scope.put(name, variable);
-
-                    return variable;
                 }
 
-                throw new SemanticException();
+                var type = ctx.type != null
+                    ? IcebergType.valueOf(ctx.type.getText())
+                    : initializer.type;
+
+                var variable = new IrVariable(type, initializer);
+
+                var scope = scopes.getLast();
+                scope.put(name, variable);
+
+                return variable;
+            }
+
+            @Override
+            public IR visitAssignStatement(IcebergParser.AssignStatementContext ctx) {
+                var name = ctx.name.getText();
+
+                IrVariable irVariable = null;
+                for (var scope : scopes) {
+                    if (scope.containsKey(name)) {
+                        irVariable = scope.get(name);
+                        break;
+                    }
+                }
+
+                if (irVariable == null) {
+                    throw new SemanticException("'%s' is not defined".formatted(name));
+                }
+
+                var expression = (IrExpression) ctx.expression().accept(this);
+                if (irVariable.type != expression.type) {
+                    throw new SemanticException(
+                        "cannot assign %s-value to %s::%s".formatted(expression.type, name, irVariable.type)
+                    );
+                }
+
+                return new IrAssignVariable(irVariable, expression);
             }
 
             @Override

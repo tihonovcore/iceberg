@@ -3,6 +3,7 @@ package iceberg.jvm;
 import java.util.Arrays;
 
 public enum OpCodes {
+    ACONST_NULL(0x01),
     ALOAD_0(0x2A),
     ALOAD(0x19),
     ASTORE(0x3A),
@@ -31,6 +32,7 @@ public enum OpCodes {
     ISUB(0x64),
     LADD(0x61),
     LCMP(0x94),
+    LCONST_0(0x09),
     LDIV(0X6D),
     LLOAD(0x16),
     LMUL(0x69),

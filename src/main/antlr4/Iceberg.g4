@@ -9,6 +9,7 @@ file : statement* EOF;
 statement
   : printStatement SEMICOLON
   | defStatement SEMICOLON
+  | assignStatement SEMICOLON
   | ifStatement
   | whileStatement
   | block
@@ -21,6 +22,10 @@ defStatement
   ( COLON type=ID (ASSIGN expression)?
   | ASSIGN expression
   );
+
+assignStatement
+  : name=ID ASSIGN expression
+  ;
 
 ifStatement
   : IF expression THEN statement (ELSE statement)?

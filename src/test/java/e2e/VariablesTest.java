@@ -185,12 +185,71 @@ public class VariablesTest extends Base {
                 print x or not x;""", "true\n"),
             Arguments.of("""
                 def x: string = "foo\\nbar\\nqux";
+                print x;""", "foo\nbar\nqux\n"),
+
+            Arguments.of("""
+                def x: i32;
+                x = 100;
+                print x + 5;""", "105\n"),
+            Arguments.of("""
+                def x: i64;
+                x = 111222333444;
+                print x - 2 * 11;""", "111222333422\n"),
+            Arguments.of("""
+                def x: bool;
+                x = false;
+                print x or not x;""", "true\n"),
+            Arguments.of("""
+                def x: string;
+                x = "foo\\nbar\\nqux";
+                print x;""", "foo\nbar\nqux\n"),
+
+            Arguments.of("""
+                def x: i32;
+                {
+                    x = 100;
+                }
+                print x + 5;""", "105\n"),
+            Arguments.of("""
+                def x: i64;
+                {
+                    x = 111222333444;
+                }
+                print x - 2 * 11;""", "111222333422\n"),
+            Arguments.of("""
+                def x: bool;
+                {
+                    x = false;
+                }
+                print x or not x;""", "true\n"),
+            Arguments.of("""
+                def x: string;
+                {
+                    x = "foo\\nbar\\nqux";
+                }
                 print x;""", "foo\nbar\nqux\n")
-            //todo: type and init later
         );
     }
 
-    //todo: assign
+    @ParameterizedTest
+    @MethodSource
+    void assign(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> assign() {
+        return Stream.of(
+            Arguments.of("""
+                def x = 100;
+                print x + 5;
+                x = 200;
+                print x + 5;""", "105\n205\n"),
+            Arguments.of("""
+                def x: i64;
+                x = 111222333444;
+                print x;""", "111222333444\n")
+        );
+    }
 
     @ParameterizedTest
     @MethodSource
@@ -212,7 +271,17 @@ public class VariablesTest extends Base {
                     def x = 200;
                 }"""),
             Arguments.of("""
-                def x: string = 100;""")
+                def x: string = 100;"""),
+            //todo: too hard to implement?
+            //Arguments.of("""
+            //    def x: i32;
+            //    print x;"""),
+            Arguments.of("""
+                def x = x + 5;
+                print x + 5;"""),
+            Arguments.of("""
+                def x = 100;
+                x = false;""")
         );
     }
 }

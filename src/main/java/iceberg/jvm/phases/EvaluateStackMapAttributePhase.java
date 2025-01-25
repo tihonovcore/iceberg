@@ -147,9 +147,12 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             var curr = OpCodes.valueOf(code[i]);
 
             switch (curr) {
+                case ALOAD_0 -> snapshot.push(snapshot.get((byte) 0));
+                //TODO: not necessary string
+                case ACONST_NULL -> snapshot.push("java/lang/String");
                 case ICONST_0 -> snapshot.push("int");
                 case ICONST_1 -> snapshot.push("int");
-                case ALOAD_0 -> snapshot.push(snapshot.get((byte) 0));
+                case LCONST_0 -> snapshot.push("long");
                 case RETURN -> snapshot.stack.clear();
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
@@ -238,9 +241,9 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             }
 
             i += switch (curr) {
-                case ICONST_0 -> 1;
-                case ICONST_1 -> 1;
+                case ICONST_0, ICONST_1, LCONST_0 -> 1;
                 case ALOAD_0 -> 1;
+                case ACONST_NULL -> 1;
                 case RETURN -> 1;
                 case GETSTATIC -> 3;
                 case INVOKEVIRTUAL -> 3;
