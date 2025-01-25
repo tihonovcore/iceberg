@@ -146,7 +146,22 @@ public class VariablesTest extends Base {
         );
     }
 
-    //todo: string
+    @ParameterizedTest
+    @MethodSource
+    void string(String source, String expected) {
+        execute(source, expected);
+    }
+
+    static Stream<Arguments> string() {
+        return Stream.of(
+            Arguments.of("""
+                def x = "foo";
+                print x;""", "foo\n"),
+            Arguments.of("""
+                def x = "foo\\nbar";
+                print x;""", "foo\nbar\n")
+        );
+    }
 
     @ParameterizedTest
     @MethodSource
@@ -167,8 +182,10 @@ public class VariablesTest extends Base {
                 print x - 2 * 11;""", "111222333422\n"),
             Arguments.of("""
                 def x: bool = false;
-                print x or not x;""", "true\n")
-            //todo: string
+                print x or not x;""", "true\n"),
+            Arguments.of("""
+                def x: string = "foo\\nbar\\nqux";
+                print x;""", "foo\nbar\nqux\n")
             //todo: type and init later
         );
     }

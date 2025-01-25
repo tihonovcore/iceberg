@@ -287,7 +287,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 switch (irVariable.type) {
                     case i32, bool -> output.writeU1(OpCodes.ISTORE.value);
                     case i64 -> output.writeU1(OpCodes.LSTORE.value);
-                    case string -> throw new IllegalStateException();
+                    case string -> output.writeU1(OpCodes.ASTORE.value);
                 }
 
                 int index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
@@ -303,7 +303,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 switch (irReadVariable.definition.type) {
                     case i32, bool -> output.writeU1(OpCodes.ILOAD.value);
                     case i64 -> output.writeU1(OpCodes.LLOAD.value);
-                    case string -> throw new IllegalStateException();
+                    case string -> output.writeU1(OpCodes.ALOAD.value);
                 }
 
                 var index = indexes.get(irReadVariable.definition);

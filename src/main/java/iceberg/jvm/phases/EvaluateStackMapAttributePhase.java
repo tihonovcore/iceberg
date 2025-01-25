@@ -217,11 +217,11 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     snapshot.pop();
                     snapshot.push("int");
                 }
-                case ISTORE, LSTORE -> {
+                case ISTORE, LSTORE, ASTORE -> {
                     var index = code[i + 1];
                     snapshot.set(index, snapshot.pop());
                 }
-                case ILOAD, LLOAD -> {
+                case ILOAD, LLOAD, ALOAD -> {
                     var index = code[i + 1];
                     snapshot.push(snapshot.get(index));
                 }
@@ -260,7 +260,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case GOTO -> throw new IllegalStateException("Безусловный переход");
                 case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> 3;
                 case LCMP -> 1;
-                case ILOAD, ISTORE, LLOAD, LSTORE -> 2;
+                case ILOAD, ISTORE, LLOAD, LSTORE, ALOAD, ASTORE -> 2;
             };
         }
     }

@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 public enum OpCodes {
     ALOAD_0(0x2A),
+    ALOAD(0x19),
+    ASTORE(0x3A),
     BIPUSH(0x10),
     GETSTATIC(0xB2),
     GOTO(0xA7),
