@@ -9,6 +9,7 @@ public interface IrVisitor {
     void visitIrStaticCall(IrStaticCall irStaticCall);
     void visitIrMethodCall(IrMethodCall irMethodCall);
     void visitIrIfStatement(IrIfStatement irIfStatement);
+    void visitIrLoop(IrLoop irLoop);
     void visitIrCast(IrCast irCast);
     void visitIrNumber(IrNumber irNumber);
     void visitIrReadVariable(IrReadVariable irReadVariable);

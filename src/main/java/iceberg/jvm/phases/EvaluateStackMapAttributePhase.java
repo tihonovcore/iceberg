@@ -232,7 +232,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             }
 
             if (JUMP_OP_CODES.contains(curr)) {
-                var jump = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
+                var jump = (short) ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                 dfs(code, i + jump, constantPool, new Snapshot(snapshot), snapshots);
             }
 

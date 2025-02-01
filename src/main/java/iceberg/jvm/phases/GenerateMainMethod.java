@@ -196,6 +196,17 @@ public class GenerateMainMethod implements CompilationPhase {
             }
 
             @Override
+            public IR visitWhileStatement(IcebergParser.WhileStatementContext ctx) {
+                var condition = (IrExpression) ctx.expression().accept(this);
+                if (condition.type != IcebergType.bool) {
+                    throw new SemanticException("expected bool");
+                }
+
+                var body = ctx.statement().accept(this);
+                return new IrLoop(condition, body);
+            }
+
+            @Override
             public IR visitMultiplicationExpression(IcebergParser.MultiplicationExpressionContext ctx) {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);

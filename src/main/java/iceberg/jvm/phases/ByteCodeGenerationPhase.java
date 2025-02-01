@@ -49,6 +49,30 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrLoop(IrLoop irLoop) {
+                //HACK:
+                //If there is variable declaration inside while-loop, we have to forget about
+                //this variable after jump back to condition. Unfortunately, there is no information
+                //about scopes at EvaluateStackMapAttributePhase, so it keeps the variable on stack
+                //after jump and then captures frame-snapshot.
+                //This GOTO captures frame-snapshot BEFORE visiting body, without any body-vars.
+                output.writeU1(OpCodes.GOTO.value);
+                output.lateInitJump().jump();
+
+                var beforeCondition = output.length();
+
+                irLoop.condition.accept(this);
+                output.writeU1(OpCodes.IFEQ.value);
+                var afterLoop = output.lateInitJump();
+
+                irLoop.body.accept(this);
+                output.writeU1(OpCodes.GOTO.value);
+                output.writeU2((short) (beforeCondition - output.length() + 1));
+
+                afterLoop.jump();
+            }
+
+            @Override
             public void visitIrSuperCall(IrSuperCall irSuperCall) {
                 output.writeU1(OpCodes.ALOAD_0.value);
                 output.writeU1(OpCodes.INVOKESPECIAL.value);

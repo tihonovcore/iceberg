@@ -111,3 +111,4 @@ fragment CHAR
 SEMICOLON : ';';
 
 WS: [ \n\t\r]+ -> skip;
+COMMENT : '//' ~[\n\r]* -> skip;
