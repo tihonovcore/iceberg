@@ -12,6 +12,9 @@ statement
   | assignStatement SEMICOLON
   | ifStatement
   | whileStatement
+  | functionDefinitionStatement
+  | functionCall SEMICOLON
+  | returnStatement SEMICOLON
   | block
   ;
 
@@ -37,6 +40,29 @@ whileStatement
   : WHILE expression THEN statement
   ;
 
+functionDefinitionStatement
+  : FUN name=ID OPEN_PARENTHESIS parameters CLOSE_PARENTHESIS
+    (COLON returnType=ID)? block
+  ;
+
+parameters
+  : ((parameter COMMA)* parameter)?
+  ;
+
+parameter : name=ID COLON type=ID;
+
+functionCall
+  : name=ID OPEN_PARENTHESIS arguments CLOSE_PARENTHESIS
+  ;
+
+arguments
+  : ((expression COMMA)* expression)?
+  ;
+
+returnStatement
+  : RETRUN expression?
+  ;
+
 block : OPEN_BRACE statement* CLOSE_BRACE;
 
 expression
@@ -53,6 +79,7 @@ expression
 
 atom
   : OPEN_PARENTHESIS expression CLOSE_PARENTHESIS
+  | functionCall
   | NUMBER
   | FALSE
   | TRUE
@@ -81,11 +108,13 @@ NOT : 'not';
 AND : 'and';
 OR  : 'or';
 
-PRINT : 'print';
-WHILE : 'while';
-IF    : 'if';
-THEN  : 'then';
-ELSE  : 'else';
+PRINT  : 'print';
+WHILE  : 'while';
+IF     : 'if';
+THEN   : 'then';
+ELSE   : 'else';
+FUN    : 'fun';
+RETRUN : 'return';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';
@@ -109,6 +138,7 @@ fragment CHAR
   ;
 
 SEMICOLON : ';';
+COMMA     : ',';
 
 WS: [ \n\t\r]+ -> skip;
 COMMENT : '//' ~[\n\r]* -> skip;
