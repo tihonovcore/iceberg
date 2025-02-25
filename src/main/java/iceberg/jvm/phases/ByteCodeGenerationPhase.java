@@ -293,14 +293,14 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
-            public void visitIrStaticCall(IrStaticCall irStaticCall) {
+            public void visitIrPrint(IrPrint irPrint) {
                 output.writeU1(OpCodes.GETSTATIC.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.fieldRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(irPrint.fieldRef));
 
-                irStaticCall.arguments.forEach(e -> e.accept(this));
+                irPrint.arguments.forEach(e -> e.accept(this));
 
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.methodRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(irPrint.methodRef));
             }
 
             @Override

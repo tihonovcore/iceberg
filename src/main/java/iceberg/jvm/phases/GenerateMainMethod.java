@@ -92,7 +92,7 @@ public class GenerateMainMethod implements CompilationPhase {
                     )
                 );
                 var method = unit.constantPool.computeMethodRef(printStream, println);
-                return new IrStaticCall(field, method, argument);
+                return new IrPrint(field, method, argument);
             }
 
             @Override
