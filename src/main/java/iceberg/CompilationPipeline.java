@@ -62,7 +62,9 @@ public class CompilationPipeline {
             new DetectInvalidSyntaxPhase().execute(file, mainUnit);
             new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
-            new GenerateMainMethod().execute(file, mainUnit);
+
+            new BuildIrTreePhase().execute(file, mainUnit);
+            new GenerateMethodsPhase().execute(file, mainUnit);
 
             new ByteCodeGenerationPhase().execute(file, mainUnit);
             new EvaluateStackMapAttributePhase().execute(file, mainUnit);

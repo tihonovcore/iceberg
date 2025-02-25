@@ -24,6 +24,21 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 first.variables.add("this");
             }
 
+            //fill local array with parameters
+            if (attribute.function != null) { //TODO: может быть null, так как в дефолтном конструкторе сейчас body
+                for (var parameter : attribute.function.parameters) {
+                    var type = switch (parameter.type) {
+                        case i32 -> "int";
+                        case i64 -> "long";
+                        case bool -> "bool";
+                        case string -> "java/lang/String";
+                        case unit -> "void";
+                    };
+
+                    first.variables.add(type);
+                }
+            }
+
             dfs(attribute.code, 0, unit.constantPool, first, snapshots);
 
             var stackMapAttribute = new StackMapAttribute(unit.constantPool.computeUtf8("StackMapTable"));
@@ -45,7 +60,13 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     } else if ("long".equals(type)) {
                         full.locals.add(new StackMapAttribute.LongVariableInfo());
                     } else {
-                        throw new IllegalStateException();
+                        var utf8 = unit.constantPool.computeUtf8(type);
+                        var klass = unit.constantPool.computeKlass(utf8);
+
+                        var object = new StackMapAttribute.ObjectVariableInfo(
+                            unit.constantPool.indexOf(klass)
+                        );
+                        full.locals.add(object);
                     }
                 }
                 for (var type : snapshot.stack) {
@@ -153,7 +174,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ICONST_0 -> snapshot.push("int");
                 case ICONST_1 -> snapshot.push("int");
                 case LCONST_0 -> snapshot.push("long");
-                case RETURN -> snapshot.stack.clear();
+                case RETURN, IRETURN, ARETURN -> snapshot.stack.clear();
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     snapshot.push(load(constantPool, index).type);
@@ -163,6 +184,18 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     var type = (CallableJavaType) load(constantPool, index);
 
                     snapshot.pop(); //receiver
+                    for (int arg = 0; arg < type.arguments.size(); arg++) {
+                        snapshot.pop();
+                    }
+
+                    if (!type.type.equals("void")) {
+                        snapshot.push(type.type);
+                    }
+                }
+                case INVOKESTATIC -> {
+                    var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
+                    var type = (CallableJavaType) load(constantPool, index);
+
                     for (int arg = 0; arg < type.arguments.size(); arg++) {
                         snapshot.pop();
                     }
@@ -244,9 +277,10 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ICONST_0, ICONST_1, LCONST_0 -> 1;
                 case ALOAD_0 -> 1;
                 case ACONST_NULL -> 1;
-                case RETURN -> 1;
+                case RETURN, IRETURN, ARETURN -> 1;
                 case GETSTATIC -> 3;
                 case INVOKEVIRTUAL -> 3;
+                case INVOKESTATIC -> 3;
                 case INVOKESPECIAL -> 3;
                 case BIPUSH -> 2;
                 case SIPUSH -> 3;
@@ -315,8 +349,32 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 return new CallableJavaType(
                     List.of("java/lang/String"), "void"
                 );
+            } else if ("()V".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of(), "void"
+                );
+            } else if ("()Ljava/lang/String;".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of(), "Ljava/lang/String;"
+                );
+            } else if ("()I".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of(), "int"
+                );
+            } else if ("(ILjava/lang/String;)V".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("int", "Ljava/lang/String;"), "void"
+                );
+            } else if ("(I)I".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("int"), "int"
+                );
+            } else if ("(Ljava/lang/String;)Ljava/lang/String;".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("Ljava/lang/String;"), "Ljava/lang/String;"
+                );
             } else {
-                throw new IllegalStateException();
+                throw new IllegalStateException("not implemented: " + typeDescriptor);
             }
         }
 

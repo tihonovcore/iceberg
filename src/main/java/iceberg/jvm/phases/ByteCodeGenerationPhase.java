@@ -26,9 +26,23 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
         CompilationUnit compilationUnit
     ) {
         var output = new ByteArray();
-        attribute.body.accept(new IrVisitor() {
+        var ir = attribute.function != null ? attribute.function : attribute.body;
+        ir.accept(new IrVisitor() {
 
             private final List<Set<IrVariable>> scopes = new ArrayList<>();
+
+            @Override
+            public void visitIrFile(IrFile irFile) {
+                throw new IllegalStateException("unexpected IrFile");
+            }
+
+            @Override
+            public void visitIrFunction(IrFunction irFunction) {
+                for (var parameter : irFunction.parameters) {
+                    addToLocalVariables(parameter);
+                }
+                irFunction.irBody.accept(this);
+            }
 
             @Override
             public void visitIrBody(IrBody irBody) {
@@ -81,7 +95,18 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
             @Override
             public void visitIrReturn(IrReturn irReturn) {
-                output.writeU1(OpCodes.RETURN.value);
+                if (irReturn.expression == null) {
+                    output.writeU1(OpCodes.RETURN.value);
+                    return;
+                }
+
+                irReturn.expression.accept(this);
+
+                switch (irReturn.expression.type) {
+                    case i32 -> output.writeU1(OpCodes.IRETURN.value);
+                    case string -> output.writeU1(OpCodes.ARETURN.value);
+                    default -> throw new IllegalStateException("not implemented");
+                }
             }
 
             @Override
@@ -304,6 +329,14 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrStaticCall(IrStaticCall irStaticCall) {
+                irStaticCall.arguments.forEach(e -> e.accept(this));
+
+                output.writeU1(OpCodes.INVOKESTATIC.value);
+                output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.methodRef));
+            }
+
+            @Override
             public void visitIrMethodCall(IrMethodCall irMethodCall) {
                 irMethodCall.receiver.accept(this);
                 for (var argument : irMethodCall.arguments) {
@@ -315,6 +348,16 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             private final Map<IrVariable, Integer> indexes = new HashMap<>();
+
+            private int addToLocalVariables(IrVariable irVariable) {
+                int index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
+
+                if (irVariable.type == IcebergType.i64) {
+                    indexes.put(new LongPlaceholder(IcebergType.i64, null), indexes.size());
+                }
+
+                return index;
+            }
 
             @Override
             public void visitIrVariable(IrVariable irVariable) {
@@ -334,13 +377,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     case string -> output.writeU1(OpCodes.ASTORE.value);
                 }
 
-                //TODO: use put
-                int index = indexes.computeIfAbsent(irVariable, __ -> indexes.size());
+                var index = addToLocalVariables(irVariable);
                 output.writeU1(index);
-
-                if (irVariable.type == IcebergType.i64) {
-                    indexes.put(new LongPlaceholder(IcebergType.i64, null), indexes.size());
-                }
 
                 scopes.getLast().add(irVariable);
             }

@@ -2,11 +2,14 @@ package iceberg.jvm.ir;
 
 public interface IrVisitor {
 
+    void visitIrFile(IrFile irFile);
+    void visitIrFunction(IrFunction irFunction);
     void visitIrBody(IrBody irBody);
     void visitIrSuperCall(IrSuperCall irSuperCall);
     void visitIrReturn(IrReturn irReturn);
     void visitIrVariable(IrVariable irVariable);
     void visitIrPrint(IrPrint irPrint);
+    void visitIrStaticCall(IrStaticCall irStaticCall);
     void visitIrMethodCall(IrMethodCall irMethodCall);
     void visitIrIfStatement(IrIfStatement irIfStatement);
     void visitIrLoop(IrLoop irLoop);

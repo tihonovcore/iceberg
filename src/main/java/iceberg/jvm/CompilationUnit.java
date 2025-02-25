@@ -4,6 +4,8 @@ import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
 import iceberg.jvm.cp.Utf8;
 import iceberg.jvm.ir.IrBody;
+import iceberg.jvm.ir.IrFile;
+import iceberg.jvm.ir.IrFunction;
 import iceberg.jvm.target.SourceAttribute;
 import iceberg.jvm.target.StackMapAttribute;
 
@@ -20,6 +22,8 @@ public class CompilationUnit {
     public List<Object> fields = new ArrayList<>();
     public List<Method> methods = new ArrayList<>();
     public List<SourceAttribute> attributes = new ArrayList<>();
+
+    public IrFile irFile;
 
     public byte[] bytes;
 
@@ -53,6 +57,8 @@ public class CompilationUnit {
         public int maxStack;
         public int maxLocals;
 
+        public IrFunction function;
+        @Deprecated
         public IrBody body;
         public byte[] code;
 

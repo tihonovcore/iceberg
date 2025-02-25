@@ -12,6 +12,9 @@ public class FillConstantPoolPhase implements CompilationPhase {
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         file.accept(new IcebergBaseVisitor<>() {
+
+            //TODO: ?? добавить MethodRef
+
             @Override
             public Object visitTerminal(TerminalNode node) {
                 switch (node.getSymbol().getType()) {

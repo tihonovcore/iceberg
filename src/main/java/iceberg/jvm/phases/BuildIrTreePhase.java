@@ -9,46 +9,207 @@ import iceberg.jvm.ir.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class GenerateMainMethod implements CompilationPhase {
+public class BuildIrTreePhase implements CompilationPhase {
+
+    record FunctionDescriptor(
+        String functionName,
+        List<IcebergType> parametersTypes
+        //TODO: returnType?
+    ) {}
+
+    Map<FunctionDescriptor, IrFunction> findAllFunctions(IcebergParser.FileContext file) {
+        var functions = new HashMap<FunctionDescriptor, IrFunction>();
+        file.accept(new IcebergBaseVisitor<Void>() {
+            @Override
+            public Void visitFunctionDefinitionStatement(
+                IcebergParser.FunctionDefinitionStatementContext ctx
+            ) {
+                var parametersTypes = ctx.parameters().parameter().stream()
+                    .map(parameter -> parameter.type.getText())
+                    //TODO: support classes
+                    .map(IcebergType::valueOf)
+                    .toList();
+                var descriptor = new FunctionDescriptor(ctx.name.getText(), parametersTypes);
+
+                if (functions.containsKey(descriptor)) {
+                    throw new SemanticException("function already exists");
+                }
+
+                var functionName = ctx.name.getText();
+                var returnType = ctx.returnType == null
+                    ? IcebergType.unit
+                    : IcebergType.valueOf(ctx.returnType.getText());
+                var function = new IrFunction(functionName, returnType);
+
+                ctx.parameters().parameter().stream()
+                    .map(parameter -> IcebergType.valueOf(parameter.type.getText()))
+                    .map(parameter -> new IrVariable(parameter, null))
+                    .forEach(function.parameters::add);
+
+                functions.put(descriptor, function);
+
+                return null;
+            }
+        });
+
+        return functions;
+    }
 
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        var init = new CompilationUnit.Method();
-        init.flags
-            = CompilationUnit.Method.AccessFlags.ACC_PUBLIC.value
-            | CompilationUnit.Method.AccessFlags.ACC_STATIC.value;
-        init.name = unit.constantPool.computeUtf8("main");
-        init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
-
-        init.attributes.add(createCodeAttribute(file, unit));
-
-        unit.methods.add(init);
-    }
-
-    private CompilationUnit.CodeAttribute createCodeAttribute(
-        IcebergParser.FileContext file, CompilationUnit unit
-    ) {
-        var attribute = new CompilationUnit.CodeAttribute();
-        attribute.attributeName = unit.constantPool.computeUtf8("Code");
-        attribute.maxStack = 100; //TODO: how to evaluate?
-        attribute.maxLocals = 100; //TODO: how to evaluate?
-
-        attribute.body = (IrBody) file.accept(new IcebergBaseVisitor<IR>() {
+        var functions = findAllFunctions(file);
+        unit.irFile = (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
 
             private final List<Map<String, IrVariable>> scopes = new ArrayList<>();
 
             @Override
             public IR visitFile(IcebergParser.FileContext ctx) {
+                var userDefinedFunctions = ctx.statement().stream()
+                    .map(IcebergParser.StatementContext::functionDefinitionStatement)
+                    .filter(Objects::nonNull)
+                    .map(function -> (IrFunction) function.accept(this))
+                    .toList();
+                //todo: userDefinedClasses
+
+                var mainFunctionStatements = ctx.statement().stream()
+                    .filter(statement -> statement.functionDefinitionStatement() == null)
+                    //todo: do same with classes
+                    .toList();
+                var mainFunction = buildMainFunction(mainFunctionStatements);
+
+                var irFile = new IrFile();
+                irFile.functions.addAll(userDefinedFunctions);
+                irFile.functions.add(mainFunction);
+
+                return irFile;
+            }
+
+            private IrFunction buildMainFunction(List<IcebergParser.StatementContext> statements) {
                 scopes.add(new HashMap<>());
 
-                var irBody = new IrBody();
-                for (var statement : ctx.statement()) {
-                    irBody.statements.add(statement.accept(this));
+                var functionName = "main";
+                var mainFunction = new IrFunction(functionName, IcebergType.unit);
+                for (var statement : statements) {
+                    mainFunction.irBody.statements.add(statement.accept(this));
                 }
-                irBody.statements.add(new IrReturn());
+                mainFunction.irBody.statements.add(new IrReturn());
 
-                return irBody;
+                return mainFunction; //TODO: returnType, parameters, name
+            }
+
+            @Override
+            public IR visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
+                var parametersTypes = ctx.parameters().parameter().stream()
+                    .map(parameter -> parameter.type.getText())
+                    //TODO: support classes
+                    .map(IcebergType::valueOf)
+                    .toList();
+                var descriptor = new FunctionDescriptor(ctx.name.getText(), parametersTypes);
+
+                var irFunction = functions.get(descriptor);
+
+//                if (ctx.returnType == null) {
+//                    irFunction.returnType = IcebergType.unit;
+//                } else {
+//                    irFunction.returnType = IcebergType.valueOf(ctx.returnType.getText());
+//                }
+
+                scopes.add(new HashMap<>());
+
+                for (int i = 0; i < ctx.parameters().parameter().size(); i++) {
+                    var parameter = ctx.parameters().parameter().get(i);
+                    var irParameter = irFunction.parameters.get(i);
+
+                    scopes.getLast().put(parameter.name.getText(), irParameter);
+                }
+
+//                ctx.parameters().parameter().stream()
+//                    .map(parameter -> (IrVariable) parameter.accept(this))
+//                    .forEach(irFunction.parameters::add);
+
+                irFunction.irBody.statements.addAll(
+                    ((IrBody) ctx.block().accept(this)).statements
+                );
+
+                if (irFunction.returnType == IcebergType.unit) {
+                    irFunction.irBody.statements.add(new IrReturn());
+                }
+
+                //TODO: fill parameters
+                //TODO: fill name
+
+                scopes.removeLast();
+
+                return irFunction;
+            }
+
+            //TODO: сейчас это место обходится при поиске функций
+//            @Override
+//            public IR visitParameters(IcebergParser.ParametersContext ctx) {
+//                //TODO: проверить что все имена разные
+//                return super.visitParameters(ctx);
+//            }
+
+            //TODO: сейчас это место обходится при поиске функций
+            //@Override
+            //public IR visitParameter(IcebergParser.ParameterContext ctx) {
+            //    var type = IcebergType.valueOf(ctx.type.getText());
+            //    var parameter = new IrVariable(type, null);
+
+            //    scopes.getLast().put(ctx.name.getText(), parameter);
+
+            //    return parameter;
+            //}
+
+            //TODO: проверить что все return из функции одного типа и совпадают с ReturnType
+            //TODO: если у функции returnType!=unit - проверить что во всех ветках есть явный return
+
+            @Override
+            public IR visitReturnStatement(IcebergParser.ReturnStatementContext ctx) {
+                return new IrReturn((IrExpression) ctx.expression().accept(this));
+            }
+
+            @Override
+            public IR visitFunctionCall(IcebergParser.FunctionCallContext ctx) {
+                var arguments = ctx.arguments().expression().stream()
+                    .map(arg -> (IrExpression) arg.accept(this))
+                    .toList();
+
+                var argumentsTypes = arguments.stream()
+                    .map(expr -> expr.type)
+                    .toList();
+                var descriptor = new FunctionDescriptor(ctx.name.getText(), argumentsTypes);
+                if (!functions.containsKey(descriptor)) {
+                    throw new SemanticException("function not found");
+                }
+
+                var irFunction = functions.get(descriptor);
+
+                var mapping = Map.of(
+                    IcebergType.i32, "I",
+                    IcebergType.i64, "J",
+                    IcebergType.bool, "Z",
+                    IcebergType.string, "Ljava/lang/String;",
+                    IcebergType.unit, "V"
+                );
+
+                var params = irFunction.parameters.stream()
+                    .map(v -> v.type)
+                    .map(mapping::get)
+                    .collect(Collectors.joining(""));
+
+                var descr = "(" + params + ")" + mapping.get(irFunction.returnType);
+
+                var nameAndType = unit.constantPool.computeNameAndType(
+                    unit.constantPool.computeUtf8(ctx.name.getText()),
+                    unit.constantPool.computeUtf8(descr) //TODO
+                );
+                var method = unit.constantPool.computeMethodRef(unit.thisRef, nameAndType);
+
+                //TODO: pass irFunction, not MethodRef ??
+                return new IrStaticCall(irFunction.returnType, method, arguments.toArray(arguments.toArray(new IrExpression[0])));
             }
 
             @Override
@@ -368,7 +529,5 @@ public class GenerateMainMethod implements CompilationPhase {
                 return nextResult != null ? nextResult : aggregate;
             }
         });
-
-        return attribute;
     }
 }
