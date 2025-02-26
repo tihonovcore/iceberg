@@ -16,7 +16,6 @@ public class BuildIrTreePhase implements CompilationPhase {
     record FunctionDescriptor(
         String functionName,
         List<IcebergType> parametersTypes
-        //TODO: returnType?
     ) {}
 
     Map<FunctionDescriptor, IrFunction> findAllFunctions(IcebergParser.FileContext file) {
@@ -96,7 +95,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                 }
                 mainFunction.irBody.statements.add(new IrReturn());
 
-                return mainFunction; //TODO: returnType, parameters, name
+                return mainFunction; //TODO: fill parameters??
             }
 
             @Override
@@ -110,12 +109,6 @@ public class BuildIrTreePhase implements CompilationPhase {
 
                 var irFunction = functions.get(descriptor);
 
-//                if (ctx.returnType == null) {
-//                    irFunction.returnType = IcebergType.unit;
-//                } else {
-//                    irFunction.returnType = IcebergType.valueOf(ctx.returnType.getText());
-//                }
-
                 scopes.add(new HashMap<>());
 
                 for (int i = 0; i < ctx.parameters().parameter().size(); i++) {
@@ -125,10 +118,6 @@ public class BuildIrTreePhase implements CompilationPhase {
                     scopes.getLast().put(parameter.name.getText(), irParameter);
                 }
 
-//                ctx.parameters().parameter().stream()
-//                    .map(parameter -> (IrVariable) parameter.accept(this))
-//                    .forEach(irFunction.parameters::add);
-
                 irFunction.irBody.statements.addAll(
                     ((IrBody) ctx.block().accept(this)).statements
                 );
@@ -137,31 +126,10 @@ public class BuildIrTreePhase implements CompilationPhase {
                     irFunction.irBody.statements.add(new IrReturn());
                 }
 
-                //TODO: fill parameters
-                //TODO: fill name
-
                 scopes.removeLast();
 
                 return irFunction;
             }
-
-            //TODO: сейчас это место обходится при поиске функций
-//            @Override
-//            public IR visitParameters(IcebergParser.ParametersContext ctx) {
-//                //TODO: проверить что все имена разные
-//                return super.visitParameters(ctx);
-//            }
-
-            //TODO: сейчас это место обходится при поиске функций
-            //@Override
-            //public IR visitParameter(IcebergParser.ParameterContext ctx) {
-            //    var type = IcebergType.valueOf(ctx.type.getText());
-            //    var parameter = new IrVariable(type, null);
-
-            //    scopes.getLast().put(ctx.name.getText(), parameter);
-
-            //    return parameter;
-            //}
 
             //TODO: проверить что все return из функции одного типа и совпадают с ReturnType
             //TODO: если у функции returnType!=unit - проверить что во всех ветках есть явный return

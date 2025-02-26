@@ -20,6 +20,7 @@ public class GenerateMethodsPhase implements CompilationPhase {
             init.name = unit.constantPool.computeUtf8(function.name);
 
             if (function.name.equals("main")) {
+                //TODO: create separate IcebergType?
                 init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
             } else {
                 var mapping = Map.of(
