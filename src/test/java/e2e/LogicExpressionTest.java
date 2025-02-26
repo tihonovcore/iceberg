@@ -1,12 +1,14 @@
 package e2e;
 
 import iceberg.SemanticException;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LogicExpressionTest extends Base {
@@ -44,9 +46,12 @@ public class LogicExpressionTest extends Base {
             Arguments.of("print false or true and false;", "false\n"),
             Arguments.of("print false and true or false;", "false\n"),
 
-            //TODO: проверять ленивость, например, x != null && x.foo()
-            // сейчас мешает семантическая проверка что обе части bool
-            // то есть нельзя проверить false or 100 или false or null, нужны переменные
+            Arguments.of("""
+                def a: string;
+                def b: string = "qux";
+                
+                print 4 > 2 or a == b;
+                """, "true\n"),
 
             Arguments.of("print not true;", "false\n"),
             Arguments.of("print not false;", "true\n"),
@@ -87,12 +92,20 @@ public class LogicExpressionTest extends Base {
             Arguments.of("print \"foo\" and true;"),
             Arguments.of("print \"foo\" and false;"),
 
-            //TODO: проверять ленивость, например, x != null && x.foo()
-            // сейчас мешает семантическая проверка что обе части bool
-            // то есть нельзя проверить false or 100 или false or null, нужны переменные
-
             Arguments.of("print not 1;"),
             Arguments.of("print not \"foo\";")
         );
+    }
+
+    @Test
+    void npe() {
+        var error = assertThrows(AssertionError.class, () -> execute("""
+            def a: string;
+            def b: string = "qux";
+            
+            //note: throws NPE
+            print 4 > 2 and a == b;
+            """, null));
+        assertThat(error).message().contains("java.lang.NullPointerException");
     }
 }

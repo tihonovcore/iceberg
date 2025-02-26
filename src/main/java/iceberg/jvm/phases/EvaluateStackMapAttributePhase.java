@@ -30,7 +30,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     var type = switch (parameter.type) {
                         case i32 -> "int";
                         case i64 -> "long";
-                        case bool -> "bool";
+                        case bool -> "boolean";
                         case string -> "java/lang/String";
                         case unit -> "void";
                     };
@@ -55,7 +55,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
 
                 var snapshot = snapshots.get(curr);
                 for (var type : snapshot.variables) {
-                    if ("int".equals(type)) {
+                    if ("int".equals(type) || "boolean".equals(type)) {
                         full.locals.add(new StackMapAttribute.IntegerVariableInfo());
                     } else if ("long".equals(type)) {
                         full.locals.add(new StackMapAttribute.LongVariableInfo());
@@ -70,7 +70,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                     }
                 }
                 for (var type : snapshot.stack) {
-                    if ("int".equals(type)) {
+                    if ("int".equals(type) || "boolean".equals(type)) {
                         full.stack.add(new StackMapAttribute.IntegerVariableInfo());
                     //TODO: other types
                     } else { //class
@@ -174,7 +174,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ICONST_0 -> snapshot.push("int");
                 case ICONST_1 -> snapshot.push("int");
                 case LCONST_0 -> snapshot.push("long");
-                case RETURN, IRETURN, ARETURN -> snapshot.stack.clear();
+                case RETURN, IRETURN, ARETURN, LRETURN -> snapshot.stack.clear();
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     snapshot.push(load(constantPool, index).type);
@@ -277,7 +277,7 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ICONST_0, ICONST_1, LCONST_0 -> 1;
                 case ALOAD_0 -> 1;
                 case ACONST_NULL -> 1;
-                case RETURN, IRETURN, ARETURN -> 1;
+                case RETURN, IRETURN, ARETURN, LRETURN -> 1;
                 case GETSTATIC -> 3;
                 case INVOKEVIRTUAL -> 3;
                 case INVOKESTATIC -> 3;
@@ -368,6 +368,22 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             } else if ("(I)I".equals(typeDescriptor)) { //custom
                 return new CallableJavaType(
                     List.of("int"), "int"
+                );
+            } else if ("(J)J".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("long"), "long"
+                );
+            } else if ("(JI)J".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("long", "int"), "long"
+                );
+            } else if ("(IZ)Z".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("int", "boolean"), "boolean"
+                );
+            } else if ("(ZZZ)Z".equals(typeDescriptor)) { //custom
+                return new CallableJavaType(
+                    List.of("boolean", "boolean", "boolean"), "boolean"
                 );
             } else if ("(Ljava/lang/String;)Ljava/lang/String;".equals(typeDescriptor)) { //custom
                 return new CallableJavaType(

@@ -1,11 +1,15 @@
 package e2e;
 
+import iceberg.SemanticException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FunctionsTest extends Base {
 
@@ -73,8 +77,44 @@ public class FunctionsTest extends Base {
                 }
                 
                 print twice(111);
-                """, "222\n")
+                """, "222\n"),
+            Arguments.of("""
+                fun twice(num: i64): i64 {
+                    return num * 2;
+                }
+                
+                print twice(111222333444);
+                """, "222444666888\n"),
+            Arguments.of("""
+                fun add(l: i64, r: i32): i64 {
+                    return l + r;
+                }
+                
+                print add(111222333444, -131141);
+                """, "111222202303\n"),
+            Arguments.of("""
+                fun median(a: bool, b: bool, c: bool): bool {
+                    return a and b or a and c or b and c;
+                }
+                
+                print median(false, true, false);
+                print median(true, false, true);
+                """, "false\ntrue\n")
         );
+    }
+
+    @Test
+    @Disabled //TODO: не работает - есть goto после return за пределы функции
+    void returnFromIf() {
+        execute("""        
+            fun positive(n: i32, fallback: bool): bool {
+                if n > 0 then return true;
+                else return fallback;
+            }
+
+            print positive(-123, false);
+            print positive(-123, true);
+            """, "false\ntrue\n");
     }
 
     @Test
@@ -169,25 +209,31 @@ public class FunctionsTest extends Base {
             """, "hello\nhello\nhello\n");
     }
 
-    //todo: передать long, bool в параметры
-    //todo: вернуть long, bool, null
+    @ParameterizedTest
+    @MethodSource
+    void negative(String source) {
+        assertThrows(SemanticException.class, () -> execute(source, null));
+    }
 
-    //TODO
-//    @ParameterizedTest
-//    @MethodSource
-//    void negative(String source) {
-//        assertThrows(SemanticException.class, () -> execute(source, null));
-//    }
-//
-//    static Stream<Arguments> negative() {
-//        return Stream.of(
-//            Arguments.of("print --100;"),
-//            Arguments.of("print -false;"),
-//            Arguments.of("print -\"foo\";"),
-//            Arguments.of("print false == 100;"),
-//            Arguments.of("print false >= 100;"),
-//            Arguments.of("print false * true;"),
-//            Arguments.of("print false + true;")
-//        );
-//    }
+    static Stream<Arguments> negative() {
+        return Stream.of(
+            Arguments.of("""
+                fun foo() {}
+                fun foo() {}"""),
+            Arguments.of("""
+                fun foo() {}
+                foo(1, 2, 3);"""),
+            Arguments.of("""
+                fun foo(n: i32) {}
+                foo("str");"""),
+//TODO: нужна проверка
+//            Arguments.of("""
+//                fun foo(): i32 {
+//                    return "string";
+//                }
+//                """),
+            Arguments.of("""
+                foo();""")
+        );
+    }
 }

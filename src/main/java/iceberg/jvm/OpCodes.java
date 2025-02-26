@@ -43,6 +43,7 @@ public enum OpCodes {
     LDC(0x12),
     LDC_W(0x13),
     LDC_W2(0x14),
+    LRETURN(0XAD),
     LSTORE(0x37),
     LSUB(0x65),
     RETURN(0xB1),

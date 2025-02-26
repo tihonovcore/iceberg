@@ -103,7 +103,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 irReturn.expression.accept(this);
 
                 switch (irReturn.expression.type) {
-                    case i32 -> output.writeU1(OpCodes.IRETURN.value);
+                    case i32, bool -> output.writeU1(OpCodes.IRETURN.value);
+                    case i64 -> output.writeU1(OpCodes.LRETURN.value);
                     case string -> output.writeU1(OpCodes.ARETURN.value);
                     default -> throw new IllegalStateException("not implemented");
                 }
