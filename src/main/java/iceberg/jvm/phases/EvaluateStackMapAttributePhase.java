@@ -25,18 +25,16 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
             }
 
             //fill local array with parameters
-            if (attribute.function != null) { //TODO: может быть null, так как в дефолтном конструкторе сейчас body
-                for (var parameter : attribute.function.parameters) {
-                    var type = switch (parameter.type) {
-                        case i32 -> "int";
-                        case i64 -> "long";
-                        case bool -> "boolean";
-                        case string -> "java/lang/String";
-                        case unit -> "void";
-                    };
+            for (var parameter : attribute.function.parameters) {
+                var type = switch (parameter.type) {
+                    case i32 -> "int";
+                    case i64 -> "long";
+                    case bool -> "boolean";
+                    case string -> "java/lang/String";
+                    case unit -> "void";
+                };
 
-                    first.variables.add(type);
-                }
+                first.variables.add(type);
             }
 
             dfs(attribute.code, 0, unit.constantPool, first, snapshots);

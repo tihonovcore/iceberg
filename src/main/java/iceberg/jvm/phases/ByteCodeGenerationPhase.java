@@ -26,8 +26,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
         CompilationUnit compilationUnit
     ) {
         var output = new ByteArray();
-        var ir = attribute.function != null ? attribute.function : attribute.body;
-        ir.accept(new IrVisitor() {
+        attribute.function.accept(new IrVisitor() {
 
             private final List<Set<IrVariable>> scopes = new ArrayList<>();
 

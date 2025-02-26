@@ -3,7 +3,6 @@ package iceberg.jvm;
 import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
 import iceberg.jvm.cp.Utf8;
-import iceberg.jvm.ir.IrBody;
 import iceberg.jvm.ir.IrFile;
 import iceberg.jvm.ir.IrFunction;
 import iceberg.jvm.target.SourceAttribute;
@@ -58,8 +57,6 @@ public class CompilationUnit {
         public int maxLocals;
 
         public IrFunction function;
-        @Deprecated
-        public IrBody body;
         public byte[] code;
 
         public List<Object> exceptionTable = List.of();

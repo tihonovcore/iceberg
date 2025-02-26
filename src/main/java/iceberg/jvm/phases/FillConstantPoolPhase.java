@@ -6,14 +6,12 @@ import iceberg.antlr.IcebergParser;
 import iceberg.jvm.CompilationUnit;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-//TODO: это можно делать в GenerateMainMethod
+//TODO: это нужно делать в BuildIrTreePhase
 public class FillConstantPoolPhase implements CompilationPhase {
 
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         file.accept(new IcebergBaseVisitor<>() {
-
-            //TODO: ?? добавить MethodRef
 
             @Override
             public Object visitTerminal(TerminalNode node) {

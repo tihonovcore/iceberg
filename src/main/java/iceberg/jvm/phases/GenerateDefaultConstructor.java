@@ -2,9 +2,7 @@ package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.CompilationUnit;
-import iceberg.jvm.ir.IrBody;
-import iceberg.jvm.ir.IrSuperCall;
-import iceberg.jvm.ir.IrReturn;
+import iceberg.jvm.ir.*;
 
 public class GenerateDefaultConstructor implements CompilationPhase {
 
@@ -34,10 +32,11 @@ public class GenerateDefaultConstructor implements CompilationPhase {
         var callSuperStatement = new IrSuperCall(methodRef);
         var returnStatement = new IrReturn();
 
-        var body = new IrBody();
-        body.statements.add(callSuperStatement);
-        body.statements.add(returnStatement);
-        attribute.body = body;
+        var function = new IrFunction("<init>", IcebergType.unit);
+        function.irBody.statements.add(callSuperStatement);
+        function.irBody.statements.add(returnStatement);
+
+        attribute.function = function;
 
         return attribute;
     }

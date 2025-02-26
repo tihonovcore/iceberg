@@ -15,9 +15,6 @@ public class IrFunction implements IR {
         this.returnType = returnType;
     }
 
-    //todo: name
-//    public final MethodRef methodRef;
-
     @Override
     public void accept(IrVisitor visitor) {
         visitor.visitIrFunction(this);

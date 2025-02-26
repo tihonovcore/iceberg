@@ -19,7 +19,6 @@ public class GenerateMethodsPhase implements CompilationPhase {
 
             init.name = unit.constantPool.computeUtf8(function.name);
 
-            //TODO
             if (function.name.equals("main")) {
                 init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
             } else {
@@ -56,7 +55,6 @@ public class GenerateMethodsPhase implements CompilationPhase {
         attribute.maxLocals = 100; //TODO: how to evaluate?
 
         attribute.function = function;
-        attribute.body = function.irBody;
 
         return attribute;
     }

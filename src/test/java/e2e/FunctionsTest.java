@@ -226,6 +226,13 @@ public class FunctionsTest extends Base {
             Arguments.of("""
                 fun foo(n: i32) {}
                 foo("str");"""),
+            Arguments.of("""
+                fun outer() {
+                    fun nested() {}
+
+                    nested();
+                }
+                outer();"""),
 //TODO: нужна проверка
 //            Arguments.of("""
 //                fun foo(): i32 {
