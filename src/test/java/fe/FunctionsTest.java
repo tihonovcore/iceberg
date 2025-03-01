@@ -184,13 +184,17 @@ public class FunctionsTest {
         assertThat(dump(file)).isEqualTo("""
             IN FileContext
               IN StatementContext
-                IN FunctionCallContext
-                  foo
-                  (
-                  IN ArgumentsContext
-                  OUT ArgumentsContext
-                  )
-                OUT FunctionCallContext
+                IN AtomExpressionContext
+                  IN AtomContext
+                    IN FunctionCallContext
+                      foo
+                      (
+                      IN ArgumentsContext
+                      OUT ArgumentsContext
+                      )
+                    OUT FunctionCallContext
+                  OUT AtomContext
+                OUT AtomExpressionContext
                 ;
               OUT StatementContext
               IN StatementContext
@@ -213,30 +217,34 @@ public class FunctionsTest {
                 ;
               OUT StatementContext
               IN StatementContext
-                IN FunctionCallContext
-                  bar
-                  (
-                  IN ArgumentsContext
-                    IN AtomExpressionContext
-                      IN AtomContext
-                        1
-                      OUT AtomContext
-                    OUT AtomExpressionContext
-                    ,
-                    IN AtomExpressionContext
-                      IN AtomContext
-                        2
-                      OUT AtomContext
-                    OUT AtomExpressionContext
-                    ,
-                    IN AtomExpressionContext
-                      IN AtomContext
-                        "str"
-                      OUT AtomContext
-                    OUT AtomExpressionContext
-                  OUT ArgumentsContext
-                  )
-                OUT FunctionCallContext
+                IN AtomExpressionContext
+                  IN AtomContext
+                    IN FunctionCallContext
+                      bar
+                      (
+                      IN ArgumentsContext
+                        IN AtomExpressionContext
+                          IN AtomContext
+                            1
+                          OUT AtomContext
+                        OUT AtomExpressionContext
+                        ,
+                        IN AtomExpressionContext
+                          IN AtomContext
+                            2
+                          OUT AtomContext
+                        OUT AtomExpressionContext
+                        ,
+                        IN AtomExpressionContext
+                          IN AtomContext
+                            "str"
+                          OUT AtomContext
+                        OUT AtomExpressionContext
+                      OUT ArgumentsContext
+                      )
+                    OUT FunctionCallContext
+                  OUT AtomContext
+                OUT AtomExpressionContext
                 ;
               OUT StatementContext
               IN StatementContext

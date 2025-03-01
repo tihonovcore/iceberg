@@ -186,7 +186,9 @@ public class ArithmeticExpressionTest extends Base {
             Arguments.of("print false == 100;"),
             Arguments.of("print false >= 100;"),
             Arguments.of("print false * true;"),
-            Arguments.of("print false + true;")
+            Arguments.of("print false + true;"),
+            Arguments.of("123;"),
+            Arguments.of("2 + 2 * 2;")
         );
     }
 }

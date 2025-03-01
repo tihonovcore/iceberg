@@ -281,7 +281,19 @@ public class VariablesTest extends Base {
                 print x + 5;"""),
             Arguments.of("""
                 def x = 100;
-                x = false;""")
+                x = false;"""),
+            Arguments.of("""
+                def x = 100;
+                foo() = false;"""),
+            Arguments.of("""
+                def x = 100;
+                (x) = false;"""),
+            Arguments.of("""
+                def x = 100;
+                49 = false;"""),
+            Arguments.of("""
+                def x = 100;
+                "foo" = false;""")
         );
     }
 }

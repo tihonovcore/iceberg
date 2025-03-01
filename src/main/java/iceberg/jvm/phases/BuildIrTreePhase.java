@@ -284,8 +284,10 @@ public class BuildIrTreePhase implements CompilationPhase {
             }
 
             @Override
-            public IR visitAssignStatement(IcebergParser.AssignStatementContext ctx) {
-                var name = ctx.name.getText();
+            public IR visitAssignExpression(IcebergParser.AssignExpressionContext ctx) {
+                //NOTE: for now only var name is possible
+                //TODO: support expressions
+                var name = ctx.left.getText();
 
                 IrVariable irVariable = null;
                 for (var scope : scopes) {
@@ -299,7 +301,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                     throw new SemanticException("'%s' is not defined".formatted(name));
                 }
 
-                var expression = (IrExpression) ctx.expression().accept(this);
+                var expression = (IrExpression) ctx.right.accept(this);
                 if (irVariable.type != expression.type) {
                     throw new SemanticException(
                         "cannot assign %s-value to %s::%s".formatted(expression.type, name, irVariable.type)

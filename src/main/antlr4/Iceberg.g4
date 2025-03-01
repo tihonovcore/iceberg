@@ -7,13 +7,12 @@ package iceberg.antlr;
 file : statement* EOF;
 
 statement
-  : printStatement SEMICOLON
+  : expression SEMICOLON
+  | printStatement SEMICOLON
   | defStatement SEMICOLON
-  | assignStatement SEMICOLON
   | ifStatement
   | whileStatement
   | functionDefinitionStatement
-  | functionCall SEMICOLON
   | returnStatement SEMICOLON
   | block
   ;
@@ -25,10 +24,6 @@ defStatement
   ( COLON type=ID (ASSIGN expression)?
   | ASSIGN expression
   );
-
-assignStatement
-  : name=ID ASSIGN expression
-  ;
 
 ifStatement
   : IF condition=expression
@@ -74,6 +69,7 @@ expression
   | left=expression (EQ | NEQ)          right=expression  #equalityExression
   | left=expression AND                 right=expression  #logicalAndExpression
   | left=expression OR                  right=expression  #logicalOrExpression
+  | left=expression ASSIGN              right=expression  #assignExpression
   | atom                                                  #atomExpression
   ;
 
