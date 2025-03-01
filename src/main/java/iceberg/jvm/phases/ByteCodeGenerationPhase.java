@@ -313,7 +313,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
             @Override
             public void visitIrString(IrString irString) {
-                var indexInPool = compilationUnit.constantPool.indexOf(irString.value);
+                var constant = compilationUnit.constantPool.computeString(irString.value);
+                var indexInPool = compilationUnit.constantPool.indexOf(constant);
                 if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
                     output.writeU1(OpCodes.LDC.value);
                     output.writeU1(indexInPool);

@@ -1,12 +1,10 @@
 package iceberg.jvm.ir;
 
-import iceberg.jvm.cp.StringInfo;
-
 public class IrString extends IrExpression {
 
-    public final StringInfo value;
+    public final String value;
 
-    public IrString(StringInfo value) {
+    public IrString(String value) {
         super(IcebergType.string);
         this.value = value;
     }

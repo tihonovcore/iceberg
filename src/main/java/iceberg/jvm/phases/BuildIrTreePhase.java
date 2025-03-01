@@ -529,7 +529,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                             .substring(1, text.length() - 1)
                             .replace("\\\"", "\"")
                             .replace("\\n", "\n");
-                        yield new IrString(unit.constantPool.computeString(string));
+                        yield new IrString(string);
                     }
                     case IcebergLexer.ID -> {
                         var name = node.getSymbol().getText();
