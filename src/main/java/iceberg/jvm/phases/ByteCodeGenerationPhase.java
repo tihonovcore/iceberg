@@ -6,6 +6,7 @@ import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
 import iceberg.jvm.ir.*;
+import iceberg.jvm.ir.IcebergType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -107,11 +108,15 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
                 irReturn.expression.accept(this);
 
-                switch (irReturn.expression.type) {
-                    case i32, bool -> output.writeU1(OpCodes.IRETURN.value);
-                    case i64 -> output.writeU1(OpCodes.LRETURN.value);
-                    case string -> output.writeU1(OpCodes.ARETURN.value);
-                    default -> throw new IllegalStateException("not implemented");
+                var type = irReturn.expression.type;
+                if (type == IcebergType.i32 || type == IcebergType.bool) {
+                    output.writeU1(OpCodes.IRETURN.value);
+                } else if (type == IcebergType.i64) {
+                    output.writeU1(OpCodes.LRETURN.value);
+                } else if (type == IcebergType.string) {
+                    output.writeU1(OpCodes.ARETURN.value);
+                } else {
+                    throw new IllegalStateException("not implemented");
                 }
             }
 
@@ -134,9 +139,10 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     }
                     case MINUS -> {
                         irExpression.value.accept(this);
-                        switch (irExpression.type) {
-                            case i32 -> output.writeU1(OpCodes.INEG.value);
-                            case i64 -> output.writeU1(OpCodes.LNEG.value);
+                        if (irExpression.type == IcebergType.i32) {
+                            output.writeU1(OpCodes.INEG.value);
+                        } else if (irExpression.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LNEG.value);
                         }
                     }
                 }
@@ -193,27 +199,31 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
                 switch (irExpression.operator) {
                     case PLUS -> {
-                        switch (irExpression.type) {
-                            case i32 -> output.writeU1(OpCodes.IADD.value);
-                            case i64 -> output.writeU1(OpCodes.LADD.value);
+                        if (irExpression.type == IcebergType.i32) {
+                            output.writeU1(OpCodes.IADD.value);
+                        } else if (irExpression.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LADD.value);
                         }
                     }
                     case SUB -> {
-                        switch (irExpression.type) {
-                            case i32 -> output.writeU1(OpCodes.ISUB.value);
-                            case i64 -> output.writeU1(OpCodes.LSUB.value);
+                        if (irExpression.type == IcebergType.i32) {
+                            output.writeU1(OpCodes.ISUB.value);
+                        } else if (irExpression.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LSUB.value);
                         }
                     }
                     case MULT -> {
-                        switch (irExpression.type) {
-                            case i32 -> output.writeU1(OpCodes.IMUL.value);
-                            case i64 -> output.writeU1(OpCodes.LMUL.value);
+                        if (irExpression.type == IcebergType.i32) {
+                            output.writeU1(OpCodes.IMUL.value);
+                        } else if (irExpression.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LMUL.value);
                         }
                     }
                     case DIV -> {
-                        switch (irExpression.type) {
-                            case i32 -> output.writeU1(OpCodes.IDIV.value);
-                            case i64 -> output.writeU1(OpCodes.LDIV.value);
+                        if (irExpression.type == IcebergType.i32) {
+                            output.writeU1(OpCodes.IDIV.value);
+                        } else if (irExpression.type == IcebergType.i64) {
+                            output.writeU1(OpCodes.LDIV.value);
                         }
                     }
                     case LE -> {
@@ -371,17 +381,21 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 if (irVariable.initializer != null) {
                     irVariable.initializer.accept(this);
                 } else {
-                    switch (irVariable.type) {
-                        case i32, bool -> output.writeU1(OpCodes.ICONST_0.value);
-                        case i64 -> output.writeU1(OpCodes.LCONST_0.value);
-                        case string -> output.writeU1(OpCodes.ACONST_NULL.value);
+                    if (irVariable.type == IcebergType.i32 || irVariable.type == IcebergType.bool) {
+                        output.writeU1(OpCodes.ICONST_0.value);
+                    } else if (irVariable.type == IcebergType.i64) {
+                        output.writeU1(OpCodes.LCONST_0.value);
+                    } else if (irVariable.type == IcebergType.string) {
+                        output.writeU1(OpCodes.ACONST_NULL.value);
                     }
                 }
 
-                switch (irVariable.type) {
-                    case i32, bool -> output.writeU1(OpCodes.ISTORE.value);
-                    case i64 -> output.writeU1(OpCodes.LSTORE.value);
-                    case string -> output.writeU1(OpCodes.ASTORE.value);
+                if (irVariable.type == IcebergType.i32 || irVariable.type == IcebergType.bool) {
+                    output.writeU1(OpCodes.ISTORE.value);
+                } else if (irVariable.type == IcebergType.i64) {
+                    output.writeU1(OpCodes.LSTORE.value);
+                } else if (irVariable.type == IcebergType.string) {
+                    output.writeU1(OpCodes.ASTORE.value);
                 }
 
                 var index = addToLocalVariables(irVariable);
@@ -399,10 +413,13 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
             @Override
             public void visitIrReadVariable(IrReadVariable irReadVariable) {
-                switch (irReadVariable.definition.type) {
-                    case i32, bool -> output.writeU1(OpCodes.ILOAD.value);
-                    case i64 -> output.writeU1(OpCodes.LLOAD.value);
-                    case string -> output.writeU1(OpCodes.ALOAD.value);
+                var type = irReadVariable.definition.type;
+                if (type == IcebergType.i32 || type == IcebergType.bool) {
+                    output.writeU1(OpCodes.ILOAD.value);
+                } else if (type == IcebergType.i64) {
+                    output.writeU1(OpCodes.LLOAD.value);
+                } else if (type == IcebergType.string) {
+                    output.writeU1(OpCodes.ALOAD.value);
                 }
 
                 var index = indexes.get(irReadVariable.definition);
@@ -413,10 +430,13 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             public void visitIrAssignVariable(IrAssignVariable irAssignVariable) {
                 irAssignVariable.expression.accept(this);
 
-                switch (irAssignVariable.definition.type) {
-                    case i32, bool -> output.writeU1(OpCodes.ISTORE.value);
-                    case i64 -> output.writeU1(OpCodes.LSTORE.value);
-                    case string -> output.writeU1(OpCodes.ASTORE.value);
+                var type = irAssignVariable.definition.type;
+                if (type == IcebergType.i32 || type == IcebergType.bool) {
+                    output.writeU1(OpCodes.ISTORE.value);
+                } else if (type == IcebergType.i64) {
+                    output.writeU1(OpCodes.LSTORE.value);
+                } else if (type == IcebergType.string) {
+                    output.writeU1(OpCodes.ASTORE.value);
                 }
 
                 var index = indexes.get(irAssignVariable.definition);

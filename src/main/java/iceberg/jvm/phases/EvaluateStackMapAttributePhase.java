@@ -1,5 +1,6 @@
 package iceberg.jvm.phases;
 
+import iceberg.SemanticException;
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
@@ -7,6 +8,7 @@ import iceberg.jvm.OpCodes;
 import iceberg.jvm.cp.*;
 import iceberg.jvm.target.Method;
 import iceberg.jvm.target.StackMapAttribute;
+import iceberg.jvm.ir.IcebergType;
 
 import java.util.*;
 
@@ -28,15 +30,19 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
 
             //fill local array with parameters
             for (var parameter : attribute.function.parameters) {
-                var type = switch (parameter.type) {
-                    case i32 -> "int";
-                    case i64 -> "long";
-                    case bool -> "boolean";
-                    case string -> "java/lang/String";
-                    case unit -> "void";
-                };
+                var mapping = Map.of(
+                    IcebergType.i32, "int",
+                    IcebergType.i64, "long",
+                    IcebergType.bool, "boolean",
+                    IcebergType.string, "java/lang/String",
+                    IcebergType.unit, "void"
+                );
 
-                first.variables.add(type);
+                if (mapping.containsKey(parameter.type)) {
+                    first.variables.add(mapping.get(parameter.type));
+                } else {
+                    throw new SemanticException("unknown type");
+                }
             }
 
             dfs(attribute.code, 0, unit.constantPool, first, snapshots);

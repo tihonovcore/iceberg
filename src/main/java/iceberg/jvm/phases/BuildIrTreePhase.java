@@ -4,9 +4,9 @@ import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.IcebergClass;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
+import iceberg.jvm.ir.IcebergType;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
@@ -77,7 +77,7 @@ public class BuildIrTreePhase implements CompilationPhase {
 
                 var classOwner = currentClass != null
                     ? classes.get(currentClass.name.getText())
-                    : IcebergClass.INSTANCE;
+                    : IcebergType.iceberg.irClass;
                 var returnType = ctx.returnType == null
                     ? IcebergType.unit
                     : IcebergType.valueOf(ctx.returnType.getText());
@@ -137,7 +137,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                 scopes.add(new HashMap<>());
 
                 var functionName = "main";
-                var mainFunction = new IrFunction(IcebergClass.INSTANCE, functionName, IcebergType.unit);
+                var mainFunction = new IrFunction(IcebergType.iceberg.irClass, functionName, IcebergType.unit);
                 for (var statement : statements) {
                     mainFunction.irBody.statements.add(statement.accept(this));
                 }
