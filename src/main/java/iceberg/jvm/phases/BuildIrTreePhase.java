@@ -115,9 +115,12 @@ public class BuildIrTreePhase implements CompilationPhase {
             public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var irClass = new IrClass(ctx.name.getText());
 
+                //todo: все переменные попадают в текущий scope, это неправильно
                 ctx.defStatement().stream()
                     .map(definition -> (IrVariable) definition.accept(this))
                     .forEach(irClass.fields::add);
+
+                //todo: надо вызвать findAllFunctions
                 ctx.functionDefinitionStatement().stream()
                     .map(definition -> (IrFunction) definition.accept(this))
                     .forEach(irClass.methods::add);

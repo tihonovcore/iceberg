@@ -64,10 +64,14 @@ public class CompilationPipeline {
             new GenerateDefaultConstructor().execute(file, mainUnit);
 
             new BuildIrTreePhase().execute(file, mainUnit);
-            new GenerateMethodsPhase().execute(file, mainUnit);
+            new MoveEachClassToSeparateUnitPhase().execute(mainUnit, compilationUnits);
 
-            new ByteCodeGenerationPhase().execute(file, mainUnit);
-            new EvaluateStackMapAttributePhase().execute(file, mainUnit);
+            for (var unit : compilationUnits) {
+                //TODO: GenerateFieldsPhase
+                new GenerateMethodsPhase().execute(file, unit);
+                new ByteCodeGenerationPhase().execute(file, unit);
+                new EvaluateStackMapAttributePhase().execute(file, unit);
+            }
 
             //codegen
             CodeGenerator.codegen(compilationUnits);

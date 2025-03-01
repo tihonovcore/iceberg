@@ -13,8 +13,14 @@ public class GenerateMethodsPhase implements CompilationPhase {
 
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        for (var function : unit.irFile.functions) {
+        //TODO: уйти от irFile к IrClass
+        var functions = unit.irFile != null
+            ? unit.irFile.functions
+            : unit.irClass.methods;
+
+        for (var function : functions) {
             var init = new Method();
+            //TODO: методы класса должны быть не статическими
             init.flags
                 = Method.AccessFlags.ACC_PUBLIC.value
                 | Method.AccessFlags.ACC_STATIC.value;

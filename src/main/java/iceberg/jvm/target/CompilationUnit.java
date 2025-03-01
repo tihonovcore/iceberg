@@ -2,6 +2,7 @@ package iceberg.jvm.target;
 
 import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
+import iceberg.jvm.ir.IrClass;
 import iceberg.jvm.ir.IrFile;
 
 import java.util.ArrayList;
@@ -17,7 +18,8 @@ public class CompilationUnit {
     public List<Method> methods = new ArrayList<>();
     public List<SourceAttribute> attributes = new ArrayList<>();
 
-    public IrFile irFile;
+    public IrFile irFile;   //for main-class with main-function
+    public IrClass irClass; //for user-defined class
 
     public byte[] bytes;
 }
