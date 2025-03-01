@@ -9,8 +9,8 @@ public class IcebergType {
     public static final IcebergType bool = new IcebergType(new IrClass("bool"));
     public static final IcebergType unit = new IcebergType(new IrClass("unit"));
 
-    public static final IcebergType string = buildJavaLangString();
     public static final IcebergType object = buildJavaLangObject();
+    public static final IcebergType string = buildJavaLangString();
     public static final IcebergType iceberg = buildIceberg();
 
     public static IcebergType valueOf(String type) {

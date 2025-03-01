@@ -1,25 +1,22 @@
 package iceberg.jvm.ir;
 
-import iceberg.jvm.cp.MethodRef;
-
 import java.util.Arrays;
 import java.util.List;
 
 public class IrMethodCall extends IrExpression {
 
+    public final IrFunction function;
     public final IrExpression receiver;
-    public final MethodRef methodRef;
     public final List<IrExpression> arguments;
 
     public IrMethodCall(
-        MethodRef methodRef,
-        IcebergType returnType,
+        IrFunction function,
         IrExpression receiver,
         IrExpression... arguments
     ) {
-        super(returnType);
+        super(function.returnType);
+        this.function = function;
         this.receiver = receiver;
-        this.methodRef = methodRef;
         this.arguments = Arrays.stream(arguments).toList();
     }
 

@@ -360,8 +360,17 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     argument.accept(this);
                 }
 
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.irClass.name)
+                );
+                var method = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.name),
+                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.javaMethodDescriptor())
+                );
+                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, method);
+
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irMethodCall.methodRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
             }
 
             private final Map<IrVariable, Integer> indexes = new HashMap<>();

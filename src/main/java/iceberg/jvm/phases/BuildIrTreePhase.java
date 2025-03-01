@@ -467,16 +467,12 @@ public class BuildIrTreePhase implements CompilationPhase {
                 var right = (IrExpression) ctx.right.accept(this);
 
                 if (left.type == IcebergType.string && right.type == IcebergType.string) {
-                    var string = unit.constantPool.computeKlass(
-                        unit.constantPool.computeUtf8("java/lang/String")
-                    );
-                    var equals = unit.constantPool.computeNameAndType(
-                        unit.constantPool.computeUtf8("equals"),
-                        unit.constantPool.computeUtf8("(Ljava/lang/Object;)Z")
-                    );
-                    var method = unit.constantPool.computeMethodRef(string, equals);
+                    var stringIrClass = IcebergType.string.irClass;
+                    var stringEquals = stringIrClass.methods.stream()
+                        .filter(fun -> fun.name.equals("equals"))
+                        .findFirst().orElseThrow();
 
-                    var call = new IrMethodCall(method, IcebergType.bool, left, right);
+                    var call = new IrMethodCall(stringEquals, left, right);
                     if (ctx.EQ() != null) {
                         return call;
                     }
