@@ -21,6 +21,12 @@ public class BuildIrTreePhase implements CompilationPhase {
     Map<FunctionDescriptor, IrFunction> findAllFunctions(IcebergParser.FileContext file) {
         var functions = new HashMap<FunctionDescriptor, IrFunction>();
         file.accept(new IcebergBaseVisitor<Void>() {
+
+            @Override
+            public Void visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
+                return null; //these functions are in different scope
+            }
+
             @Override
             public Void visitFunctionDefinitionStatement(
                 IcebergParser.FunctionDefinitionStatementContext ctx
@@ -59,26 +65,33 @@ public class BuildIrTreePhase implements CompilationPhase {
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         var functions = findAllFunctions(file);
+        //TODO: возможно нужен findAllClasses(file);
+
         unit.irFile = (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
 
             private final List<Map<String, IrVariable>> scopes = new ArrayList<>();
 
             @Override
             public IR visitFile(IcebergParser.FileContext ctx) {
+                var userDefinedClasses = ctx.statement().stream()
+                    .map(IcebergParser.StatementContext::classDefinitionStatement)
+                    .filter(Objects::nonNull)
+                    .map(irClass -> (IrClass) irClass.accept(this))
+                    .toList();
                 var userDefinedFunctions = ctx.statement().stream()
                     .map(IcebergParser.StatementContext::functionDefinitionStatement)
                     .filter(Objects::nonNull)
                     .map(function -> (IrFunction) function.accept(this))
                     .toList();
-                //todo: userDefinedClasses
 
                 var mainFunctionStatements = ctx.statement().stream()
                     .filter(statement -> statement.functionDefinitionStatement() == null)
-                    //todo: do same with classes
+                    .filter(statement -> statement.classDefinitionStatement() == null)
                     .toList();
                 var mainFunction = buildMainFunction(mainFunctionStatements);
 
                 var irFile = new IrFile();
+                irFile.classes.addAll(userDefinedClasses);
                 irFile.functions.addAll(userDefinedFunctions);
                 irFile.functions.add(mainFunction);
 
@@ -96,6 +109,20 @@ public class BuildIrTreePhase implements CompilationPhase {
                 mainFunction.irBody.statements.add(new IrReturn());
 
                 return mainFunction; //TODO: fill parameters??
+            }
+
+            @Override
+            public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
+                var irClass = new IrClass(ctx.name.getText());
+
+                ctx.defStatement().stream()
+                    .map(definition -> (IrVariable) definition.accept(this))
+                    .forEach(irClass.fields::add);
+                ctx.functionDefinitionStatement().stream()
+                    .map(definition -> (IrFunction) definition.accept(this))
+                    .forEach(irClass.methods::add);
+
+                return irClass;
             }
 
             @Override

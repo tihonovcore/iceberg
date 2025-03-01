@@ -36,6 +36,11 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrClass(IrClass irClass) {
+                throw new IllegalStateException("unexpected IrClass");
+            }
+
+            @Override
             public void visitIrFunction(IrFunction irFunction) {
                 for (var parameter : irFunction.parameters) {
                     addToLocalVariables(parameter);

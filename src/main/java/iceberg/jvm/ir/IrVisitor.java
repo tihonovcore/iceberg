@@ -3,6 +3,7 @@ package iceberg.jvm.ir;
 public interface IrVisitor {
 
     void visitIrFile(IrFile irFile);
+    void visitIrClass(IrClass irClass);
     void visitIrFunction(IrFunction irFunction);
     void visitIrBody(IrBody irBody);
     void visitIrSuperCall(IrSuperCall irSuperCall);

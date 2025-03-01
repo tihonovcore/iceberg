@@ -6,7 +6,7 @@ import java.util.List;
 public class IrFile implements IR {
 
     public final List<IrFunction> functions = new ArrayList<>();
-    //TODO: classes
+    public final List<IrClass> classes = new ArrayList<>();
 
     @Override
     public void accept(IrVisitor visitor) {
