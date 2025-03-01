@@ -1,6 +1,7 @@
 package iceberg.jvm;
 
 import iceberg.jvm.cp.ConstantToBytes;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.target.StackMapAttribute;
 
 import java.util.Collection;

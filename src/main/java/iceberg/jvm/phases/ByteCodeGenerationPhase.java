@@ -2,7 +2,8 @@ package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ByteArray;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CodeAttribute;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
 import iceberg.jvm.ir.*;
 import org.jetbrains.annotations.Nullable;
@@ -15,14 +16,14 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         unit.methods.forEach(method -> {
             var attribute = method.attributes.stream()
-                .filter(CompilationUnit.CodeAttribute.class::isInstance)
+                .filter(CodeAttribute.class::isInstance)
                 .findAny().orElseThrow();
             generateBytecode(attribute, unit);
         });
     }
 
     private void generateBytecode(
-        CompilationUnit.CodeAttribute attribute,
+        CodeAttribute attribute,
         CompilationUnit compilationUnit
     ) {
         var output = new ByteArray();

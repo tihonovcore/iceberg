@@ -1,15 +1,17 @@
 package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CodeAttribute;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
+import iceberg.jvm.target.Method;
 
 public class GenerateDefaultConstructor implements CompilationPhase {
 
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        var init = new CompilationUnit.Method();
-        init.flags = CompilationUnit.Method.AccessFlags.ACC_PUBLIC.value;
+        var init = new Method();
+        init.flags = Method.AccessFlags.ACC_PUBLIC.value;
         init.name = unit.constantPool.computeUtf8("<init>");
         init.descriptor = unit.constantPool.computeUtf8("()V");
         init.attributes.add(createCodeAttribute(unit));
@@ -17,8 +19,8 @@ public class GenerateDefaultConstructor implements CompilationPhase {
         unit.methods.add(init);
     }
 
-    private CompilationUnit.CodeAttribute createCodeAttribute(CompilationUnit unit) {
-        var attribute = new CompilationUnit.CodeAttribute();
+    private CodeAttribute createCodeAttribute(CompilationUnit unit) {
+        var attribute = new CodeAttribute();
         attribute.attributeName = unit.constantPool.computeUtf8("Code");
         attribute.maxStack = 1;
         attribute.maxLocals = 1;

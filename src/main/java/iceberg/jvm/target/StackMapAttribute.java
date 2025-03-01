@@ -1,12 +1,11 @@
 package iceberg.jvm.target;
 
-import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.cp.Utf8;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class StackMapAttribute implements CompilationUnit.Attribute {
+public class StackMapAttribute implements Attribute {
 
     public final Utf8 attributeName;
     public final List<FullStackMapFrame> entries;

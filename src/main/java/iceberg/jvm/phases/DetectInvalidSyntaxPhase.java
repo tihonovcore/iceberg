@@ -3,7 +3,7 @@ package iceberg.jvm.phases;
 import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CompilationUnit;
 
 public class DetectInvalidSyntaxPhase implements CompilationPhase {
 

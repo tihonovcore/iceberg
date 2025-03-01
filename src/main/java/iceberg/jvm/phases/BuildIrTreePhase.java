@@ -4,7 +4,7 @@ import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 

@@ -1,9 +1,8 @@
 package iceberg.jvm.target;
 
-import iceberg.jvm.CompilationUnit;
 import iceberg.jvm.cp.Utf8;
 
-public class SourceAttribute implements CompilationUnit.Attribute {
+public class SourceAttribute implements Attribute {
 
     public final Utf8 attributeName;
     public final Utf8 sourceFileName;

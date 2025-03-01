@@ -2,7 +2,7 @@ package iceberg;
 
 import iceberg.fe.CompilationException;
 import iceberg.fe.ParsingUtil;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
 import iceberg.jvm.phases.*;
 import iceberg.jvm.target.SourceAttribute;

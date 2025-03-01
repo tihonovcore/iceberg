@@ -1,9 +1,11 @@
 package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CodeAttribute;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
 import iceberg.jvm.cp.*;
+import iceberg.jvm.target.Method;
 import iceberg.jvm.target.StackMapAttribute;
 
 import java.util.*;
@@ -14,13 +16,13 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         unit.methods.forEach(method -> {
             var attribute = method.attributes.stream()
-                .filter(CompilationUnit.CodeAttribute.class::isInstance)
+                .filter(CodeAttribute.class::isInstance)
                 .findAny().orElseThrow();
 
             Map<Integer, Snapshot> snapshots = new HashMap<>();
 
             var first = new Snapshot();
-            if ((method.flags & CompilationUnit.Method.AccessFlags.ACC_STATIC.value) == 0) {
+            if ((method.flags & Method.AccessFlags.ACC_STATIC.value) == 0) {
                 first.variables.add("this");
             }
 

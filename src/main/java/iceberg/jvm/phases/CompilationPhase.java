@@ -1,7 +1,7 @@
 package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CompilationUnit;
 
 public interface CompilationPhase {
 

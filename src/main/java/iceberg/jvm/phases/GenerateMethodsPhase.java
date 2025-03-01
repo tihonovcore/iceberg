@@ -1,8 +1,10 @@
 package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.CompilationUnit;
+import iceberg.jvm.target.CodeAttribute;
+import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
+import iceberg.jvm.target.Method;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,10 +14,10 @@ public class GenerateMethodsPhase implements CompilationPhase {
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
         for (var function : unit.irFile.functions) {
-            var init = new CompilationUnit.Method();
+            var init = new Method();
             init.flags
-                = CompilationUnit.Method.AccessFlags.ACC_PUBLIC.value
-                | CompilationUnit.Method.AccessFlags.ACC_STATIC.value;
+                = Method.AccessFlags.ACC_PUBLIC.value
+                | Method.AccessFlags.ACC_STATIC.value;
 
             init.name = unit.constantPool.computeUtf8(function.name);
 
@@ -47,10 +49,10 @@ public class GenerateMethodsPhase implements CompilationPhase {
         }
     }
 
-    private CompilationUnit.CodeAttribute createCodeAttribute(
+    private CodeAttribute createCodeAttribute(
         IrFunction function, CompilationUnit unit
     ) {
-        var attribute = new CompilationUnit.CodeAttribute();
+        var attribute = new CodeAttribute();
         attribute.attributeName = unit.constantPool.computeUtf8("Code");
         attribute.maxStack = 100; //TODO: how to evaluate?
         attribute.maxLocals = 100; //TODO: how to evaluate?
