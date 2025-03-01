@@ -4,6 +4,7 @@ import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
+import iceberg.jvm.IcebergClass;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -13,12 +14,33 @@ import java.util.stream.Collectors;
 
 public class BuildIrTreePhase implements CompilationPhase {
 
+    Map<String, IrClass> findAllClasses(IcebergParser.FileContext file) {
+        var classes = new HashMap<String, IrClass>();
+        file.accept(new IcebergBaseVisitor<>() {
+            @Override
+            public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
+                var name = ctx.name.getText();
+                if (classes.containsKey(name)) {
+                    throw new SemanticException("class already exists");
+                }
+
+                classes.put(name, new IrClass(name));
+                return super.visitClassDefinitionStatement(ctx);
+            }
+        });
+
+        return classes;
+    }
+
     record FunctionDescriptor(
         String functionName,
         List<IcebergType> parametersTypes
     ) {}
 
-    Map<FunctionDescriptor, IrFunction> findAllFunctions(IcebergParser.FileContext file) {
+    Map<FunctionDescriptor, IrFunction> findAllFunctions(
+        IcebergParser.FileContext file,
+        Map<String, IrClass> classes
+    ) {
         var functions = new HashMap<FunctionDescriptor, IrFunction>();
         file.accept(new IcebergBaseVisitor<Void>() {
 
@@ -39,26 +61,27 @@ public class BuildIrTreePhase implements CompilationPhase {
             public Void visitFunctionDefinitionStatement(
                 IcebergParser.FunctionDefinitionStatementContext ctx
             ) {
+                var functionName = currentClass != null
+                    ? currentClass.name.getText() + "$" + ctx.name.getText()
+                    : ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())
                     //TODO: support classes
                     .map(IcebergType::valueOf)
                     .toList();
-                var descriptor = new FunctionDescriptor(ctx.name.getText(), parametersTypes);
+                var descriptor = new FunctionDescriptor(functionName, parametersTypes);
 
                 if (functions.containsKey(descriptor)) {
                     throw new SemanticException("function already exists");
                 }
 
-                //TODO: стоит сначала найти все классы, потом функции
-                // функциям передавать класс которому они принадлежат
-                var functionName = currentClass != null
-                    ? currentClass.name.getText() + "$" + ctx.name.getText()
-                    : ctx.name.getText();
+                var classOwner = currentClass != null
+                    ? classes.get(currentClass.name.getText())
+                    : IcebergClass.INSTANCE;
                 var returnType = ctx.returnType == null
                     ? IcebergType.unit
                     : IcebergType.valueOf(ctx.returnType.getText());
-                var function = new IrFunction(functionName, returnType);
+                var function = new IrFunction(classOwner, functionName, returnType);
 
                 ctx.parameters().parameter().stream()
                     .map(parameter -> IcebergType.valueOf(parameter.type.getText()))
@@ -76,8 +99,8 @@ public class BuildIrTreePhase implements CompilationPhase {
 
     @Override
     public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        var functions = findAllFunctions(file);
-        //TODO: возможно нужен findAllClasses(file);
+        var classes = findAllClasses(file);
+        var functions = findAllFunctions(file, classes);
 
         unit.irFile = (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
 
@@ -114,7 +137,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                 scopes.add(new HashMap<>());
 
                 var functionName = "main";
-                var mainFunction = new IrFunction(functionName, IcebergType.unit);
+                var mainFunction = new IrFunction(IcebergClass.INSTANCE, functionName, IcebergType.unit);
                 for (var statement : statements) {
                     mainFunction.irBody.statements.add(statement.accept(this));
                 }
@@ -123,13 +146,14 @@ public class BuildIrTreePhase implements CompilationPhase {
                 return mainFunction; //TODO: fill parameters??
             }
 
-            IcebergParser.ClassDefinitionStatementContext currentClass = null;
+            IrClass currentClass = null;
 
             @Override
             public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var prev = currentClass;
                 try {
-                    var irClass = new IrClass(ctx.name.getText());
+                    var irClass = classes.get(ctx.name.getText());
+                    currentClass = irClass;
 
                     //todo: все переменные попадают в текущий scope, это неправильно
                     ctx.defStatement().stream()
@@ -150,7 +174,7 @@ public class BuildIrTreePhase implements CompilationPhase {
             @Override
             public IR visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
                 var functionName = currentClass != null
-                    ? currentClass.name.getText() + "$" + ctx.name.getText()
+                    ? currentClass.name + "$" + ctx.name.getText()
                     : ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())

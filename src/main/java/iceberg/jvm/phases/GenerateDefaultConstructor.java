@@ -1,6 +1,7 @@
 package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
+import iceberg.jvm.IcebergClass;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
@@ -34,7 +35,7 @@ public class GenerateDefaultConstructor implements CompilationPhase {
         var callSuperStatement = new IrSuperCall(methodRef);
         var returnStatement = new IrReturn();
 
-        var function = new IrFunction("<init>", IcebergType.unit);
+        var function = new IrFunction(IcebergClass.INSTANCE, "<init>", IcebergType.unit);
         function.irBody.statements.add(callSuperStatement);
         function.irBody.statements.add(returnStatement);
 
