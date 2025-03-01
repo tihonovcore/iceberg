@@ -231,24 +231,9 @@ public class BuildIrTreePhase implements CompilationPhase {
 
                 var irFunction = functions.get(descriptor);
 
-                var mapping = Map.of(
-                    IcebergType.i32, "I",
-                    IcebergType.i64, "J",
-                    IcebergType.bool, "Z",
-                    IcebergType.string, "Ljava/lang/String;",
-                    IcebergType.unit, "V"
-                );
-
-                var params = irFunction.parameters.stream()
-                    .map(v -> v.type)
-                    .map(mapping::get)
-                    .collect(Collectors.joining(""));
-
-                var descr = "(" + params + ")" + mapping.get(irFunction.returnType);
-
                 var nameAndType = unit.constantPool.computeNameAndType(
                     unit.constantPool.computeUtf8(ctx.name.getText()),
-                    unit.constantPool.computeUtf8(descr) //TODO
+                    unit.constantPool.computeUtf8(irFunction.javaMethodDescriptor())
                 );
                 var method = unit.constantPool.computeMethodRef(unit.thisRef, nameAndType);
 

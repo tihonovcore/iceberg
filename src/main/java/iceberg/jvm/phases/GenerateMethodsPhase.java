@@ -32,21 +32,8 @@ public class GenerateMethodsPhase implements CompilationPhase {
                 //TODO: create separate IcebergType?
                 init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
             } else {
-                var mapping = Map.of(
-                    IcebergType.i32, "I",
-                    IcebergType.i64, "J",
-                    IcebergType.bool, "Z",
-                    IcebergType.string, "Ljava/lang/String;",
-                    IcebergType.unit, "V"
-                );
-
-                var params = function.parameters.stream()
-                    .map(v -> v.type)
-                    .map(mapping::get)
-                    .collect(Collectors.joining(""));
-
                 init.descriptor = unit.constantPool.computeUtf8(
-                    "(" + params + ")" + mapping.get(function.returnType)
+                    function.javaMethodDescriptor()
                 );
             }
 
