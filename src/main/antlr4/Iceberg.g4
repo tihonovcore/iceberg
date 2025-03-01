@@ -13,6 +13,7 @@ statement
   | ifStatement
   | whileStatement
   | functionDefinitionStatement
+  | classDefinitionStatement
   | returnStatement SEMICOLON
   | block
   ;
@@ -33,6 +34,10 @@ ifStatement
 
 whileStatement
   : WHILE expression THEN statement
+  ;
+
+classDefinitionStatement
+  : CLASS name=ID OPEN_BRACE defStatement* functionDefinitionStatement* CLOSE_BRACE
   ;
 
 functionDefinitionStatement
@@ -63,6 +68,7 @@ block : OPEN_BRACE statement* CLOSE_BRACE;
 expression
   : NOT atom                                              #negateExpression
   | MINUS atom                                            #unaryMinusExpression
+  | expression DOT  (ID | functionCall)                   #memberExpression
   | left=expression (STAR | SLASH)      right=expression  #multiplicationExpression
   | left=expression (PLUS | MINUS)      right=expression  #additionExpression
   | left=expression (LE | GE | LT | GT) right=expression  #relationalExpression
@@ -111,6 +117,7 @@ THEN   : 'then';
 ELSE   : 'else';
 FUN    : 'fun';
 RETRUN : 'return';
+CLASS  : 'class';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';
@@ -121,6 +128,7 @@ DEF    : 'def';
 COLON  : ':';
 ASSIGN : '=';
 ID     : [A-Za-z_][A-Za-z_0-9]*;
+DOT    : '.';
 
 STRING
   : '"' (ESCAPE | CHAR)* '"'
