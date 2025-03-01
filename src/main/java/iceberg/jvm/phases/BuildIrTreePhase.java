@@ -229,16 +229,10 @@ public class BuildIrTreePhase implements CompilationPhase {
                     throw new SemanticException("function not found");
                 }
 
-                var irFunction = functions.get(descriptor);
-
-                var nameAndType = unit.constantPool.computeNameAndType(
-                    unit.constantPool.computeUtf8(ctx.name.getText()),
-                    unit.constantPool.computeUtf8(irFunction.javaMethodDescriptor())
+                return new IrStaticCall(
+                    functions.get(descriptor),
+                    arguments.toArray(arguments.toArray(new IrExpression[0]))
                 );
-                var method = unit.constantPool.computeMethodRef(unit.thisRef, nameAndType);
-
-                //TODO: pass irFunction, not MethodRef ??
-                return new IrStaticCall(irFunction.returnType, method, arguments.toArray(arguments.toArray(new IrExpression[0])));
             }
 
             @Override

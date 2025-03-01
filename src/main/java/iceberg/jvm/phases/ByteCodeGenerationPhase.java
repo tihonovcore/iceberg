@@ -349,8 +349,17 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             public void visitIrStaticCall(IrStaticCall irStaticCall) {
                 irStaticCall.arguments.forEach(e -> e.accept(this));
 
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.irClass.name)
+                );
+                var method = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.name),
+                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.javaMethodDescriptor())
+                );
+                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, method);
+
                 output.writeU1(OpCodes.INVOKESTATIC.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irStaticCall.methodRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
             }
 
             @Override
