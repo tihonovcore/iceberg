@@ -2,6 +2,7 @@ package iceberg.jvm.phases;
 
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ByteArray;
+import iceberg.jvm.cp.MethodRef;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
@@ -96,17 +97,11 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             public void visitIrSuperCall(IrSuperCall irSuperCall) {
                 output.writeU1(OpCodes.ALOAD_0.value);
 
-                var klass = compilationUnit.constantPool.computeKlass(
-                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.irClass.name)
-                );
-                var constructor = compilationUnit.constantPool.computeNameAndType(
-                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.name),
-                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.javaMethodDescriptor())
-                );
-                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, constructor);
+                var methodRef = computeMethodRef(irSuperCall.function);
+                var index = compilationUnit.constantPool.indexOf(methodRef);
 
                 output.writeU1(OpCodes.INVOKESPECIAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
+                output.writeU2(index);
             }
 
             @Override
@@ -359,37 +354,35 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             public void visitIrStaticCall(IrStaticCall irStaticCall) {
                 irStaticCall.arguments.forEach(e -> e.accept(this));
 
-                var klass = compilationUnit.constantPool.computeKlass(
-                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.irClass.name)
-                );
-                var method = compilationUnit.constantPool.computeNameAndType(
-                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.name),
-                    compilationUnit.constantPool.computeUtf8(irStaticCall.function.javaMethodDescriptor())
-                );
-                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, method);
+                var methodRef = computeMethodRef(irStaticCall.function);
+                var index = compilationUnit.constantPool.indexOf(methodRef);
 
                 output.writeU1(OpCodes.INVOKESTATIC.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
+                output.writeU2(index);
             }
 
             @Override
             public void visitIrMethodCall(IrMethodCall irMethodCall) {
                 irMethodCall.receiver.accept(this);
-                for (var argument : irMethodCall.arguments) {
-                    argument.accept(this);
-                }
+                irMethodCall.arguments.forEach(e -> e.accept(this));
 
-                var klass = compilationUnit.constantPool.computeKlass(
-                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.irClass.name)
-                );
-                var method = compilationUnit.constantPool.computeNameAndType(
-                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.name),
-                    compilationUnit.constantPool.computeUtf8(irMethodCall.function.javaMethodDescriptor())
-                );
-                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, method);
+                var methodRef = computeMethodRef(irMethodCall.function);
+                var index = compilationUnit.constantPool.indexOf(methodRef);
 
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
+                output.writeU2(index);
+            }
+
+            private MethodRef computeMethodRef(IrFunction irFunction) {
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irFunction.irClass.name)
+                );
+                var method = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irFunction.name),
+                    compilationUnit.constantPool.computeUtf8(irFunction.javaMethodDescriptor())
+                );
+
+                return compilationUnit.constantPool.computeMethodRef(klass, method);
             }
 
             private final Map<IrVariable, Integer> indexes = new HashMap<>();
