@@ -22,9 +22,17 @@ public class BuildIrTreePhase implements CompilationPhase {
         var functions = new HashMap<FunctionDescriptor, IrFunction>();
         file.accept(new IcebergBaseVisitor<Void>() {
 
+            IcebergParser.ClassDefinitionStatementContext currentClass = null;
+
             @Override
             public Void visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
-                return null; //these functions are in different scope
+                var prev = currentClass;
+                try {
+                    currentClass = ctx;
+                    return super.visitClassDefinitionStatement(ctx);
+                } finally {
+                    currentClass = prev;
+                }
             }
 
             @Override
@@ -42,7 +50,11 @@ public class BuildIrTreePhase implements CompilationPhase {
                     throw new SemanticException("function already exists");
                 }
 
-                var functionName = ctx.name.getText();
+                //TODO: стоит сначала найти все классы, потом функции
+                // функциям передавать класс которому они принадлежат
+                var functionName = currentClass != null
+                    ? currentClass.name.getText() + "$" + ctx.name.getText()
+                    : ctx.name.getText();
                 var returnType = ctx.returnType == null
                     ? IcebergType.unit
                     : IcebergType.valueOf(ctx.returnType.getText());
@@ -111,31 +123,41 @@ public class BuildIrTreePhase implements CompilationPhase {
                 return mainFunction; //TODO: fill parameters??
             }
 
+            IcebergParser.ClassDefinitionStatementContext currentClass = null;
+
             @Override
             public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
-                var irClass = new IrClass(ctx.name.getText());
+                var prev = currentClass;
+                try {
+                    var irClass = new IrClass(ctx.name.getText());
 
-                //todo: все переменные попадают в текущий scope, это неправильно
-                ctx.defStatement().stream()
-                    .map(definition -> (IrVariable) definition.accept(this))
-                    .forEach(irClass.fields::add);
+                    //todo: все переменные попадают в текущий scope, это неправильно
+                    ctx.defStatement().stream()
+                        .map(definition -> (IrVariable) definition.accept(this))
+                        .forEach(irClass.fields::add);
 
-                //todo: надо вызвать findAllFunctions
-                ctx.functionDefinitionStatement().stream()
-                    .map(definition -> (IrFunction) definition.accept(this))
-                    .forEach(irClass.methods::add);
+                    //todo: надо вызвать findAllFunctions
+                    ctx.functionDefinitionStatement().stream()
+                        .map(definition -> (IrFunction) definition.accept(this))
+                        .forEach(irClass.methods::add);
 
-                return irClass;
+                    return irClass;
+                } finally {
+                    currentClass = prev;
+                }
             }
 
             @Override
             public IR visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
+                var functionName = currentClass != null
+                    ? currentClass.name.getText() + "$" + ctx.name.getText()
+                    : ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())
                     //TODO: support classes
                     .map(IcebergType::valueOf)
                     .toList();
-                var descriptor = new FunctionDescriptor(ctx.name.getText(), parametersTypes);
+                var descriptor = new FunctionDescriptor(functionName, parametersTypes);
 
                 var irFunction = functions.get(descriptor);
 
