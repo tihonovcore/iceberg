@@ -42,7 +42,12 @@ public class IcebergType {
     }
 
     private static IcebergType buildJavaLangObject() {
-        return new IcebergType(new IrClass("java/lang/Object"));
+        var irClass = new IrClass("java/lang/Object");
+
+        var constructor = new IrFunction(irClass, "<init>", unit);
+        irClass.methods.add(constructor);
+
+        return new IcebergType(irClass);
     }
 
     private static IcebergType buildIceberg() {

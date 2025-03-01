@@ -7,7 +7,9 @@ import java.util.List;
 
 public class ConstantPool implements Iterable<Constant> {
 
+    @Deprecated
     public final Klass OBJECT;
+    @Deprecated
     public final Klass ICEBERG;
 
     private final List<Constant> pool;

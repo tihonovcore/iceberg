@@ -1,13 +1,11 @@
 package iceberg.jvm.ir;
 
-import iceberg.jvm.cp.MethodRef;
-
 public class IrSuperCall implements IR {
 
-    public final MethodRef methodRef;
+    public final IrFunction function;
 
-    public IrSuperCall(MethodRef methodRef) {
-        this.methodRef = methodRef;
+    public IrSuperCall(IrFunction function) {
+        this.function = function;
     }
 
     @Override

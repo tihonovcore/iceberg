@@ -95,8 +95,18 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             @Override
             public void visitIrSuperCall(IrSuperCall irSuperCall) {
                 output.writeU1(OpCodes.ALOAD_0.value);
+
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.irClass.name)
+                );
+                var constructor = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.name),
+                    compilationUnit.constantPool.computeUtf8(irSuperCall.function.javaMethodDescriptor())
+                );
+                var methodRef = compilationUnit.constantPool.computeMethodRef(klass, constructor);
+
                 output.writeU1(OpCodes.INVOKESPECIAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irSuperCall.methodRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(methodRef));
             }
 
             @Override

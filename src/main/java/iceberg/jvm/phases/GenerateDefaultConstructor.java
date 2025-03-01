@@ -26,13 +26,12 @@ public class GenerateDefaultConstructor implements CompilationPhase {
         attribute.maxStack = 1;
         attribute.maxLocals = 1;
 
-        var constructor = unit.constantPool.computeNameAndType(
-            unit.constantPool.computeUtf8("<init>"),
-            unit.constantPool.computeUtf8("()V")
-        );
-        var methodRef = unit.constantPool.computeMethodRef(unit.constantPool.OBJECT, constructor);
+        var objectIrClass = IcebergType.object.irClass;
+        var objectConstructor = objectIrClass.methods.stream()
+            .filter(fun -> fun.name.equals("<init>"))
+            .findFirst().orElseThrow();
 
-        var callSuperStatement = new IrSuperCall(methodRef);
+        var callSuperStatement = new IrSuperCall(objectConstructor);
         var returnStatement = new IrReturn();
 
         var function = new IrFunction(IcebergType.string.irClass, "<init>", IcebergType.unit);
