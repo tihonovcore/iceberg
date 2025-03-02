@@ -5,10 +5,6 @@ import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
-import iceberg.jvm.ir.IcebergType;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class GenerateMethodsPhase implements CompilationPhase {
 

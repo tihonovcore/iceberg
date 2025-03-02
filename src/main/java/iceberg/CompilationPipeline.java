@@ -60,13 +60,13 @@ public class CompilationPipeline {
 
             //compilation process
             new DetectInvalidSyntaxPhase().execute(file, mainUnit);
-            new GenerateDefaultConstructor().execute(file, mainUnit);
 
             new BuildIrTreePhase().execute(file, mainUnit);
             new MoveEachClassToSeparateUnitPhase().execute(mainUnit, compilationUnits);
 
             for (var unit : compilationUnits) {
                 //TODO: GenerateFieldsPhase
+                new GenerateDefaultConstructor().execute(file, unit);
                 new GenerateMethodsPhase().execute(file, unit);
                 new ByteCodeGenerationPhase().execute(file, unit);
                 new EvaluateStackMapAttributePhase().execute(file, unit);
