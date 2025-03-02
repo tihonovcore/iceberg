@@ -60,7 +60,6 @@ public class CompilationPipeline {
 
             //compilation process
             new DetectInvalidSyntaxPhase().execute(file, mainUnit);
-            new FillConstantPoolPhase().execute(file, mainUnit);
             new GenerateDefaultConstructor().execute(file, mainUnit);
 
             new BuildIrTreePhase().execute(file, mainUnit);

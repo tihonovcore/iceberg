@@ -302,7 +302,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     output.writeU1(OpCodes.SIPUSH.value);
                     output.writeU2((int) value);
                 } else if (Integer.MIN_VALUE <= value && value <= Integer.MAX_VALUE) {
-                    var indexInPool = compilationUnit.constantPool.findInteger((int) value);
+                    var constant = compilationUnit.constantPool.computeInt((int) value);
+                    var indexInPool = compilationUnit.constantPool.indexOf(constant);
                     if (Byte.MIN_VALUE <= indexInPool && indexInPool <= Byte.MAX_VALUE) {
                         output.writeU1(OpCodes.LDC.value);
                         output.writeU1(indexInPool);
@@ -311,7 +312,8 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                         output.writeU2(indexInPool);
                     }
                 } else {
-                    var indexInPool = compilationUnit.constantPool.findLong(value);
+                    var constant = compilationUnit.constantPool.computeLong(value);
+                    var indexInPool = compilationUnit.constantPool.indexOf(constant);
                     output.writeU1(OpCodes.LDC_W2.value);
                     output.writeU2(indexInPool);
                 }

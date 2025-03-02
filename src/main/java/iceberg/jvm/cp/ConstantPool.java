@@ -32,42 +32,34 @@ public class ConstantPool implements Iterable<Constant> {
     }
 
     public int indexOf(Constant constant) {
-        return pool.indexOf(constant) + 1;
+        return pool.indexOf(constant) + 1; //numeration from 1
     }
 
-    public int findInteger(int value) {
-        for (int i = 0; i < pool.size(); i++) {
-            var constant = pool.get(i);
+    public Constant computeInt(int value) {
+        for (Constant constant : pool) {
             if (constant instanceof IntegerInfo info && info.bytes == value) {
-                return i + 1; //numeration with 1
+                return constant;
             }
         }
 
-        return -1;
+        var constant = new IntegerInfo(value);
+        pool.add(constant);
+
+        return constant;
     }
 
-    public void addInteger(int value) {
-        if (findInteger(value) == -1) {
-            pool.add(new IntegerInfo(value));
-        }
-    }
-
-    public int findLong(long value) {
-        for (int i = 0; i < pool.size(); i++) {
-            var constant = pool.get(i);
+    public Constant computeLong(long value) {
+        for (Constant constant : pool) {
             if (constant instanceof LongInfo info && info.value() == value) {
-                return i + 1; //numeration with 1
+                return constant;
             }
         }
 
-        return -1;
-    }
+        var constant = new LongInfo(value);
+        pool.add(constant);
+        pool.add(new Noop()); // long take 2 indexes from pool
 
-    public void addLong(long value) {
-        if (findLong(value) == -1) {
-            pool.add(new LongInfo(value));
-            pool.add(new Noop()); // long take 2 indexes from pool
-        }
+        return constant;
     }
 
     public Utf8 computeUtf8(String value) {
