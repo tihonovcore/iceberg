@@ -13,7 +13,6 @@ public class IcebergType {
 
     public static final IcebergType object = buildJavaLangObject();
     public static final IcebergType string = buildJavaLangString();
-    public static final IcebergType iceberg = buildIceberg();
     public static final IcebergType printStream = buildJavaIoPrintStream();
 
     public static IcebergType valueOf(String type) {
@@ -29,7 +28,7 @@ public class IcebergType {
 
     public final IrClass irClass;
 
-    IcebergType(IrClass irClass) {
+    public IcebergType(IrClass irClass) {
         this.irClass = irClass;
     }
 
@@ -51,10 +50,6 @@ public class IcebergType {
         irClass.methods.add(constructor);
 
         return new IcebergType(irClass);
-    }
-
-    private static IcebergType buildIceberg() {
-        return new IcebergType(new IrClass("Iceberg"));
     }
 
     private static IcebergType buildJavaIoPrintStream() {
