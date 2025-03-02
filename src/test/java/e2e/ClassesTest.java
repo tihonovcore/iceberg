@@ -20,9 +20,20 @@ public class ClassesTest extends Base {
                 class Foo {
                 }
                 
+                print "hello";""", "hello\n"),
+            Arguments.of("""
+                class Foo {
+                    fun sayFoo() {
+                        print "foo";
+                    }
+                }
+
                 print "hello";""", "hello\n")
 //            Arguments.of("""
 //                class Foo {
+//                    def x = 0
+//                    def y: string
+//
 //                    fun sayFoo() {
 //                        print "foo";
 //                    }
