@@ -2,6 +2,8 @@ package iceberg.jvm.ir;
 
 import iceberg.SemanticException;
 
+import java.util.List;
+
 public class IcebergType {
 
     public static final IcebergType i32 = new IcebergType(new IrClass("i32"));
@@ -12,6 +14,7 @@ public class IcebergType {
     public static final IcebergType object = buildJavaLangObject();
     public static final IcebergType string = buildJavaLangString();
     public static final IcebergType iceberg = buildIceberg();
+    public static final IcebergType printStream = buildJavaIoPrintStream();
 
     public static IcebergType valueOf(String type) {
         return switch (type) {
@@ -52,5 +55,27 @@ public class IcebergType {
 
     private static IcebergType buildIceberg() {
         return new IcebergType(new IrClass("Iceberg"));
+    }
+
+    private static IcebergType buildJavaIoPrintStream() {
+        var irClass = new IrClass("java/io/PrintStream");
+
+        var possibleParametersTypes = List.of(
+            IcebergType.i32,
+            IcebergType.i64,
+            IcebergType.bool,
+            IcebergType.string,
+            IcebergType.object
+        );
+        for (var parametersType : possibleParametersTypes) {
+            var parameter = new IrVariable(parametersType, null);
+
+            var println = new IrFunction(irClass, "println", unit);
+            println.parameters.add(parameter);
+
+            irClass.methods.add(println);
+        }
+
+        return new IcebergType(irClass);
     }
 }

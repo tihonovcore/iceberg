@@ -343,13 +343,25 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
 
             @Override
             public void visitIrPrint(IrPrint irPrint) {
+                var systemClass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8("java/lang/System")
+                );
+                var outField = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8("out"),
+                    compilationUnit.constantPool.computeUtf8("Ljava/io/PrintStream;")
+                );
+                var fieldRef = compilationUnit.constantPool.computeFieldRef(systemClass, outField);
+
                 output.writeU1(OpCodes.GETSTATIC.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irPrint.fieldRef));
+                output.writeU2(compilationUnit.constantPool.indexOf(fieldRef));
 
                 irPrint.arguments.forEach(e -> e.accept(this));
 
+                var methodRef = computeMethodRef(irPrint.function);
+                var index = compilationUnit.constantPool.indexOf(methodRef);
+
                 output.writeU1(OpCodes.INVOKEVIRTUAL.value);
-                output.writeU2(compilationUnit.constantPool.indexOf(irPrint.methodRef));
+                output.writeU2(index);
             }
 
             @Override

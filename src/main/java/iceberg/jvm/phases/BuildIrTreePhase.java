@@ -10,7 +10,6 @@ import iceberg.jvm.ir.IcebergType;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BuildIrTreePhase implements CompilationPhase {
 
@@ -251,32 +250,30 @@ public class BuildIrTreePhase implements CompilationPhase {
 
             @Override
             public IR visitPrintStatement(IcebergParser.PrintStatementContext ctx) {
-                var system = unit.constantPool.computeKlass(
-                    unit.constantPool.computeUtf8("java/lang/System")
-                );
-                var out = unit.constantPool.computeNameAndType(
-                    unit.constantPool.computeUtf8("out"),
-                    unit.constantPool.computeUtf8("Ljava/io/PrintStream;")
-                );
-                var field = unit.constantPool.computeFieldRef(system, out);
-
                 var argument = (IrExpression) ctx.expression().accept(this);
-                var printStream = unit.constantPool.computeKlass(
-                    unit.constantPool.computeUtf8("java/io/PrintStream")
+
+                var possibleSpecificParametersTypes = Set.of(
+                    IcebergType.i32, IcebergType.i64,
+                    IcebergType.bool, IcebergType.string
                 );
-                var println = unit.constantPool.computeNameAndType(
-                    unit.constantPool.computeUtf8("println"),
-                    unit.constantPool.computeUtf8(
-                        Map.of(
-                            IcebergType.i32, "(I)V",
-                            IcebergType.i64, "(J)V",
-                            IcebergType.bool, "(Z)V",
-                            IcebergType.string, "(Ljava/lang/String;)V"
-                        ).get(argument.type)
-                    )
-                );
-                var method = unit.constantPool.computeMethodRef(printStream, println);
-                return new IrPrint(field, method, argument);
+                if (possibleSpecificParametersTypes.contains(argument.type)) {
+                    var method = findPrintlnByParameterType(argument.type);
+                    return new IrPrint(method, argument);
+                }
+
+                var method = findPrintlnByParameterType(IcebergType.object);
+                return new IrPrint(method, argument);
+            }
+
+            private IrFunction findPrintlnByParameterType(IcebergType parametersType) {
+                var printStreamClass = IcebergType.printStream.irClass;
+                return printStreamClass.methods.stream()
+                    .filter(function -> "println".equals(function.name))
+                    .filter(function -> {
+                        var single = function.parameters.getFirst();
+                        return single.type == parametersType;
+                    })
+                    .findFirst().orElseThrow();
             }
 
             @Override
