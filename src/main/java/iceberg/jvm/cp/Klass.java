@@ -2,7 +2,7 @@ package iceberg.jvm.cp;
 
 public class Klass extends Constant {
 
-    final int nameIndex;
+    public final int nameIndex;
 
     public Klass(int nameIndex) {
         this.nameIndex = nameIndex;

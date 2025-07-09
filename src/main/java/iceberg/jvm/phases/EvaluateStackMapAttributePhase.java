@@ -185,7 +185,11 @@ public class EvaluateStackMapAttributePhase {
                     snapshot.push(top);
                 }
                 case NEW -> {
-                    snapshot.push("Foo");
+                    var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
+                    var klass = (Klass) constantPool.load(index);
+                    var name = (Utf8) constantPool.load(klass.nameIndex);
+
+                    snapshot.push(new String(name.bytes));
                 }
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
