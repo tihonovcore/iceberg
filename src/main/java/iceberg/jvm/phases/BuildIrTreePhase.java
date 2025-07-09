@@ -70,10 +70,12 @@ public class BuildIrTreePhase {
                     var irClass = classResolver.getIrClass(ctx.name.getText());
                     currentClass = irClass;
 
-                    //todo: все переменные попадают в текущий scope, это неправильно
-                    ctx.defStatement().stream()
-                        .map(definition -> (IrVariable) definition.accept(this))
-                        .forEach(irClass.fields::add);
+                    ctx.defStatement().forEach(definition -> {
+                        //TODO: support user types
+                        var type = IcebergType.valueOf(definition.type.getText());
+                        var fieldName = definition.name.getText();
+                        irClass.fields.put(fieldName, new IrField(irClass, fieldName, type));
+                    });
 
                     //todo: надо вызвать findAllFunctions
                     ctx.functionDefinitionStatement().forEach(
@@ -450,7 +452,13 @@ public class BuildIrTreePhase {
                     var receiver = (IrExpression) ctx.expression().accept(this);
                     return methodCall(receiver, ctx.functionCall());
                 } else {
-                    throw new IllegalStateException("not implemented");
+                    var fieldName = ctx.ID().getText();
+                    var receiver = (IrExpression) ctx.expression().accept(this);
+                    var irField = receiver.type.irClass.fields.get(fieldName);
+
+                    //надо посмотреть что там справа в дереве
+                    //если равно, то создать IrPutField, иначе IrGetField
+                    return new IrGetField(receiver, irField);
                 }
             }
 

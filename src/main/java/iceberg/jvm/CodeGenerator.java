@@ -106,7 +106,16 @@ public class CodeGenerator {
     }
 
     private void fields() {
+        for (var field : compilationUnit.fields) {
+            output.writeU2(field.flags);
+            output.writeU2(compilationUnit.constantPool.indexOf(field.name));
+            output.writeU2(compilationUnit.constantPool.indexOf(field.descriptor));
 
+            output.writeU2(field.attributes.size());
+            if (!field.attributes.isEmpty()) {
+                throw new IllegalStateException("attributes generation is not yet implemented");
+            }
+        }
     }
 
     private void methodsCount() {

@@ -33,7 +33,13 @@ public class DetectInvalidSyntaxPhase {
                     }
                 }
 
-                throw new SemanticException("bad l-value");
+                if (ctx.left instanceof IcebergParser.MemberExpressionContext member) {
+                    if (member.functionCall() == null) {
+                        return member.expression().accept(this);
+                    }
+                }
+
+                throw new SemanticException("bad l-value:\n" + ctx.getText());
             }
 
             @Override

@@ -58,7 +58,8 @@ public class CompilationPipeline {
                 //TODO: GenerateFieldsPhase
                 new GenerateDefaultConstructor().execute(unit);
                 new GenerateMethodsPhase().execute(unit);
-                new ByteCodeGenerationPhase().execute(unit);
+                new GenerateFieldsPhase().execute(unit);
+                new CodeAttributeGenerationPhase().execute(unit);
                 new EvaluateStackMapAttributePhase().execute(unit);
             }
 

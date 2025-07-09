@@ -191,7 +191,7 @@ public class EvaluateStackMapAttributePhase {
 
                     snapshot.push(new String(name.bytes));
                 }
-                case GETSTATIC -> {
+                case GETSTATIC, GETFIELD -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     snapshot.push(load(constantPool, index).type);
                 }
@@ -296,6 +296,7 @@ public class EvaluateStackMapAttributePhase {
                 case RETURN, IRETURN, ARETURN, LRETURN -> 1;
                 case DUP -> 1;
                 case NEW -> 3;
+                case GETFIELD -> 3;
                 case GETSTATIC -> 3;
                 case INVOKEVIRTUAL -> 3;
                 case INVOKESTATIC -> 3;

@@ -27,7 +27,10 @@ public class JavaDescriptorParser {
         var typeDescriptor = new String(utf8.bytes);
 
         //TODO: decode descriptor - for int it will be I (not int)
-        return new JavaType(typeDescriptor.substring(1, typeDescriptor.length() - 1));
+        return switch (typeDescriptor) {
+            case "I" -> new JavaType("int");
+            default -> new JavaType(typeDescriptor.substring(1, typeDescriptor.length() - 1));
+        };
     }
 
     private JavaType parseMethodRef(MethodRef methodRef) {

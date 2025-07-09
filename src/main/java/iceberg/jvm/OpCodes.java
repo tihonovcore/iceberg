@@ -10,6 +10,7 @@ public enum OpCodes {
     ASTORE(0x3A),
     BIPUSH(0x10),
     DUP(0x59),
+    GETFIELD(0xB4),
     GETSTATIC(0xB2),
     GOTO(0xA7),
     I2L(0x85),

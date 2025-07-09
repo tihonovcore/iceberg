@@ -1,13 +1,11 @@
 package iceberg.jvm.ir;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class IrClass implements IR {
 
     public final String name;
-    public final List<IrVariable> fields = new ArrayList<>();
+    public final Map<String, IrField> fields = new HashMap<>();
     public final List<IrFunction> methods = new ArrayList<>();
     public final IrFunction defaultConstructor = new IrFunction(this, "<init>", IcebergType.unit);
     //TODO: type

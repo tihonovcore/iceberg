@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ByteCodeGenerationPhase {
+public class CodeAttributeGenerationPhase {
 
     public void execute(CompilationUnit unit) {
         unit.methods.forEach(method -> {
@@ -499,6 +499,35 @@ public class ByteCodeGenerationPhase {
 
                 var index = indexes.get(irAssignVariable.definition);
                 output.writeU1(index);
+            }
+
+            @Override
+            public void visitIrField(IrField irField) {
+                //do nothing
+            }
+
+            @Override
+            public void visitIrGetField(IrGetField irGetField) {
+                irGetField.receiver.accept(this);
+
+                output.writeU1(OpCodes.GETFIELD.value);
+
+                var irField = irGetField.irField;
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irField.irClass.name)
+                );
+
+                //TODO: support types
+                if (irGetField.type != IcebergType.i32) {
+                    throw new IllegalStateException("type not yet supported");
+                }
+                var field = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irField.fieldName),
+                    compilationUnit.constantPool.computeUtf8("I")
+                );
+
+                var fieldRef = compilationUnit.constantPool.computeFieldRef(klass, field);
+                output.writeU2(compilationUnit.constantPool.indexOf(fieldRef));
             }
 
             @Override

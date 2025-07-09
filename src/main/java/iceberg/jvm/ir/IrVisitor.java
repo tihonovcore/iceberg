@@ -10,6 +10,7 @@ public interface IrVisitor {
     void visitIrSuperCall(IrSuperCall irSuperCall);
     void visitIrReturn(IrReturn irReturn);
     void visitIrVariable(IrVariable irVariable);
+    void visitIrField(IrField irField);
     void visitIrPrint(IrPrint irPrint);
     void visitIrStaticCall(IrStaticCall irStaticCall);
     void visitIrMethodCall(IrMethodCall irMethodCall);
@@ -19,6 +20,7 @@ public interface IrVisitor {
     void visitIrNumber(IrNumber irNumber);
     void visitIrReadVariable(IrReadVariable irReadVariable);
     void visitIrAssignVariable(IrAssignVariable irAssignVariable);
+    void visitIrGetField(IrGetField irGetField);
     void visitIrUnaryExpression(IrUnaryExpression irExpression);
     void visitIrBinaryExpression(IrBinaryExpression irExpression);
     void visitIrBool(IrBool irBool);
