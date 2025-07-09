@@ -53,7 +53,13 @@ public class DetectInvalidSyntaxPhase {
                     }
                 }
 
-                throw new SemanticException("not a statement");
+                if (expression instanceof IcebergParser.MemberExpressionContext member) {
+                    if (member.functionCall() != null) {
+                        return super.visitStatement(ctx);
+                    }
+                }
+
+                throw new SemanticException("not a statement\n" + ctx.getText());
             }
 
             @Override

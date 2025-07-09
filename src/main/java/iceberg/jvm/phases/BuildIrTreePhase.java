@@ -76,9 +76,9 @@ public class BuildIrTreePhase {
                         .forEach(irClass.fields::add);
 
                     //todo: надо вызвать findAllFunctions
-                    ctx.functionDefinitionStatement().stream()
-                        .map(definition -> (IrFunction) definition.accept(this))
-                        .forEach(irClass.methods::add);
+                    ctx.functionDefinitionStatement().forEach(
+                        definition -> definition.accept(this)
+                    );
 
                     return irClass;
                 } finally {
@@ -442,6 +442,41 @@ public class BuildIrTreePhase {
 
                 //TODO: support parameters?
                 return new IrNew(irClass);
+            }
+
+            @Override
+            public IR visitMemberExpression(IcebergParser.MemberExpressionContext ctx) {
+                if (ctx.functionCall() != null) {
+                    var receiver = (IrExpression) ctx.expression().accept(this);
+                    return methodCall(receiver, ctx.functionCall());
+                } else {
+                    throw new IllegalStateException("not implemented");
+                }
+            }
+
+            private IrMethodCall methodCall(
+                IrExpression receiver,
+                IcebergParser.FunctionCallContext ctx
+            ) {
+                var arguments = ctx.arguments().expression().stream()
+                    .map(arg -> (IrExpression) arg.accept(this))
+                    .toList();
+
+                var argumentsTypes = arguments.stream()
+                    .map(expr -> expr.type)
+                    .toList();
+
+                var optional = receiver.type.irClass.findMethod(ctx.name.getText(), argumentsTypes);
+                if (optional.isEmpty()) {
+                    throw new SemanticException("function not found");
+                }
+                var irFunction = optional.get();
+
+                return new IrMethodCall(
+                    irFunction,
+                    receiver,
+                    arguments.toArray(arguments.toArray(new IrExpression[0]))
+                );
             }
 
             @Override

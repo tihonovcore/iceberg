@@ -12,16 +12,17 @@ public class GenerateMethodsPhase {
 
         for (var function : functions) {
             var init = new Method();
-            //TODO: методы класса должны быть не статическими
-            init.flags
-                = Method.AccessFlags.ACC_PUBLIC.value
-                | Method.AccessFlags.ACC_STATIC.value;
+            init.flags = Method.AccessFlags.ACC_PUBLIC.value;
+            if ("Iceberg".equals(unit.irClass.name)) {
+                init.flags = init.flags | Method.AccessFlags.ACC_STATIC.value;
+            }
 
             init.name = unit.constantPool.computeUtf8(function.name);
 
             if (function.name.equals("main")) {
                 //TODO: create separate IcebergType?
                 init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
+                init.flags = init.flags | Method.AccessFlags.ACC_STATIC.value;
             } else {
                 init.descriptor = unit.constantPool.computeUtf8(
                     function.javaMethodDescriptor()

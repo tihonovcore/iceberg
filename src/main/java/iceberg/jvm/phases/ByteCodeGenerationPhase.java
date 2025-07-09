@@ -134,10 +134,8 @@ public class ByteCodeGenerationPhase {
                     output.writeU1(OpCodes.IRETURN.value);
                 } else if (type == IcebergType.i64) {
                     output.writeU1(OpCodes.LRETURN.value);
-                } else if (type == IcebergType.string) {
-                    output.writeU1(OpCodes.ARETURN.value);
                 } else {
-                    throw new IllegalStateException("not implemented");
+                    output.writeU1(OpCodes.ARETURN.value);
                 }
             }
 
@@ -469,7 +467,7 @@ public class ByteCodeGenerationPhase {
                     output.writeU1(OpCodes.ILOAD.value);
                 } else if (type == IcebergType.i64) {
                     output.writeU1(OpCodes.LLOAD.value);
-                } else if (type == IcebergType.string) {
+                } else {
                     output.writeU1(OpCodes.ALOAD.value);
                 }
 
@@ -486,7 +484,7 @@ public class ByteCodeGenerationPhase {
                     output.writeU1(OpCodes.ISTORE.value);
                 } else if (type == IcebergType.i64) {
                     output.writeU1(OpCodes.LSTORE.value);
-                } else if (type == IcebergType.string) {
+                } else {
                     output.writeU1(OpCodes.ASTORE.value);
                 }
 

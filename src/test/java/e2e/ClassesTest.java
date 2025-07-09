@@ -52,4 +52,36 @@ public class ClassesTest extends Base {
             
             print "hello";""", "hello\n");
     }
+
+    @Test
+    void call() {
+        execute("""
+            class Foo {
+                fun hi() {
+                    print "hi";
+                }
+            }
+            
+            def foo = new Foo;
+            foo.hi();""", "hi\n");
+    }
+
+    @Test
+    void chainedCall() {
+        execute("""
+            class Foo {
+                fun hi() {
+                    print "hi";
+                }
+            }
+            
+            class Bar {
+                fun get(): Foo {
+                    return new Foo;
+                }
+            }
+            
+            def bar = new Bar;
+            bar.get().hi();""", "hi\n");
+    }
 }
