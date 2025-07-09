@@ -88,6 +88,7 @@ atom
   | TRUE
   | STRING
   | ID
+  | THIS
   ;
 
 PLUS  : '+';
@@ -120,6 +121,7 @@ FUN    : 'fun';
 RETRUN : 'return';
 CLASS  : 'class';
 NEW    : 'new';
+THIS   : 'this';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';

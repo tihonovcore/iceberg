@@ -26,4 +26,5 @@ public interface IrVisitor {
     void visitIrBinaryExpression(IrBinaryExpression irExpression);
     void visitIrBool(IrBool irBool);
     void visitIrString(IrString irString);
+    void visitIrThis(IrThis irThis);
 }

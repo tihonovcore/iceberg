@@ -575,6 +575,11 @@ public class CodeAttributeGenerationPhase {
                     toElseOrEnd.jump();
                 }
             }
+
+            @Override
+            public void visitIrThis(IrThis irThis) {
+                output.writeU1(OpCodes.ALOAD_0.value);
+            }
         });
 
         attribute.code = output.bytes();

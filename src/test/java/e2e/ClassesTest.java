@@ -161,4 +161,26 @@ public class ClassesTest extends Base {
             print req.x * req.y;""", "0\n0\n990\n");
     }
 
+    @Test
+    void getterSetter() {
+        execute("""
+            class Square {
+                def x: i32
+
+                fun set(side: i32) {
+                    this.x = side;
+                }
+
+                fun area(): i32 {
+                    return this.x * this.x;
+                }
+            }
+            
+            def sq = new Square;
+            sq.x = 3;
+            print sq.area();
+            
+            sq.set(4);
+            print sq.area();""", "9\n16\n");
+    }
 }

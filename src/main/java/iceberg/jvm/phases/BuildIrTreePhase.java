@@ -465,8 +465,7 @@ public class BuildIrTreePhase {
                     var receiver = (IrExpression) ctx.expression().accept(this);
                     var irField = receiver.type.irClass.fields.get(fieldName);
 
-                    //надо посмотреть что там справа в дереве
-                    //если равно, то создать IrPutField, иначе IrGetField
+                    //NOTE: если это l-value, то IrGetField заменится на IrPutField
                     return new IrGetField(receiver, irField);
                 }
             }
@@ -510,6 +509,7 @@ public class BuildIrTreePhase {
                             .replace("\\n", "\n");
                         yield new IrString(string);
                     }
+                    case IcebergLexer.THIS -> new IrThis(currentClass);
                     case IcebergLexer.ID -> {
                         var name = node.getSymbol().getText();
                         for (int i = scopes.size() - 1; i >= 0; i--) {
