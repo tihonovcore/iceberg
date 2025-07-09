@@ -84,4 +84,36 @@ public class ClassesTest extends Base {
             def bar = new Bar;
             bar.get().hi();""", "hi\n");
     }
+
+    @Test
+    void printReturnedValue() {
+        execute("""
+            class Calendar {
+                fun year(): i32 {
+                    return 2025;
+                }
+            }
+            
+            
+            def cal = new Calendar;
+            print cal.year();""", "2025\n");
+    }
+
+    @Test
+    void evalReturnedValue() {
+        execute("""
+            class Calendar {
+                fun mm(): i32 {
+                    return 5;
+                }
+
+                fun ss(): i32 {
+                    return 10;
+                }
+            }
+            
+            
+            def cal = new Calendar;
+            print cal.mm() * 60 + cal.ss();""", "310\n");;
+    }
 }
