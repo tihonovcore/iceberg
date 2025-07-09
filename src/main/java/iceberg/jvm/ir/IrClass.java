@@ -9,6 +9,7 @@ public class IrClass implements IR {
     public final String name;
     public final List<IrVariable> fields = new ArrayList<>();
     public final List<IrFunction> methods = new ArrayList<>();
+    public final IrFunction defaultConstructor = new IrFunction(this, "<init>", IcebergType.unit);
     //TODO: type
 
     public Optional<IrFunction> findMethod(String name, List<IcebergType> parametersTypes) {

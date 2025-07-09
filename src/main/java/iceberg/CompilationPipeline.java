@@ -50,26 +50,18 @@ public class CompilationPipeline {
         try {
             var file = ParsingUtil.parse(source);
 
-            var mainUnit = new CompilationUnit();
-            mainUnit.attributes.add(new SourceAttribute(
-                mainUnit.constantPool.computeUtf8("SourceFile"),
-                mainUnit.constantPool.computeUtf8("Iceberg.ib")
-            ));
-
-            var compilationUnits = new ArrayList<>(List.of(mainUnit));
-
             //compilation process
-            new DetectInvalidSyntaxPhase().execute(file, mainUnit);
+            new DetectInvalidSyntaxPhase().execute(file);
 
-            new BuildIrTreePhase().execute(file, mainUnit);
-            new MoveEachClassToSeparateUnitPhase().execute(mainUnit, compilationUnits);
+            var irFile = new BuildIrTreePhase().execute(file);
+            var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
             for (var unit : compilationUnits) {
                 //TODO: GenerateFieldsPhase
-                new GenerateDefaultConstructor().execute(file, unit);
-                new GenerateMethodsPhase().execute(file, unit);
-                new ByteCodeGenerationPhase().execute(file, unit);
-                new EvaluateStackMapAttributePhase().execute(file, unit);
+                new GenerateDefaultConstructor().execute(unit);
+                new GenerateMethodsPhase().execute(unit);
+                new ByteCodeGenerationPhase().execute(unit);
+                new EvaluateStackMapAttributePhase().execute(unit);
             }
 
             //codegen

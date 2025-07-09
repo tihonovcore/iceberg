@@ -4,94 +4,18 @@ import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.ir.IcebergType;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
 
-public class BuildIrTreePhase implements CompilationPhase {
+public class BuildIrTreePhase {
 
-    public final IrClass icebergIrClass = new IrClass("Iceberg");
+    public IrFile execute(IcebergParser.FileContext file) {
+        var classResolver = new ClassResolver(file);
 
-    Map<String, IrClass> findAllClasses(IcebergParser.FileContext file) {
-        var classes = new HashMap<String, IrClass>();
-        file.accept(new IcebergBaseVisitor<>() {
-            @Override
-            public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
-                var name = ctx.name.getText();
-                if (classes.containsKey(name)) {
-                    throw new SemanticException("class already exists");
-                }
-
-                classes.put(name, new IrClass(name));
-                return super.visitClassDefinitionStatement(ctx);
-            }
-        });
-
-        return classes;
-    }
-
-    void findAllFunctions(
-        IcebergParser.FileContext file,
-        Map<String, IrClass> allClasses
-    ) {
-        file.accept(new IcebergBaseVisitor<Void>() {
-
-            IrClass currentClass = icebergIrClass;
-
-            @Override
-            public Void visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
-                var prev = currentClass;
-                try {
-                    currentClass = allClasses.get(ctx.name.getText());
-                    return super.visitClassDefinitionStatement(ctx);
-                } finally {
-                    currentClass = prev;
-                }
-            }
-
-            @Override
-            public Void visitFunctionDefinitionStatement(
-                IcebergParser.FunctionDefinitionStatementContext ctx
-            ) {
-                var functionName = ctx.name.getText();
-                var parametersTypes = ctx.parameters().parameter().stream()
-                    .map(parameter -> parameter.type.getText())
-                    //TODO: support user-defined types
-                    .map(IcebergType::valueOf)
-                    .toList();
-
-                var optional = currentClass.findMethod(functionName, parametersTypes);
-                if (optional.isPresent()) {
-                    throw new SemanticException("function already exists");
-                }
-
-                //TODO: support user-defined types
-                var returnType = ctx.returnType == null
-                    ? IcebergType.unit
-                    : IcebergType.valueOf(ctx.returnType.getText());
-                var function = new IrFunction(currentClass, functionName, returnType);
-
-                ctx.parameters().parameter().stream()
-                    .map(parameter -> IcebergType.valueOf(parameter.type.getText()))
-                    .map(parameter -> new IrVariable(parameter, null))
-                    .forEach(function.parameters::add);
-
-                currentClass.methods.add(function);
-
-                return null;
-            }
-        });
-    }
-
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        var classes = findAllClasses(file);
-        findAllFunctions(file, classes);
-
-        unit.irFile = (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
+        return (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
 
             private final List<Map<String, IrVariable>> scopes = new ArrayList<>();
 
@@ -102,22 +26,23 @@ public class BuildIrTreePhase implements CompilationPhase {
                     .filter(Objects::nonNull)
                     .map(irClass -> (IrClass) irClass.accept(this))
                     .toList();
-                var userDefinedFunctions = ctx.statement().stream()
+
+                //NOTE: bind user-defined functions to Iceberg class
+                ctx.statement().stream()
                     .map(IcebergParser.StatementContext::functionDefinitionStatement)
                     .filter(Objects::nonNull)
-                    .map(function -> (IrFunction) function.accept(this))
-                    .toList();
+                    .forEach(function -> function.accept(this));
 
                 var mainFunctionStatements = ctx.statement().stream()
                     .filter(statement -> statement.functionDefinitionStatement() == null)
                     .filter(statement -> statement.classDefinitionStatement() == null)
                     .toList();
                 var mainFunction = buildMainFunction(mainFunctionStatements);
+                classResolver.getIcebergIrClass().methods.add(mainFunction);
 
                 var irFile = new IrFile();
                 irFile.classes.addAll(userDefinedClasses);
-                irFile.functions.addAll(userDefinedFunctions);
-                irFile.functions.add(mainFunction);
+                irFile.classes.add(classResolver.getIcebergIrClass());
 
                 return irFile;
             }
@@ -126,6 +51,7 @@ public class BuildIrTreePhase implements CompilationPhase {
                 scopes.add(new HashMap<>());
 
                 var functionName = "main";
+                var icebergIrClass = classResolver.getIcebergIrClass();
                 var mainFunction = new IrFunction(icebergIrClass, functionName, IcebergType.unit);
                 for (var statement : statements) {
                     mainFunction.irBody.statements.add(statement.accept(this));
@@ -135,13 +61,13 @@ public class BuildIrTreePhase implements CompilationPhase {
                 return mainFunction; //TODO: fill parameters??
             }
 
-            IrClass currentClass = icebergIrClass;
+            IrClass currentClass = classResolver.getIcebergIrClass();
 
             @Override
             public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var prev = currentClass;
                 try {
-                    var irClass = classes.get(ctx.name.getText());
+                    var irClass = classResolver.getIrClass(ctx.name.getText());
                     currentClass = irClass;
 
                     //todo: все переменные попадают в текущий scope, это неправильно
@@ -509,7 +435,7 @@ public class BuildIrTreePhase implements CompilationPhase {
             @Override
             public IR visitNewExpression(IcebergParser.NewExpressionContext ctx) {
                 var className = ctx.className.getText();
-                var irClass = classes.get(className);
+                var irClass = classResolver.getIrClass(className);
                 if (irClass == null) {
                     throw new SemanticException("class '%s' is not defined".formatted(className));
                 }

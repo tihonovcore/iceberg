@@ -1,19 +1,14 @@
 package iceberg.jvm.phases;
 
-import iceberg.antlr.IcebergParser;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 
-public class GenerateMethodsPhase implements CompilationPhase {
+public class GenerateMethodsPhase {
 
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
-        //TODO: уйти от irFile к IrClass
-        var functions = unit.irFile != null
-            ? unit.irFile.functions
-            : unit.irClass.methods;
+    public void execute(CompilationUnit unit) {
+        var functions = unit.irClass.methods;
 
         for (var function : functions) {
             var init = new Method();

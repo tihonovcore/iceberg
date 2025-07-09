@@ -1,7 +1,6 @@
 package iceberg.jvm.phases;
 
 import iceberg.SemanticException;
-import iceberg.antlr.IcebergParser;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
@@ -12,10 +11,9 @@ import iceberg.jvm.ir.IcebergType;
 
 import java.util.*;
 
-public class EvaluateStackMapAttributePhase implements CompilationPhase {
+public class EvaluateStackMapAttributePhase {
 
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
+    public void execute(CompilationUnit unit) {
         unit.methods.forEach(method -> {
             var attribute = method.attributes.stream()
                 .filter(CodeAttribute.class::isInstance)

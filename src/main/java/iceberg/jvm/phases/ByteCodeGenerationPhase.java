@@ -1,6 +1,5 @@
 package iceberg.jvm.phases;
 
-import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ByteArray;
 import iceberg.jvm.cp.MethodRef;
 import iceberg.jvm.target.CodeAttribute;
@@ -12,10 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ByteCodeGenerationPhase implements CompilationPhase {
+public class ByteCodeGenerationPhase {
 
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
+    public void execute(CompilationUnit unit) {
         unit.methods.forEach(method -> {
             var attribute = method.attributes.stream()
                 .filter(CodeAttribute.class::isInstance)
@@ -53,10 +51,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                 output.writeU1(OpCodes.NEW.value);
                 output.writeU2(klassIndex);
 
-                var defaultConstructor = irNew.irClass
-                    .findMethod("<init>", Collections.emptyList())
-                    .orElseThrow();
-                var methodRef = computeMethodRef(defaultConstructor);
+                var methodRef = computeMethodRef(irNew.irClass.defaultConstructor);
                 var methodRefIndex = compilationUnit.constantPool.indexOf(methodRef);
 
                 output.writeU1(OpCodes.DUP.value);
@@ -450,7 +445,7 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
                     output.writeU1(OpCodes.ISTORE.value);
                 } else if (irVariable.type == IcebergType.i64) {
                     output.writeU1(OpCodes.LSTORE.value);
-                } else if (irVariable.type == IcebergType.string) {
+                } else {
                     output.writeU1(OpCodes.ASTORE.value);
                 }
 

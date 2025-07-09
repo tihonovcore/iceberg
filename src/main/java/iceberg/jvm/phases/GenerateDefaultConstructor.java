@@ -1,16 +1,14 @@
 package iceberg.jvm.phases;
 
-import iceberg.antlr.IcebergParser;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 import iceberg.jvm.ir.IcebergType;
 
-public class GenerateDefaultConstructor implements CompilationPhase {
+public class GenerateDefaultConstructor {
 
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
+    public void execute(CompilationUnit unit) {
         var init = new Method();
         init.flags = Method.AccessFlags.ACC_PUBLIC.value;
         init.name = unit.constantPool.computeUtf8("<init>");

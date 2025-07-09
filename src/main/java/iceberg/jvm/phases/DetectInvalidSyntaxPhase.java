@@ -3,12 +3,10 @@ package iceberg.jvm.phases;
 import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.target.CompilationUnit;
 
-public class DetectInvalidSyntaxPhase implements CompilationPhase {
+public class DetectInvalidSyntaxPhase {
 
-    @Override
-    public void execute(IcebergParser.FileContext file, CompilationUnit unit) {
+    public void execute(IcebergParser.FileContext file) {
         file.accept(new IcebergBaseVisitor<>() {
 
             boolean insideFunction = false;
