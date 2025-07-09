@@ -531,6 +531,31 @@ public class CodeAttributeGenerationPhase {
             }
 
             @Override
+            public void visitIrPutField(IrPutField irPutField) {
+                irPutField.receiver.accept(this);
+                irPutField.expression.accept(this);
+
+                output.writeU1(OpCodes.PUTFIELD.value);
+
+                var irField = irPutField.irField;
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irField.irClass.name)
+                );
+
+                //TODO: support types
+                if (irPutField.type != IcebergType.i32) {
+                    throw new IllegalStateException("type not yet supported");
+                }
+                var field = compilationUnit.constantPool.computeNameAndType(
+                    compilationUnit.constantPool.computeUtf8(irField.fieldName),
+                    compilationUnit.constantPool.computeUtf8("I")
+                );
+
+                var fieldRef = compilationUnit.constantPool.computeFieldRef(klass, field);
+                output.writeU2(compilationUnit.constantPool.indexOf(fieldRef));
+            }
+
+            @Override
             public void visitIrIfStatement(IrIfStatement irIfStatement) {
                 irIfStatement.condition.accept(this);
 

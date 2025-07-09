@@ -258,8 +258,17 @@ public class BuildIrTreePhase {
 
             @Override
             public IR visitAssignExpression(IcebergParser.AssignExpressionContext ctx) {
-                //NOTE: for now only var name is possible
-                //TODO: support expressions
+                var left = ctx.left.accept(this);
+                if (left instanceof IrGetField irGetField) {
+                    var expression = (IrExpression) ctx.right.accept(this);
+                    if (irGetField.type != expression.type) {
+                        throw new SemanticException("bad type");
+                    }
+
+                    return new IrPutField(irGetField.receiver, irGetField.irField, expression);
+                }
+
+                //TODO: use `left`?
                 var name = ctx.left.getText();
 
                 IrVariable irVariable = null;

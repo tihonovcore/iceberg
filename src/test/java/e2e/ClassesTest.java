@@ -142,4 +142,23 @@ public class ClassesTest extends Base {
             def math = new Math;
             print math.sq(3) + math.sq(4);""", "25\n");
     }
+
+    @Test
+    void fields() {
+        execute("""
+            class Rectangle {
+                def x: i32
+                def y: i32
+            }
+            
+            def req = new Rectangle;
+            print req.x * req.y;
+            
+            req.x = 10;
+            print req.x * req.y;
+
+            req.y = 99;
+            print req.x * req.y;""", "0\n0\n990\n");
+    }
+
 }
