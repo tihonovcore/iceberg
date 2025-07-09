@@ -12,7 +12,7 @@ public class GenerateFieldsPhase {
             field.flags = Field.AccessFlags.ACC_PUBLIC.value;
             field.name = unit.constantPool.computeUtf8(entry.getKey());
 
-            //TODO: support types
+            //TODO: support all types
             if (entry.getValue().type != IcebergType.i32) {
                 throw new IllegalStateException("type not yet supported");
             }

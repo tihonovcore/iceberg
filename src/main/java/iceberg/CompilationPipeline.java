@@ -19,6 +19,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
 
 public class CompilationPipeline {
 
+    //TODO: доработать под cli, сделать jar
     public static void main(String[] args) throws IOException, InvocationTargetException, IllegalAccessException {
         var dummySource = """
             print 5000; print 100;
@@ -55,7 +56,6 @@ public class CompilationPipeline {
             var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
             for (var unit : compilationUnits) {
-                //TODO: GenerateFieldsPhase
                 new GenerateDefaultConstructor().execute(unit);
                 new GenerateMethodsPhase().execute(unit);
                 new GenerateFieldsPhase().execute(unit);

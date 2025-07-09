@@ -12,8 +12,10 @@ public class MoveEachClassToSeparateUnitPhase {
         return irFile.classes.stream().map(irClass -> {
             var unit = new CompilationUnit();
 
-            var utf8 = unit.constantPool.computeUtf8(irClass.name);
-            unit.thisRef = unit.constantPool.computeKlass(utf8);
+            var thisUtf8 = unit.constantPool.computeUtf8(irClass.name);
+            unit.thisRef = unit.constantPool.computeKlass(thisUtf8);
+            var superUtf8 = unit.constantPool.computeUtf8("java/lang/Object");
+            unit.superRef = unit.constantPool.computeKlass(superUtf8);
 
             unit.attributes.add(new SourceAttribute(
                 unit.constantPool.computeUtf8("SourceFile"),

@@ -1,5 +1,7 @@
 package iceberg.jvm.cp;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -7,25 +9,7 @@ import java.util.List;
 
 public class ConstantPool implements Iterable<Constant> {
 
-    @Deprecated
-    public final Klass OBJECT;
-    @Deprecated
-    public final Klass ICEBERG;
-
-    private final List<Constant> pool;
-
-    public ConstantPool() {
-        pool = new ArrayList<>();
-
-        pool.add(new Utf8("java/lang/Object"));
-        OBJECT = new Klass(pool.size());
-        pool.add(OBJECT);
-
-        pool.add(new Utf8("Iceberg"));
-        ICEBERG = new Klass(pool.size());
-        pool.add(ICEBERG);
-
-    }
+    private final List<Constant> pool = new ArrayList<>();
 
     public Constant load(int i) {
         return pool.get(i - 1); //numeration from 1
@@ -166,6 +150,7 @@ public class ConstantPool implements Iterable<Constant> {
         return pool.size() + 1;
     }
 
+    @NotNull
     @Override
     public Iterator<Constant> iterator() {
         return pool.iterator();

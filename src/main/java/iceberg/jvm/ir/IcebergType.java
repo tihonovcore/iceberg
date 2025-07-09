@@ -30,6 +30,7 @@ public class IcebergType {
 
     //TODO: в коде есть сравнение типов через ==
     // нужно или переделать на equals или создавать в одном месте
+    // ИДЕЯ: разрешить только IrClass'у создавать себе тип
     public IcebergType(IrClass irClass) {
         this.irClass = irClass;
     }

@@ -58,7 +58,7 @@ public class BuildIrTreePhase {
                 }
                 mainFunction.irBody.statements.add(new IrReturn());
 
-                return mainFunction; //TODO: fill parameters??
+                return mainFunction; //TODO: fill parameters - ([Ljava/lang/String;)V
             }
 
             IrClass currentClass = classResolver.getIcebergIrClass();
@@ -142,8 +142,6 @@ public class BuildIrTreePhase {
                 var argumentsTypes = arguments.stream()
                     .map(expr -> expr.type)
                     .toList();
-                //TODO: нужно использовать currentReceiver, не currentClass
-                // например, если есть вызов a.b.c(), то b может иметь любой тип
                 var optional = currentClass.findMethod(ctx.name.getText(), argumentsTypes);
                 if (optional.isEmpty()) {
                     throw new SemanticException("function not found");

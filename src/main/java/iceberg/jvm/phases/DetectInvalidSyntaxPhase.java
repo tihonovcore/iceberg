@@ -2,7 +2,9 @@ package iceberg.jvm.phases;
 
 import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
+import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class DetectInvalidSyntaxPhase {
 
@@ -76,6 +78,17 @@ public class DetectInvalidSyntaxPhase {
                 }
 
                 return super.visitUnaryMinusExpression(ctx);
+            }
+
+            @Override
+            public Object visitTerminal(TerminalNode node) {
+                //TODO: проверка не надежная - функция может быть статической
+                // добавить insideClass?? или прометить статические функции флагом
+                if (!insideFunction && node.getSymbol().getType() == IcebergLexer.THIS) {
+                    throw new SemanticException("this outside function");
+                }
+
+                return super.visitTerminal(node);
             }
         });
     }

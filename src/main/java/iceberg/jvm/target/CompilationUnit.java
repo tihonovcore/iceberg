@@ -10,8 +10,10 @@ import java.util.List;
 public class CompilationUnit {
 
     public ConstantPool constantPool = new ConstantPool();
-    public Klass thisRef = constantPool.ICEBERG;
-    public Klass superRef = constantPool.OBJECT;
+
+    public Klass thisRef;
+    public Klass superRef;
+
     public List<Object> interfaces = new ArrayList<>();
     public List<Field> fields = new ArrayList<>();
     public List<Method> methods = new ArrayList<>();

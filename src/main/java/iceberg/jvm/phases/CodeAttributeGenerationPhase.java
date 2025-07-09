@@ -517,7 +517,7 @@ public class CodeAttributeGenerationPhase {
                     compilationUnit.constantPool.computeUtf8(irField.irClass.name)
                 );
 
-                //TODO: support types
+                //TODO: support all types
                 if (irGetField.type != IcebergType.i32) {
                     throw new IllegalStateException("type not yet supported");
                 }
@@ -542,7 +542,7 @@ public class CodeAttributeGenerationPhase {
                     compilationUnit.constantPool.computeUtf8(irField.irClass.name)
                 );
 
-                //TODO: support types
+                //TODO: support all types
                 if (irPutField.type != IcebergType.i32) {
                     throw new IllegalStateException("type not yet supported");
                 }
