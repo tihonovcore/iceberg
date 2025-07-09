@@ -82,10 +82,15 @@ public class ClassResolver {
                     throw new SemanticException("function already exists");
                 }
 
-                //TODO: support user-defined types
-                var returnType = ctx.returnType == null
-                    ? IcebergType.unit
-                    : IcebergType.valueOf(ctx.returnType.getText());
+                IcebergType returnType;
+                if (ctx.returnType == null) {
+                    returnType = IcebergType.unit;
+                } else if (allClasses.containsKey(ctx.returnType.getText())) {
+                    var irClass = allClasses.get(ctx.returnType.getText());
+                    returnType = new IcebergType(irClass);
+                } else {
+                    returnType = IcebergType.valueOf(ctx.returnType.getText());
+                }
                 var function = new IrFunction(currentClass, functionName, returnType);
 
                 ctx.parameters().parameter().stream()

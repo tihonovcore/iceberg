@@ -3,6 +3,7 @@ package iceberg.jvm.ir;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class IrFunction implements IR {
@@ -14,7 +15,7 @@ public class IrFunction implements IR {
     public final IcebergType returnType;
 
     public String javaMethodDescriptor() {
-        var mapping = Map.of(
+        var defaults = Map.of(
             IcebergType.i32, "I",
             IcebergType.i64, "J",
             IcebergType.bool, "Z",
@@ -23,12 +24,20 @@ public class IrFunction implements IR {
             IcebergType.unit, "V"
         );
 
+        Function<IcebergType, String> mapping = type -> {
+            if (defaults.containsKey(type)) {
+                return defaults.get(type);
+            }
+
+            return "L%s;".formatted(type.irClass.name);
+        };
+
         var params = parameters.stream()
             .map(v -> v.type)
-            .map(mapping::get)
+            .map(mapping)
             .collect(Collectors.joining(""));
 
-        return "(" + params + ")" + mapping.get(returnType);
+        return "(" + params + ")" + mapping.apply(returnType);
     }
 
     public IrFunction(IrClass irClass, String name, IcebergType returnType) {

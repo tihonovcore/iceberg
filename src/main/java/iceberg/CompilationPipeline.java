@@ -2,19 +2,17 @@ package iceberg;
 
 import iceberg.fe.CompilationException;
 import iceberg.fe.ParsingUtil;
+import iceberg.jvm.phases.validation.EvaluateStackMapAttributePhase;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
 import iceberg.jvm.phases.*;
-import iceberg.jvm.target.SourceAttribute;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
