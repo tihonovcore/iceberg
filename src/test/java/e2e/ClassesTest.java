@@ -114,6 +114,32 @@ public class ClassesTest extends Base {
             
             
             def cal = new Calendar;
-            print cal.mm() * 60 + cal.ss();""", "310\n");;
+            print cal.mm() * 60 + cal.ss();""", "310\n");
+    }
+
+    @Test
+    void show() {
+        execute("""
+            class Show {
+                fun show(x: i32) {
+                    print x;
+                }
+            }
+
+            def show = new Show;
+            show.show(39);""", "39\n");
+    }
+
+    @Test
+    void passParamsToInstanceMethod() {
+        execute("""
+            class Math {
+                fun sq(x: i32): i32 {
+                    return x * x;
+                }
+            }
+            
+            def math = new Math;
+            print math.sq(3) + math.sq(4);""", "25\n");
     }
 }

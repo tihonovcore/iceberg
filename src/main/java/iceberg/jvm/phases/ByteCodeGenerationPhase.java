@@ -61,6 +61,15 @@ public class ByteCodeGenerationPhase {
 
             @Override
             public void visitIrFunction(IrFunction irFunction) {
+                //TODO: очень грязный if, надо переделать
+                // Тут мы проверяем, что метод не статический
+                // Метод статический <=> находится в классе Iceberg
+                if (!"Iceberg".equals(compilationUnit.irClass.name)) {
+                    var type = new IcebergType(irFunction.irClass);
+                    var thisParameter = new IrVariable(type,null);
+                    addToLocalVariables(thisParameter);
+                }
+
                 for (var parameter : irFunction.parameters) {
                     addToLocalVariables(parameter);
                 }
