@@ -1,5 +1,7 @@
 package e2e;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,4 +45,13 @@ public class ClassesTest extends Base {
         );
     }
 
+    @Test
+    @Disabled
+    void construct() {
+        execute("""
+            class Foo {}
+            def foo = new Foo;
+            
+            print "hello";""", "hello\n");
+    }
 }

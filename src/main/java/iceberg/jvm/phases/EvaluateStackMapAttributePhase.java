@@ -181,6 +181,14 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ICONST_1 -> snapshot.push("int");
                 case LCONST_0 -> snapshot.push("long");
                 case RETURN, IRETURN, ARETURN, LRETURN -> snapshot.stack.clear();
+                case DUP -> {
+                    var top = snapshot.pop();
+                    snapshot.push(top);
+                    snapshot.push(top);
+                }
+                case NEW -> {
+                    snapshot.push("Foo");
+                }
                 case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     snapshot.push(load(constantPool, index).type);
@@ -284,6 +292,8 @@ public class EvaluateStackMapAttributePhase implements CompilationPhase {
                 case ALOAD_0 -> 1;
                 case ACONST_NULL -> 1;
                 case RETURN, IRETURN, ARETURN, LRETURN -> 1;
+                case DUP -> 1;
+                case NEW -> 3;
                 case GETSTATIC -> 3;
                 case INVOKEVIRTUAL -> 3;
                 case INVOKESTATIC -> 3;

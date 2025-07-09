@@ -44,6 +44,27 @@ public class ByteCodeGenerationPhase implements CompilationPhase {
             }
 
             @Override
+            public void visitIrNew(IrNew irNew) {
+                var klass = compilationUnit.constantPool.computeKlass(
+                    compilationUnit.constantPool.computeUtf8(irNew.irClass.name)
+                );
+                var klassIndex = compilationUnit.constantPool.indexOf(klass);
+
+                output.writeU1(OpCodes.NEW.value);
+                output.writeU2(klassIndex);
+
+                var defaultConstructor = irNew.irClass
+                    .findMethod("<init>", Collections.emptyList())
+                    .orElseThrow();
+                var methodRef = computeMethodRef(defaultConstructor);
+                var methodRefIndex = compilationUnit.constantPool.indexOf(methodRef);
+
+                output.writeU1(OpCodes.DUP.value);
+                output.writeU1(OpCodes.INVOKESPECIAL.value);
+                output.writeU2(methodRefIndex);
+            }
+
+            @Override
             public void visitIrFunction(IrFunction irFunction) {
                 for (var parameter : irFunction.parameters) {
                     addToLocalVariables(parameter);

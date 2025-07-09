@@ -9,6 +9,7 @@ public enum OpCodes {
     ARETURN(0xB0),
     ASTORE(0x3A),
     BIPUSH(0x10),
+    DUP(0x59),
     GETSTATIC(0xB2),
     GOTO(0xA7),
     I2L(0x85),
@@ -46,6 +47,7 @@ public enum OpCodes {
     LRETURN(0XAD),
     LSTORE(0x37),
     LSUB(0x65),
+    NEW(0xBB),
     RETURN(0xB1),
     SIPUSH(0x11),
     ;

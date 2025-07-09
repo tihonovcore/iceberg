@@ -66,7 +66,8 @@ returnStatement
 block : OPEN_BRACE statement* CLOSE_BRACE;
 
 expression
-  : NOT atom                                              #negateExpression
+  : NEW className=ID                                      #newExpression
+  | NOT atom                                              #negateExpression
   | MINUS atom                                            #unaryMinusExpression
   | expression DOT  (ID | functionCall)                   #memberExpression
   | left=expression (STAR | SLASH)      right=expression  #multiplicationExpression
@@ -118,6 +119,7 @@ ELSE   : 'else';
 FUN    : 'fun';
 RETRUN : 'return';
 CLASS  : 'class';
+NEW    : 'new';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';

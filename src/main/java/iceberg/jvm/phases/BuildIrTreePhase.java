@@ -507,6 +507,18 @@ public class BuildIrTreePhase implements CompilationPhase {
             }
 
             @Override
+            public IR visitNewExpression(IcebergParser.NewExpressionContext ctx) {
+                var className = ctx.className.getText();
+                var irClass = classes.get(className);
+                if (irClass == null) {
+                    throw new SemanticException("class '%s' is not defined".formatted(className));
+                }
+
+                //TODO: support parameters?
+                return new IrNew(irClass);
+            }
+
+            @Override
             public IR visitTerminal(TerminalNode node) {
                 return switch (node.getSymbol().getType()) {
                     case IcebergLexer.NUMBER -> new IrNumber(Long.parseLong(node.getText()));
