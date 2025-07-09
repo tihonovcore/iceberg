@@ -3,7 +3,7 @@ package iceberg.jvm.phases.validation;
 import iceberg.jvm.cp.*;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 public class JavaDescriptorParser {
@@ -35,68 +35,28 @@ public class JavaDescriptorParser {
         var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
         var typeDescriptor = new String(utf8.bytes);
 
-        if ("(Ljava/lang/Object;)Z".equals(typeDescriptor)) { //String::equals
-            return new CallableJavaType(
-                List.of("java/lang/Object"), "boolean"
-            );
-        } else if ("(Z)V".equals(typeDescriptor)) { //System.out::println
-            return new CallableJavaType(
-                List.of("boolean"), "void"
-            );
-        } else if ("(I)V".equals(typeDescriptor)) { //System.out::println
-            return new CallableJavaType(
-                List.of("int"), "void"
-            );
-        } else if ("(J)V".equals(typeDescriptor)) { //System.out::println
-            return new CallableJavaType(
-                List.of("long"), "void"
-            );
-        } else if ("(Ljava/lang/String;)V".equals(typeDescriptor)) { //System.out::println
-            return new CallableJavaType(
-                List.of("java/lang/String"), "void"
-            );
-        } else if ("()V".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of(), "void"
-            );
-        } else if ("()Ljava/lang/String;".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of(), "Ljava/lang/String;"
-            );
-        } else if ("()I".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of(), "int"
-            );
-        } else if ("(ILjava/lang/String;)V".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("int", "Ljava/lang/String;"), "void"
-            );
-        } else if ("(I)I".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("int"), "int"
-            );
-        } else if ("(J)J".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("long"), "long"
-            );
-        } else if ("(JI)J".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("long", "int"), "long"
-            );
-        } else if ("(IZ)Z".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("int", "boolean"), "boolean"
-            );
-        } else if ("(ZZZ)Z".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("boolean", "boolean", "boolean"), "boolean"
-            );
-        } else if ("(Ljava/lang/String;)Ljava/lang/String;".equals(typeDescriptor)) { //custom
-            return new CallableJavaType(
-                List.of("Ljava/lang/String;"), "Ljava/lang/String;"
-            );
-        } else {
-            throw new IllegalStateException("not implemented: " + typeDescriptor);
+        var arguments = new ArrayList<String>();
+
+        int i = 1;
+        while (i < typeDescriptor.length()) {
+            switch (typeDescriptor.charAt(i)) {
+                case 'Z' -> arguments.add("boolean");
+                case 'V' -> arguments.add("void");
+                case 'I' -> arguments.add("int");
+                case 'J' -> arguments.add("long");
+                case 'L' -> {
+                    var end = typeDescriptor.indexOf(';', i);
+                    arguments.add(typeDescriptor.substring(i + 1, end));
+
+                    i = end;
+                }
+                case ')' -> { /* do nothing */ }
+            }
+            i++;
         }
+
+        return new CallableJavaType(
+            arguments.subList(0, arguments.size() - 1), arguments.getLast()
+        );
     }
 }
