@@ -1,4 +1,4 @@
-package iceberg.jvm.phases;
+package iceberg.jvm.phases.validation;
 
 import iceberg.SemanticException;
 import iceberg.jvm.target.CodeAttribute;
@@ -320,119 +320,9 @@ public class EvaluateStackMapAttributePhase {
         }
     }
 
-    private static class JavaType {
-
-        final String type;
-
-        public JavaType(String type) {
-            this.type = type;
-        }
-    }
-
-    private static class CallableJavaType extends JavaType {
-
-        final List<String> arguments;
-
-        private CallableJavaType(List<String> arguments, String returnType) {
-            super(returnType);
-            this.arguments = arguments;
-        }
-    }
-
     private JavaType load(ConstantPool constantPool, int index) {
         var constant = constantPool.load(index);
-
-        if (constant instanceof MethodRef ref) {
-            var nameAndType = (NameAndType) constantPool.load(ref.nameAndTypeIndex);
-            var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
-            var typeDescriptor = new String(utf8.bytes);
-
-            if ("(Ljava/lang/Object;)Z".equals(typeDescriptor)) { //String::equals
-                return new CallableJavaType(
-                    List.of("java/lang/Object"), "boolean"
-                );
-            } else if ("(Z)V".equals(typeDescriptor)) { //System.out::println
-                return new CallableJavaType(
-                    List.of("boolean"), "void"
-                );
-            } else if ("(I)V".equals(typeDescriptor)) { //System.out::println
-                return new CallableJavaType(
-                    List.of("int"), "void"
-                );
-            } else if ("(J)V".equals(typeDescriptor)) { //System.out::println
-                return new CallableJavaType(
-                    List.of("long"), "void"
-                );
-            } else if ("(Ljava/lang/String;)V".equals(typeDescriptor)) { //System.out::println
-                return new CallableJavaType(
-                    List.of("java/lang/String"), "void"
-                );
-            } else if ("()V".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of(), "void"
-                );
-            } else if ("()Ljava/lang/String;".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of(), "Ljava/lang/String;"
-                );
-            } else if ("()I".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of(), "int"
-                );
-            } else if ("(ILjava/lang/String;)V".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("int", "Ljava/lang/String;"), "void"
-                );
-            } else if ("(I)I".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("int"), "int"
-                );
-            } else if ("(J)J".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("long"), "long"
-                );
-            } else if ("(JI)J".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("long", "int"), "long"
-                );
-            } else if ("(IZ)Z".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("int", "boolean"), "boolean"
-                );
-            } else if ("(ZZZ)Z".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("boolean", "boolean", "boolean"), "boolean"
-                );
-            } else if ("(Ljava/lang/String;)Ljava/lang/String;".equals(typeDescriptor)) { //custom
-                return new CallableJavaType(
-                    List.of("Ljava/lang/String;"), "Ljava/lang/String;"
-                );
-            } else {
-                throw new IllegalStateException("not implemented: " + typeDescriptor);
-            }
-        }
-
-        if (constant instanceof FieldRef ref) {
-            var nameAndType = (NameAndType) constantPool.load(ref.nameAndTypeIndex);
-            var utf8 = (Utf8) constantPool.load(nameAndType.descriptorIndex);
-            var typeDescriptor = new String(utf8.bytes);
-
-            //TODO: decode descriptor - for int it will be I (not int)
-            return new JavaType(typeDescriptor.substring(1, typeDescriptor.length() - 1));
-        }
-
-        if (constant instanceof IntegerInfo) {
-            return new JavaType("int");
-        }
-
-        if (constant instanceof LongInfo) {
-            return new JavaType("long");
-        }
-
-        if (constant instanceof StringInfo) {
-            return new JavaType("java/lang/String");
-        }
-
-        throw new IllegalStateException();
+        var parser = new JavaDescriptorParser(constantPool);
+        return parser.parse(constant);
     }
 }
