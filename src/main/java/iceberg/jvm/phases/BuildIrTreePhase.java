@@ -453,6 +453,12 @@ public class BuildIrTreePhase {
                 return new IrNew(irClass);
             }
 
+            //TODO: в случае с импортами
+            // - не работают статические функции, например, Collections.sort(...)
+            // - нет боксинга (нельзя в список засунуть число)
+            // - нет работы с наследованием (при поиске метода IrClass понимает,
+            //   что в Object можно положить что угодно, но это все)
+
             @Override
             public IR visitMemberExpression(IcebergParser.MemberExpressionContext ctx) {
                 if (ctx.functionCall() != null) {
