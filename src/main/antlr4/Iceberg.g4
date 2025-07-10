@@ -4,7 +4,11 @@ grammar Iceberg;
 package iceberg.antlr;
 }
 
-file : statement* EOF;
+file : dependency* statement* EOF;
+
+dependency
+  : IMPORT ID (DOT ID)* SEMICOLON
+  ;
 
 statement
   : expression SEMICOLON
@@ -122,6 +126,7 @@ RETRUN : 'return';
 CLASS  : 'class';
 NEW    : 'new';
 THIS   : 'this';
+IMPORT : 'import';
 
 NUMBER : '0' | '-'? [1-9][0-9]*;
 FALSE  : 'false';

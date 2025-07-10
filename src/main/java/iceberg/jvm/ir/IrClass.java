@@ -17,7 +17,28 @@ public class IrClass implements IR {
                 var actualTypes = method.parameters.stream()
                     .map(parameter -> parameter.type)
                     .toList();
-                return actualTypes.equals(parametersTypes);
+
+                //TODO: надо перенести создание IcebergType в одно место,
+                // чтобы их можно было сравнивать через ==
+                if (actualTypes.size() != parametersTypes.size()) {
+                    return false;
+                }
+
+                for (int i = 0; i < actualTypes.size(); i++) {
+                    var actualType = actualTypes.get(i);
+                    var parametersType = parametersTypes.get(i);
+
+                    //inheritance (считаем что в Object можно положить все что угодно)
+                    if (actualType.irClass.name.equals("java/lang/Object")) {
+                        continue;
+                    }
+
+                    if (!actualType.irClass.name.equals(parametersType.irClass.name)) {
+                        return false;
+                    }
+                }
+
+                return true;
             }).findFirst();
     }
 

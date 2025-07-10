@@ -5,9 +5,11 @@ import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ir.*;
 import lombok.Getter;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ClassResolver {
 
@@ -29,6 +31,24 @@ public class ClassResolver {
 
         file.accept(new IcebergBaseVisitor<>() {
             @Override
+            public Object visitDependency(IcebergParser.DependencyContext ctx) {
+                var fqn = ctx.ID().stream()
+                    .map(ParseTree::getText)
+                    .collect(Collectors.joining("."));
+
+                Class<?> klass;
+                try {
+                    klass = Class.forName(fqn);
+                } catch (ClassNotFoundException e) {
+                    throw new SemanticException("unknown class: " + fqn);
+                }
+
+                importJavaClass(klass);
+
+                return super.visitDependency(ctx);
+            }
+
+            @Override
             public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var name = ctx.name.getText();
                 if (allClasses.containsKey(name)) {
@@ -39,6 +59,41 @@ public class ClassResolver {
                 return super.visitClassDefinitionStatement(ctx);
             }
         });
+    }
+
+    private IrClass importJavaClass(Class<?> klass) {
+        if (allClasses.containsKey(klass.getSimpleName())) {
+            return allClasses.get(klass.getSimpleName());
+        }
+
+        var fqn = klass.getCanonicalName().replace('.', '/');
+        var irClass = new IrClass(fqn);
+        allClasses.put(klass.getSimpleName(), irClass);
+
+        for (var javaMethod : klass.getMethods()) {
+            var returnType = buildType(javaMethod.getReturnType());
+            var irFunction = new IrFunction(irClass, javaMethod.getName(), returnType);
+
+            for (var javaParam : javaMethod.getParameters()) {
+                var paramType = buildType(javaParam.getType());
+                var irVariable = new IrVariable(paramType, null);
+                irFunction.parameters.add(irVariable);
+            }
+
+            irClass.methods.add(irFunction);
+        }
+
+        return irClass;
+    }
+
+    private IcebergType buildType(Class<?> klass) {
+        var builtInType = IcebergType.valueOf(klass);
+        if (builtInType != null) {
+            return builtInType;
+        }
+
+        //TODO: перенести создание типа в IrClass?
+        return new IcebergType(importJavaClass(klass));
     }
 
     private void findAllFunctions(IcebergParser.FileContext file) {

@@ -1,6 +1,7 @@
 package iceberg.jvm.ir;
 
 import iceberg.SemanticException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,6 +25,23 @@ public class IcebergType {
             case "string" -> string;
             default -> throw new SemanticException("unknown type");
         };
+    }
+
+    @Nullable
+    public static IcebergType valueOf(Class<?> klass) {
+        if (klass == int.class) {
+            return i32;
+        } else if (klass == long.class) {
+            return i64;
+        } else if (klass == boolean.class) {
+            return bool;
+        } else if (klass == void.class) {
+            return unit;
+        } else if (klass == String.class) {
+            return string;
+        } else {
+            return null;
+        }
     }
 
     public final IrClass irClass;
