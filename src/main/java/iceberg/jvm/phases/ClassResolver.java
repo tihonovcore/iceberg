@@ -3,10 +3,7 @@ package iceberg.jvm.phases;
 import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.ir.IcebergType;
-import iceberg.jvm.ir.IrClass;
-import iceberg.jvm.ir.IrFunction;
-import iceberg.jvm.ir.IrVariable;
+import iceberg.jvm.ir.*;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -16,41 +13,35 @@ public class ClassResolver {
 
     @Getter
     private final IrClass icebergIrClass = new IrClass("Iceberg");
-    private final Map<String, IrClass> allClasses;
+    private final Map<String, IrClass> allClasses = new HashMap<>();
 
     public ClassResolver(IcebergParser.FileContext file) {
-        allClasses = findAllClasses(file);
-        findAllFunctions(file, allClasses);
+        findAllClasses(file);
+        findAllFunctions(file);
     }
 
     public IrClass getIrClass(String name) {
         return allClasses.get(name);
     }
 
-    private Map<String, IrClass> findAllClasses(IcebergParser.FileContext file) {
-        var classes = new HashMap<String, IrClass>();
-        classes.put(icebergIrClass.name, icebergIrClass);
+    private void findAllClasses(IcebergParser.FileContext file) {
+        allClasses.put(icebergIrClass.name, icebergIrClass);
 
         file.accept(new IcebergBaseVisitor<>() {
             @Override
             public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var name = ctx.name.getText();
-                if (classes.containsKey(name)) {
+                if (allClasses.containsKey(name)) {
                     throw new SemanticException("class already exists");
                 }
 
-                classes.put(name, new IrClass(name));
+                allClasses.put(name, new IrClass(name));
                 return super.visitClassDefinitionStatement(ctx);
             }
         });
-
-        return classes;
     }
 
-    private void findAllFunctions(
-        IcebergParser.FileContext file,
-        Map<String, IrClass> allClasses
-    ) {
+    private void findAllFunctions(IcebergParser.FileContext file) {
         file.accept(new IcebergBaseVisitor<Void>() {
 
             IrClass currentClass = icebergIrClass;
