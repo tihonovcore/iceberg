@@ -56,9 +56,16 @@ public class BuildIrTreePhase {
                 for (var statement : statements) {
                     mainFunction.irBody.statements.add(statement.accept(this));
                 }
-                mainFunction.irBody.statements.add(new IrReturn());
+                addReturnStatementToMainFunction(mainFunction);
 
                 return mainFunction; //TODO: fill parameters - ([Ljava/lang/String;)V
+            }
+
+            private void addReturnStatementToMainFunction(IrFunction mainFunction) {
+                var statements = mainFunction.irBody.statements;
+                if (statements.isEmpty() || !(statements.getLast() instanceof IrReturn)) {
+                    statements.add(new IrReturn());
+                }
             }
 
             IrClass currentClass = classResolver.getIcebergIrClass();
@@ -72,6 +79,8 @@ public class BuildIrTreePhase {
 
                     ctx.defStatement().forEach(definition -> {
                         //TODO: support user types
+                        //TODO: infer type from definition.expression()
+                        //TODO: init field with definition.expression()
                         var type = IcebergType.valueOf(definition.type.getText());
                         var fieldName = definition.name.getText();
                         irClass.fields.put(fieldName, new IrField(irClass, fieldName, type));
@@ -130,7 +139,9 @@ public class BuildIrTreePhase {
 
             @Override
             public IR visitReturnStatement(IcebergParser.ReturnStatementContext ctx) {
-                return new IrReturn((IrExpression) ctx.expression().accept(this));
+                return ctx.expression() != null
+                    ? new IrReturn((IrExpression) ctx.expression().accept(this))
+                    : new IrReturn(null);
             }
 
             @Override

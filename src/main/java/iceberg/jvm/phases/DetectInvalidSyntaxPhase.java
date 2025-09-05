@@ -11,7 +11,18 @@ public class DetectInvalidSyntaxPhase {
     public void execute(IcebergParser.FileContext file) {
         file.accept(new IcebergBaseVisitor<>() {
 
+            boolean insideClass = false;
             boolean insideFunction = false;
+
+            @Override
+            public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
+                try {
+                    insideClass = true;
+                    return super.visitClassDefinitionStatement(ctx);
+                } finally {
+                    insideClass = false;
+                }
+            }
 
             @Override
             public Object visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
@@ -82,10 +93,13 @@ public class DetectInvalidSyntaxPhase {
 
             @Override
             public Object visitTerminal(TerminalNode node) {
-                //TODO: проверка не надежная - функция может быть статической
-                // добавить insideClass?? или прометить статические функции флагом
-                if (!insideFunction && node.getSymbol().getType() == IcebergLexer.THIS) {
-                    throw new SemanticException("this outside function");
+                var curr = node.getSymbol().getType();
+                if (curr == IcebergLexer.THIS) {
+                    if (insideClass && insideFunction) {
+                        return super.visitTerminal(node);
+                    } else {
+                        throw new SemanticException("`this` outside of member-function");
+                    }
                 }
 
                 return super.visitTerminal(node);

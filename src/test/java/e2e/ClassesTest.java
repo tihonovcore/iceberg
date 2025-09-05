@@ -1,11 +1,16 @@
 package e2e;
 
+import iceberg.SemanticException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ClassesTest extends Base {
 
@@ -30,6 +35,7 @@ public class ClassesTest extends Base {
                 }
 
                 print "hello";""", "hello\n")
+//            TODO
 //            Arguments.of("""
 //                class Foo {
 //                    def x = 0
@@ -182,5 +188,38 @@ public class ClassesTest extends Base {
             
             sq.set(4);
             print sq.area();""", "9\n16\n");
+    }
+
+    @Test
+    void thisOutsideOfFunction() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            def sq = this;
+            print sq;
+            """, null));
+        assertThat(exception).hasMessage("`this` outside of member-function");
+    }
+
+    @Test
+    void thisOutsideOfMemberFunction() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo() {
+                print this;
+            }""", null));
+        assertThat(exception).hasMessage("`this` outside of member-function");
+    }
+
+    @Test
+    @Disabled
+    void fieldDefaultValue() {
+        execute("""
+            class X {
+                def t: i32 = 20
+                fun foo() {}
+            }
+            def x = new X;
+            print x.t;
+            x.t = 99;
+            print x.t;
+            """, "20\n99\n");
     }
 }

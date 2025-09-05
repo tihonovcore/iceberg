@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class Base {
 
+    //TODO: все тесты с эксепшенами должны проверять текст ошибки
+
     @SneakyThrows
     void execute(String source, String expected) {
         for (var unit : CompilationPipeline.compile(source)) {
