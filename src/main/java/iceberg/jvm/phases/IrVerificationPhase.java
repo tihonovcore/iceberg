@@ -8,11 +8,6 @@ import java.util.List;
 
 public class IrVerificationPhase {
 
-    //TODO: если у функции returnType!=unit - проверить что во всех ветках есть явный return
-    //TODO: если несколько бранчей, то во всех есть return
-
-    //TODO: код после ретерна
-
     public void execute(IrFile irFile) {
         var functions = findAllFunctions(irFile);
 
@@ -44,11 +39,60 @@ public class IrVerificationPhase {
     }
 
     private void noCodeAfterReturn(IrFunction irFunction) {
+        irFunction.accept(new IrVisitorBase() {
+            @Override
+            public void visitIrBody(IrBody irBody) {
+                super.visitIrBody(irBody);
 
+                var optional = irBody.statements.stream()
+                    .filter(IrReturn.class::isInstance)
+                    .findFirst();
+                if (optional.isEmpty()) {
+                    return;
+                }
+
+                if (optional.get() != irBody.statements.getLast()) {
+                    throw new SemanticException("return statement should be at last position in block");
+                }
+            }
+        });
     }
 
     private void explicitReturnWhenFunctionReturnTypeSpecified(IrFunction irFunction) {
+        if (irFunction.returnType.equals(IcebergType.unit)) {
+            return;
+        }
 
+        if (!allBranchesHasReturn(irFunction.irBody)) {
+            throw new SemanticException(
+                "some branches in '%s' do not have return statement".formatted(irFunction.name)
+            );
+        }
+    }
+
+    private boolean allBranchesHasReturn(IR branch) {
+        if (branch instanceof IrReturn) {
+            return true;
+        }
+
+        if (branch instanceof IrBody irBody) {
+            if (irBody.statements.isEmpty()) {
+                return false;
+            }
+
+            return allBranchesHasReturn(irBody.statements.getLast());
+        }
+
+        if (branch instanceof IrIfStatement irIfStatement) {
+            if (irIfStatement.elseStatement == null) {
+                return allBranchesHasReturn(irIfStatement.thenStatement);
+            } else {
+                return allBranchesHasReturn(irIfStatement.thenStatement)
+                    && allBranchesHasReturn(irIfStatement.elseStatement);
+            }
+        }
+
+        return false;
     }
 
     private List<IrFunction> findAllFunctions(IrFile irFile) {

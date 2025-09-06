@@ -253,7 +253,6 @@ public class FunctionsTest extends Base {
     }
 
     @Test
-    @Disabled //TODO
     void codeAfterReturn() {
         var exception = assertThrows(SemanticException.class, () -> execute("""
             fun foo(): i32 {
@@ -261,7 +260,21 @@ public class FunctionsTest extends Base {
                 print 100;
             }
             """, null));
-        assertThat(exception).hasMessage("");
+        assertThat(exception).hasMessage("return statement should be at last position in block");
+    }
+
+    @Test
+    void codeAfterReturn__nested() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(): i32 {
+                if (true) then {
+                    return 99;
+                    print 100;
+                }
+                return 100;
+            }
+            """, null));
+        assertThat(exception).hasMessage("return statement should be at last position in block");
     }
 
     @Test
@@ -303,15 +316,68 @@ public class FunctionsTest extends Base {
                 but was  unit""");
     }
 
+    @ParameterizedTest
+    @MethodSource
+    void explicitReturnWhenFunctionReturnTypeSpecified(String source) {
+        var exception = assertThrows(SemanticException.class, () -> execute(source, null));
+        assertThat(exception).hasMessage("some branches in 'foo' do not have return statement");
+    }
 
-    @Test
-    @Disabled //TODO
-    void explicitReturnWhenFunctionReturnTypeSpecified() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
-            fun foo(): i32 {
-                print 100;
-            }
-            """, null));
-        assertThat(exception).hasMessage("");
+    static Stream<Arguments> explicitReturnWhenFunctionReturnTypeSpecified() {
+        return Stream.of(
+            Arguments.of("""
+                fun foo(): i32 {
+                    print 100;
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true)
+                    then print 10;
+                    else print 99;
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true)
+                    then return 10;
+                    else print 99;
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true)
+                    then print 10;
+                    else return 99;
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true) then {
+                        print 10;
+                    } else {
+                        print 99;
+                    }
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true) then {
+                        print 10;
+                    } else {
+                        return 99;
+                    }
+                }
+                """),
+            Arguments.of("""
+                fun foo(): i32 {
+                    if (true) then {
+                        return 10;
+                    } else {
+                        print 99;
+                    }
+                }
+                """)
+        );
     }
 }
