@@ -134,9 +134,6 @@ public class BuildIrTreePhase {
                 return irFunction;
             }
 
-            //TODO: проверить что все return из функции одного типа и совпадают с ReturnType
-            //TODO: если у функции returnType!=unit - проверить что во всех ветках есть явный return
-
             @Override
             public IR visitReturnStatement(IcebergParser.ReturnStatementContext ctx) {
                 return ctx.expression() != null

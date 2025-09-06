@@ -53,6 +53,8 @@ public class CompilationPipeline {
             new DetectInvalidSyntaxPhase().execute(file);
 
             var irFile = new BuildIrTreePhase().execute(file);
+            new IrVerificationPhase().execute(irFile);
+
             var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
             for (var unit : compilationUnits) {

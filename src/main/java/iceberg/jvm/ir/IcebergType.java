@@ -47,10 +47,24 @@ public class IcebergType {
     public final IrClass irClass;
 
     //TODO: в коде есть сравнение типов через ==
-    // нужно или переделать на equals или создавать в одном месте
+    // нужно переделать на equals
     // ИДЕЯ: разрешить только IrClass'у создавать себе тип
     public IcebergType(IrClass irClass) {
         this.irClass = irClass;
+    }
+
+    @Override
+    public int hashCode() {
+        return irClass.name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof IcebergType other) {
+            return irClass.name.equals(other.irClass.name);
+        }
+
+        return false;
     }
 
     private static IcebergType buildJavaLangString() {

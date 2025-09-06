@@ -265,19 +265,48 @@ public class FunctionsTest extends Base {
     }
 
     @Test
-    @Disabled //TODO
     void differentReturnTypes() {
         var exception = assertThrows(SemanticException.class, () -> execute("""
             fun foo(): i32 {
                 return "string";
             }
             """, null));
-        assertThat(exception).hasMessage("");
+        assertThat(exception).hasMessage("""
+            bad return in 'foo':
+                expected i32
+                but was  java/lang/String""");
     }
 
     @Test
+    void differentReturnTypes__unitFunction() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo() {
+                return "string";
+            }
+            """, null));
+        assertThat(exception).hasMessage("""
+            bad return in 'foo':
+                expected unit
+                but was  java/lang/String""");
+    }
+
+    @Test
+    void differentReturnTypes__unitReturn() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(): string {
+                return;
+            }
+            """, null));
+        assertThat(exception).hasMessage("""
+            bad return in 'foo':
+                expected java/lang/String
+                but was  unit""");
+    }
+
+
+    @Test
     @Disabled //TODO
-    void explicitReturnWhenReturnTypeSpecified() {
+    void explicitReturnWhenFunctionReturnTypeSpecified() {
         var exception = assertThrows(SemanticException.class, () -> execute("""
             fun foo(): i32 {
                 print 100;
