@@ -119,7 +119,7 @@ public class ClassResolver {
                 var functionName = ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())
-                    //TODO: support user-defined types
+                    //TODO: support user-defined types && imported types
                     .map(IcebergType::valueOf)
                     .toList();
 

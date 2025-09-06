@@ -79,6 +79,8 @@ public class BuildIrTreePhase {
 
                     ctx.defStatement().forEach(definition -> {
                         //TODO: support user types
+                        // через classResolver.getIrClass()???
+
                         //TODO: infer type from definition.expression()
                         //TODO: init field with definition.expression()
                         var type = IcebergType.valueOf(definition.type.getText());
@@ -124,8 +126,12 @@ public class BuildIrTreePhase {
                     ((IrBody) ctx.block().accept(this)).statements
                 );
 
+                //add explicit return if needed
                 if (irFunction.returnType == IcebergType.unit) {
-                    irFunction.irBody.statements.add(new IrReturn());
+                    var statements = irFunction.irBody.statements;
+                    if (statements.isEmpty() || !(statements.getLast() instanceof IrReturn)) {
+                        statements.add(new IrReturn());
+                    }
                 }
 
                 //TODO: тут нужно вернуть старые scopes
@@ -238,9 +244,12 @@ public class BuildIrTreePhase {
                     }
                 }
 
-                IrExpression initializer = null;
-                if (ctx.expression() != null) {
-                    initializer = (IrExpression) ctx.expression().accept(this);
+                IrVariable variable;
+                if (ctx.expression() == null) {
+                    var type = IcebergType.valueOf(ctx.type.getText());
+                    variable = new IrVariable(type, null);
+                } else {
+                    var initializer = (IrExpression) ctx.expression().accept(this);
 
                     if (ctx.type != null) {
                         var specifiedType = IcebergType.valueOf(ctx.type.getText());
@@ -250,13 +259,9 @@ public class BuildIrTreePhase {
                             throw new SemanticException();
                         }
                     }
+
+                    variable = new IrVariable(initializer.type, initializer);
                 }
-
-                var type = ctx.type != null
-                    ? IcebergType.valueOf(ctx.type.getText())
-                    : initializer.type;
-
-                var variable = new IrVariable(type, initializer);
 
                 var scope = scopes.getLast();
                 scope.put(name, variable);
@@ -270,35 +275,24 @@ public class BuildIrTreePhase {
                 if (left instanceof IrGetField irGetField) {
                     var expression = (IrExpression) ctx.right.accept(this);
                     if (irGetField.type != expression.type) {
-                        throw new SemanticException("bad type");
+                        throw new SemanticException("bad type on assign: " + ctx.getText());
                     }
 
                     return new IrPutField(irGetField.receiver, irGetField.irField, expression);
                 }
 
-                //TODO: use `left`?
-                var name = ctx.left.getText();
+                if (left instanceof IrReadVariable irReadVariable) {
+                    var irVariable = irReadVariable.definition;
 
-                IrVariable irVariable = null;
-                for (var scope : scopes) {
-                    if (scope.containsKey(name)) {
-                        irVariable = scope.get(name);
-                        break;
+                    var expression = (IrExpression) ctx.right.accept(this);
+                    if (irVariable.type != expression.type) {
+                        throw new SemanticException("bad type on assign: " + ctx.getText());
                     }
+
+                    return new IrAssignVariable(irVariable, expression);
                 }
 
-                if (irVariable == null) {
-                    throw new SemanticException("'%s' is not defined".formatted(name));
-                }
-
-                var expression = (IrExpression) ctx.right.accept(this);
-                if (irVariable.type != expression.type) {
-                    throw new SemanticException(
-                        "cannot assign %s-value to %s::%s".formatted(expression.type, name, irVariable.type)
-                    );
-                }
-
-                return new IrAssignVariable(irVariable, expression);
+                throw new IllegalStateException();
             }
 
             @Override
@@ -459,7 +453,6 @@ public class BuildIrTreePhase {
                     throw new SemanticException("class '%s' is not defined".formatted(className));
                 }
 
-                //TODO: support parameters?
                 return new IrNew(irClass);
             }
 

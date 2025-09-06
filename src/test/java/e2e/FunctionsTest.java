@@ -105,6 +105,18 @@ public class FunctionsTest extends Base {
     }
 
     @Test
+    void returnFromUnitFunction() {
+        execute("""        
+            fun foo() {
+                print "foo";
+                return;
+            }
+            
+            foo();
+            """, "foo\n");
+    }
+
+    @Test
     @Disabled //TODO: не работает - есть goto после return за пределы функции
     void returnFromIf() {
         execute("""        
@@ -314,6 +326,18 @@ public class FunctionsTest extends Base {
             bad return in 'foo':
                 expected java/lang/String
                 but was  unit""");
+    }
+
+    @Test
+    void tooMuchReturnStatements() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo() {
+                return;
+                return;
+                return;
+            }
+            """, null));
+        assertThat(exception).hasMessage("too much return statements in block");
     }
 
     @ParameterizedTest

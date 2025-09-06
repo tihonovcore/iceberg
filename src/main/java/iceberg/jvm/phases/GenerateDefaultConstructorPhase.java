@@ -6,7 +6,7 @@ import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 import iceberg.jvm.ir.IcebergType;
 
-public class GenerateDefaultConstructor {
+public class GenerateDefaultConstructorPhase {
 
     public void execute(CompilationUnit unit) {
         var init = new Method();

@@ -58,7 +58,7 @@ public class CompilationPipeline {
             var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
             for (var unit : compilationUnits) {
-                new GenerateDefaultConstructor().execute(unit);
+                new GenerateDefaultConstructorPhase().execute(unit);
                 new GenerateMethodsPhase().execute(unit);
                 new GenerateFieldsPhase().execute(unit);
                 new CodeAttributeGenerationPhase().execute(unit);

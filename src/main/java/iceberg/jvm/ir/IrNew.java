@@ -1,5 +1,6 @@
 package iceberg.jvm.ir;
 
+//TODO: support parameters?
 public class IrNew extends IrExpression {
 
     public final IrClass irClass;

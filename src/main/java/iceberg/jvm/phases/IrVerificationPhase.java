@@ -11,29 +11,25 @@ public class IrVerificationPhase {
     public void execute(IrFile irFile) {
         var functions = findAllFunctions(irFile);
 
-        functions.forEach(this::allReturnTypesAreTheSame);
+        functions.forEach(this::atMostOneReturnInBlock);
         functions.forEach(this::noCodeAfterReturn);
+        functions.forEach(this::allReturnTypesAreTheSame);
         functions.forEach(this::explicitReturnWhenFunctionReturnTypeSpecified);
     }
 
-    private void allReturnTypesAreTheSame(IrFunction irFunction) {
-        irFunction.irBody.accept(new IrVisitorBase() {
+    private void atMostOneReturnInBlock(IrFunction irFunction) {
+        irFunction.accept(new IrVisitorBase() {
             @Override
-            public void visitIrReturn(IrReturn irReturn) {
-                var expected = irFunction.returnType;
-                var actual = irReturn.expression != null
-                    ? irReturn.expression.type
-                    : IcebergType.unit;
-                if (expected.equals(actual)) {
-                    return;
-                }
+            public void visitIrBody(IrBody irBody) {
+                super.visitIrBody(irBody);
 
-                throw new SemanticException("""
-                    bad return in '%s':
-                        expected %s
-                        but was  %s"""
-                    .formatted(irFunction.name, expected.irClass.name, actual.irClass.name)
-                );
+                var count = irBody.statements.stream()
+                    .filter(IrReturn.class::isInstance)
+                    .count();
+
+                if (count > 1) {
+                    throw new SemanticException("too much return statements in block");
+                }
             }
         });
     }
@@ -54,6 +50,28 @@ public class IrVerificationPhase {
                 if (optional.get() != irBody.statements.getLast()) {
                     throw new SemanticException("return statement should be at last position in block");
                 }
+            }
+        });
+    }
+
+    private void allReturnTypesAreTheSame(IrFunction irFunction) {
+        irFunction.irBody.accept(new IrVisitorBase() {
+            @Override
+            public void visitIrReturn(IrReturn irReturn) {
+                var expected = irFunction.returnType;
+                var actual = irReturn.expression != null
+                    ? irReturn.expression.type
+                    : IcebergType.unit;
+                if (expected.equals(actual)) {
+                    return;
+                }
+
+                throw new SemanticException("""
+                    bad return in '%s':
+                        expected %s
+                        but was  %s"""
+                    .formatted(irFunction.name, expected.irClass.name, actual.irClass.name)
+                );
             }
         });
     }
