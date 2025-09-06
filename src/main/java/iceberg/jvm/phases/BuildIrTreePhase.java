@@ -78,17 +78,13 @@ public class BuildIrTreePhase {
                     currentClass = irClass;
 
                     ctx.defStatement().forEach(definition -> {
-                        //TODO: support user types
-                        // через classResolver.getIrClass()???
-
                         //TODO: infer type from definition.expression()
                         //TODO: init field with definition.expression()
-                        var type = IcebergType.valueOf(definition.type.getText());
+                        var type = classResolver.getIcebergType(definition.type.getText());
                         var fieldName = definition.name.getText();
                         irClass.fields.put(fieldName, new IrField(irClass, fieldName, type));
                     });
 
-                    //todo: надо вызвать findAllFunctions
                     ctx.functionDefinitionStatement().forEach(
                         definition -> definition.accept(this)
                     );
@@ -101,18 +97,18 @@ public class BuildIrTreePhase {
 
             @Override
             public IR visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
+                var functionName = ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())
-                    //TODO: support user-defined types
-                    .map(IcebergType::valueOf)
+                    .map(classResolver::getIcebergType)
                     .toList();
 
                 var irFunction = currentClass
-                    .findMethod(ctx.name.getText(), parametersTypes)
-                    .orElseThrow(() -> new IllegalStateException("impossible"));
+                    .findMethod(functionName, parametersTypes)
+                    .orElseThrow(() -> new IllegalStateException(
+                        "impossible, function should have been created at " + ClassResolver.class.getSimpleName()
+                    ));
 
-                //TODO: scopes надо перетереть - функция не должна видеть переменные снаружи
-                // только поля, но их надо прописать отдельно
                 scopes.add(new HashMap<>());
 
                 for (int i = 0; i < ctx.parameters().parameter().size(); i++) {
@@ -134,7 +130,6 @@ public class BuildIrTreePhase {
                     }
                 }
 
-                //TODO: тут нужно вернуть старые scopes
                 scopes.removeLast();
 
                 return irFunction;
@@ -246,17 +241,22 @@ public class BuildIrTreePhase {
 
                 IrVariable variable;
                 if (ctx.expression() == null) {
-                    var type = IcebergType.valueOf(ctx.type.getText());
+                    var type = classResolver.getIcebergType(ctx.type.getText());
                     variable = new IrVariable(type, null);
                 } else {
                     var initializer = (IrExpression) ctx.expression().accept(this);
 
                     if (ctx.type != null) {
-                        var specifiedType = IcebergType.valueOf(ctx.type.getText());
+                        var specifiedType = classResolver.getIcebergType(ctx.type.getText());
                         if (specifiedType == IcebergType.i64 && initializer.type == IcebergType.i32) {
                             initializer = new IrCast(initializer, IcebergType.i64);
                         } else if (specifiedType != initializer.type) {
-                            throw new SemanticException();
+                            throw new SemanticException(
+                                "incompatible types: %s and %s".formatted(
+                                    specifiedType.irClass.name,
+                                    initializer.type.irClass.name
+                                )
+                            );
                         }
                     }
 
@@ -448,12 +448,12 @@ public class BuildIrTreePhase {
             @Override
             public IR visitNewExpression(IcebergParser.NewExpressionContext ctx) {
                 var className = ctx.className.getText();
-                var irClass = classResolver.getIrClass(className);
-                if (irClass == null) {
+                    var type = classResolver.getIcebergType(className);
+                if (type == null) {
                     throw new SemanticException("class '%s' is not defined".formatted(className));
                 }
 
-                return new IrNew(irClass);
+                return new IrNew(type);
             }
 
             //TODO: в случае с импортами

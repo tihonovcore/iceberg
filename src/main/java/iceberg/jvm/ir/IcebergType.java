@@ -1,6 +1,5 @@
 package iceberg.jvm.ir;
 
-import iceberg.SemanticException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -16,14 +15,16 @@ public class IcebergType {
     public static final IcebergType string = buildJavaLangString();
     public static final IcebergType printStream = buildJavaIoPrintStream();
 
+    @Nullable
     public static IcebergType valueOf(String type) {
         return switch (type) {
+            //TODO: support any
             case "i32" -> i32;
             case "i64" -> i64;
             case "bool" -> bool;
             case "unit" -> unit;
             case "string" -> string;
-            default -> throw new SemanticException("unknown type");
+            default -> null;
         };
     }
 

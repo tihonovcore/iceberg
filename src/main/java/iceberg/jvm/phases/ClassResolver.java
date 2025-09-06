@@ -16,6 +16,7 @@ public class ClassResolver {
     @Getter
     private final IrClass icebergIrClass = new IrClass("Iceberg");
     private final Map<String, IrClass> allClasses = new HashMap<>();
+    private final Map<String, IcebergType> allIcebergTypes = new HashMap<>();
 
     public ClassResolver(IcebergParser.FileContext file) {
         findAllClasses(file);
@@ -24,6 +25,18 @@ public class ClassResolver {
 
     public IrClass getIrClass(String name) {
         return allClasses.get(name);
+    }
+
+    //TODO: попробовать создавать IrClass'ы и IcebergType только тут,
+    // для встроенных типов сделать енам получать тип по нему?
+    // может IcebergType вообще не нужен? или использовать его как класс с built-in'ами?
+    public IcebergType getIcebergType(String type) {
+        return allIcebergTypes.computeIfAbsent(type, t -> {
+            var builtInType = IcebergType.valueOf(type);
+            return builtInType == null
+                ? new IcebergType(allClasses.get(type))
+                : builtInType;
+        });
     }
 
     private void findAllClasses(IcebergParser.FileContext file) {
@@ -119,8 +132,7 @@ public class ClassResolver {
                 var functionName = ctx.name.getText();
                 var parametersTypes = ctx.parameters().parameter().stream()
                     .map(parameter -> parameter.type.getText())
-                    //TODO: support user-defined types && imported types
-                    .map(IcebergType::valueOf)
+                    .map(parameter -> getIcebergType(parameter))
                     .toList();
 
                 var optional = currentClass.findMethod(functionName, parametersTypes);
@@ -130,19 +142,13 @@ public class ClassResolver {
                     );
                 }
 
-                IcebergType returnType;
-                if (ctx.returnType == null) {
-                    returnType = IcebergType.unit;
-                } else if (allClasses.containsKey(ctx.returnType.getText())) {
-                    var irClass = allClasses.get(ctx.returnType.getText());
-                    returnType = new IcebergType(irClass);
-                } else {
-                    returnType = IcebergType.valueOf(ctx.returnType.getText());
-                }
+                var returnType = ctx.returnType != null
+                    ? getIcebergType(ctx.returnType.getText())
+                    : IcebergType.unit;
                 var function = new IrFunction(currentClass, functionName, returnType);
 
                 ctx.parameters().parameter().stream()
-                    .map(parameter -> IcebergType.valueOf(parameter.type.getText()))
+                    .map(parameter -> getIcebergType(parameter.type.getText()))
                     .map(parameter -> new IrVariable(parameter, null))
                     .forEach(function.parameters::add);
 

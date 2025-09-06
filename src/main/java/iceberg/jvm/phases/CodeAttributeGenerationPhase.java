@@ -443,7 +443,7 @@ public class CodeAttributeGenerationPhase {
                         output.writeU1(OpCodes.ICONST_0.value);
                     } else if (irVariable.type == IcebergType.i64) {
                         output.writeU1(OpCodes.LCONST_0.value);
-                    } else if (irVariable.type == IcebergType.string) {
+                    } else {
                         output.writeU1(OpCodes.ACONST_NULL.value);
                     }
                 }
