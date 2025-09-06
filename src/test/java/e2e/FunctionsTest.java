@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FunctionsTest extends Base {
@@ -209,38 +210,79 @@ public class FunctionsTest extends Base {
             """, "hello\nhello\nhello\n");
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void negative(String source) {
-        assertThrows(SemanticException.class, () -> execute(source, null));
+    @Test
+    void functionInsideFunction() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun outer() {
+                fun nested() {}
+                nested();
+            }
+            outer();""", null));
+        assertThat(exception).hasMessage("function inside function");
     }
 
-    static Stream<Arguments> negative() {
-        return Stream.of(
-            Arguments.of("""
-                fun foo() {}
-                fun foo() {}"""),
-            Arguments.of("""
-                fun foo() {}
-                foo(1, 2, 3);"""),
-            Arguments.of("""
-                fun foo(n: i32) {}
-                foo("str");"""),
-            Arguments.of("""
-                fun outer() {
-                    fun nested() {}
+    @Test
+    void redefinition() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo() {}
+            fun foo() {}""", null));
+        assertThat(exception).hasMessage("function 'foo' already exists");
+    }
 
-                    nested();
-                }
-                outer();"""),
-//TODO: нужна проверка
-//            Arguments.of("""
-//                fun foo(): i32 {
-//                    return "string";
-//                }
-//                """),
-            Arguments.of("""
-                foo();""")
-        );
+    @Test
+    void invalidArgsNumber() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo() {}
+            foo(1, 2, 3);""", null));
+        assertThat(exception).hasMessage("function 'foo' not found");
+    }
+
+    @Test
+    void invalidArgsTypes() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(x: string, i: i32) {}
+            foo(98, false);""", null));
+        assertThat(exception).hasMessage("function 'foo' not found");
+    }
+
+
+    @Test
+    void undefinedFunction() {
+        var exception = assertThrows(SemanticException.class, () -> execute("foo();", null));
+        assertThat(exception).hasMessage("function 'foo' not found");
+    }
+
+    @Test
+    @Disabled //TODO
+    void codeAfterReturn() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(): i32 {
+                return 99;
+                print 100;
+            }
+            """, null));
+        assertThat(exception).hasMessage("");
+    }
+
+    @Test
+    @Disabled //TODO
+    void differentReturnTypes() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(): i32 {
+                return "string";
+            }
+            """, null));
+        assertThat(exception).hasMessage("");
+    }
+
+    @Test
+    @Disabled //TODO
+    void explicitReturnWhenReturnTypeSpecified() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            fun foo(): i32 {
+                print 100;
+            }
+            """, null));
+        assertThat(exception).hasMessage("");
     }
 }

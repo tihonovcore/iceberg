@@ -6,6 +6,7 @@ import java.util.List;
 public class IrPrint implements IR {
 
     public final IrFunction function;
+    //TODO: зачем несколько аргументов?
     public final List<IrExpression> arguments;
 
     public IrPrint(

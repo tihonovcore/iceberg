@@ -155,7 +155,9 @@ public class BuildIrTreePhase {
                     .toList();
                 var optional = currentClass.findMethod(ctx.name.getText(), argumentsTypes);
                 if (optional.isEmpty()) {
-                    throw new SemanticException("function not found");
+                    throw new SemanticException(
+                        "function '%s' not found".formatted(ctx.name.getText())
+                    );
                 }
 
                 return new IrStaticCall(
@@ -499,7 +501,9 @@ public class BuildIrTreePhase {
 
                 var optional = receiver.type.irClass.findMethod(ctx.name.getText(), argumentsTypes);
                 if (optional.isEmpty()) {
-                    throw new SemanticException("function not found");
+                    throw new SemanticException(
+                        "function '%s' not found".formatted(ctx.name.getText())
+                    );
                 }
                 var irFunction = optional.get();
 

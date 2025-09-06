@@ -8,6 +8,15 @@ import java.util.stream.Collectors;
 
 public class IrFunction implements IR {
 
+    //TODO: parameters и irBody это синтаксические части функции
+    // при этом irClass - это ссылка вверх по дереву
+    // возможно стоит завернуть ее во что-то чтобы не путаться при рекурсивном обходе
+    // пример:
+    //   public final Meta<IrClass> irClass;
+    // где
+    //   class Meta<T> implements Supplier<T> {}
+    // тоже касается некоторых других IR-узлов (например, использование IrField, IrVariable)
+
     public final IrClass irClass;
     public final List<IrVariable> parameters = new ArrayList<>();
     public final IrBody irBody = new IrBody();

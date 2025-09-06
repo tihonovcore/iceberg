@@ -125,7 +125,9 @@ public class ClassResolver {
 
                 var optional = currentClass.findMethod(functionName, parametersTypes);
                 if (optional.isPresent()) {
-                    throw new SemanticException("function already exists");
+                    throw new SemanticException(
+                        "function '%s' already exists".formatted(functionName)
+                    );
                 }
 
                 IcebergType returnType;

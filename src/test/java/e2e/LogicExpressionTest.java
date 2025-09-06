@@ -99,6 +99,9 @@ public class LogicExpressionTest extends Base {
 
     @Test
     void npe() {
+        //NOTE: a == b is transformed into a.equals(b), so current implementation throws NPE
+        //For simplicity we say that it is users responsibility for null checks
+
         var error = assertThrows(AssertionError.class, () -> execute("""
             def a: string;
             def b: string = "qux";
