@@ -11,28 +11,23 @@ public class CodegenPrepareMethodsPhase {
         var functions = unit.irClass.methods;
 
         for (var function : functions) {
-            var init = new Method();
-            init.flags = Method.AccessFlags.ACC_PUBLIC.value;
-            if ("Iceberg".equals(unit.irClass.name) && !"<init>".equals(function.name)) {
-                init.flags = init.flags | Method.AccessFlags.ACC_STATIC.value;
-            }
+            var method = new Method();
 
-            init.name = unit.constantPool.computeUtf8(function.name);
+            method.flags = createFlags(function);
+            method.name = unit.constantPool.computeUtf8(function.name);
+            method.descriptor = unit.constantPool.computeUtf8(
+                function.javaMethodDescriptor()
+            );
+            method.attributes.add(createCodeAttribute(function, unit));
 
-            if (function.name.equals("main")) {
-                //TODO: create separate IcebergType?
-                init.descriptor = unit.constantPool.computeUtf8("([Ljava/lang/String;)V");
-                init.flags = init.flags | Method.AccessFlags.ACC_STATIC.value;
-            } else {
-                init.descriptor = unit.constantPool.computeUtf8(
-                    function.javaMethodDescriptor()
-                );
-            }
-
-            init.attributes.add(createCodeAttribute(function, unit));
-
-            unit.methods.add(init);
+            unit.methods.add(method);
         }
+    }
+
+    private int createFlags(IrFunction irFunction) {
+        return "Iceberg".equals(irFunction.irClass.name) && !"<init>".equals(irFunction.name)
+            ? Method.AccessFlags.ACC_PUBLIC.value | Method.AccessFlags.ACC_STATIC.value
+            : Method.AccessFlags.ACC_PUBLIC.value;
     }
 
     private CodeAttribute createCodeAttribute(

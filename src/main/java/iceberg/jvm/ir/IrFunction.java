@@ -24,6 +24,11 @@ public class IrFunction implements IR {
     public final IcebergType returnType;
 
     public String javaMethodDescriptor() {
+        //TODO: добавление типа для массива проблематично. можно ли придумать что-то лучше?
+        if ("Iceberg".equals(irClass.name) && "main".equals(name) && parameters.isEmpty()) {
+            return "([Ljava/lang/String;)V";
+        }
+
         var defaults = Map.of(
             IcebergType.i32, "I",
             IcebergType.i64, "J",

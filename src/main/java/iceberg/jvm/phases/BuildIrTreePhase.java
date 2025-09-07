@@ -58,7 +58,7 @@ public class BuildIrTreePhase {
                 }
                 addReturnStatementToMainFunction(mainFunction);
 
-                return mainFunction; //TODO: fill parameters - ([Ljava/lang/String;)V
+                return mainFunction;
             }
 
             private void addReturnStatementToMainFunction(IrFunction mainFunction) {
