@@ -7,6 +7,8 @@ import iceberg.jvm.ir.*;
 import lombok.Getter;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.lang.reflect.Executable;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -83,20 +85,35 @@ public class ClassResolver {
         var irClass = new IrClass(fqn);
         allClasses.put(klass.getSimpleName(), irClass);
 
+        for (var javaConstructor : klass.getConstructors()) {
+            var irFunction = buildIrFunction(irClass, javaConstructor);
+            irClass.methods.add(irFunction);
+        }
+
         for (var javaMethod : klass.getMethods()) {
-            var returnType = buildType(javaMethod.getReturnType());
-            var irFunction = new IrFunction(irClass, javaMethod.getName(), returnType);
-
-            for (var javaParam : javaMethod.getParameters()) {
-                var paramType = buildType(javaParam.getType());
-                var irVariable = new IrVariable(paramType, null);
-                irFunction.parameters.add(irVariable);
-            }
-
+            var irFunction = buildIrFunction(irClass, javaMethod);
             irClass.methods.add(irFunction);
         }
 
         return irClass;
+    }
+
+    private IrFunction buildIrFunction(IrClass irClass, Executable executable) {
+        var methodName = executable instanceof Method javaMethod
+            ? javaMethod.getName()
+            : "<init>";
+        var returnType = executable instanceof Method javaMethod
+            ? buildType(javaMethod.getReturnType())
+            : IcebergType.unit;
+        var irFunction = new IrFunction(irClass, methodName, returnType);
+
+        for (var javaParam : executable.getParameters()) {
+            var paramType = buildType(javaParam.getType());
+            var irVariable = new IrVariable(paramType, null);
+            irFunction.parameters.add(irVariable);
+        }
+
+        return irFunction;
     }
 
     private IcebergType buildType(Class<?> klass) {

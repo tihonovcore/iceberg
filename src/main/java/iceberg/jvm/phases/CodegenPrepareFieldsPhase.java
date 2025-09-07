@@ -4,7 +4,7 @@ import iceberg.jvm.ir.IcebergType;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.target.Field;
 
-public class GenerateFieldsPhase {
+public class CodegenPrepareFieldsPhase {
 
     public void execute(CompilationUnit unit) {
         for (var entry : unit.irClass.fields.entrySet()) {

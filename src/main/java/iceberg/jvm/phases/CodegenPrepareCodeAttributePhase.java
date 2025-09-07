@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class CodeAttributeGenerationPhase {
+public class CodegenPrepareCodeAttributePhase {
 
     public void execute(CompilationUnit unit) {
         unit.methods.forEach(method -> {
@@ -51,7 +51,7 @@ public class CodeAttributeGenerationPhase {
                 output.writeU1(OpCodes.NEW.value);
                 output.writeU2(klassIndex);
 
-                var methodRef = computeMethodRef(irNew.irClass.defaultConstructor);
+                var methodRef = computeMethodRef(irNew.irClass.findDefaultConstructor());
                 var methodRefIndex = compilationUnit.constantPool.indexOf(methodRef);
 
                 output.writeU1(OpCodes.DUP.value);

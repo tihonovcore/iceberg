@@ -7,8 +7,14 @@ public class IrClass implements IR {
     public final String name;
     public final Map<String, IrField> fields = new HashMap<>();
     public final List<IrFunction> methods = new ArrayList<>();
-    public final IrFunction defaultConstructor = new IrFunction(this, "<init>", IcebergType.unit);
     //TODO: type
+
+    public IrFunction findDefaultConstructor() {
+        return methods.stream()
+            .filter(irFunction -> irFunction.name.equals("<init>"))
+            .filter(irFunction -> irFunction.parameters.isEmpty())
+            .findFirst().orElseThrow();
+    }
 
     public Optional<IrFunction> findMethod(String name, List<IcebergType> parametersTypes) {
         return methods.stream()

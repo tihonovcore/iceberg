@@ -5,7 +5,7 @@ import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 
-public class GenerateMethodsPhase {
+public class CodegenPrepareMethodsPhase {
 
     public void execute(CompilationUnit unit) {
         var functions = unit.irClass.methods;
@@ -13,7 +13,7 @@ public class GenerateMethodsPhase {
         for (var function : functions) {
             var init = new Method();
             init.flags = Method.AccessFlags.ACC_PUBLIC.value;
-            if ("Iceberg".equals(unit.irClass.name)) {
+            if ("Iceberg".equals(unit.irClass.name) && !"<init>".equals(function.name)) {
                 init.flags = init.flags | Method.AccessFlags.ACC_STATIC.value;
             }
 

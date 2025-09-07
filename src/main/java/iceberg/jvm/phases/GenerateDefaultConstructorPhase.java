@@ -1,9 +1,7 @@
 package iceberg.jvm.phases;
 
-import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.ir.*;
-import iceberg.jvm.target.Method;
 import iceberg.jvm.ir.IcebergType;
 
 import java.util.Collection;
@@ -11,21 +9,6 @@ import java.util.Collection;
 public class GenerateDefaultConstructorPhase {
 
     public void execute(CompilationUnit unit) {
-        var init = new Method();
-        init.flags = Method.AccessFlags.ACC_PUBLIC.value;
-        init.name = unit.constantPool.computeUtf8("<init>");
-        init.descriptor = unit.constantPool.computeUtf8("()V");
-        init.attributes.add(createCodeAttribute(unit));
-
-        unit.methods.add(init);
-    }
-
-    private CodeAttribute createCodeAttribute(CompilationUnit unit) {
-        var attribute = new CodeAttribute();
-        attribute.attributeName = unit.constantPool.computeUtf8("Code");
-        attribute.maxStack = 100;
-        attribute.maxLocals = 100;
-
         var objectIrClass = IcebergType.object.irClass;
         var objectConstructor = objectIrClass.methods.stream()
             .filter(fun -> fun.name.equals("<init>"))
@@ -35,14 +18,12 @@ public class GenerateDefaultConstructorPhase {
         var fieldInitializers = buildFieldInitializers(unit);
         var returnStatement = new IrReturn();
 
-        var function = new IrFunction(IcebergType.string.irClass, "<init>", IcebergType.unit);
+        var function = new IrFunction(unit.irClass, "<init>", IcebergType.unit);
         function.irBody.statements.add(callSuperStatement);
         function.irBody.statements.addAll(fieldInitializers);
         function.irBody.statements.add(returnStatement);
 
-        attribute.function = function;
-
-        return attribute;
+        unit.irClass.methods.add(function);
     }
 
     private Collection<IrPutField> buildFieldInitializers(CompilationUnit unit) {

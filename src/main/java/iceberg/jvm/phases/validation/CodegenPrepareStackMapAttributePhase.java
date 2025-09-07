@@ -11,7 +11,7 @@ import iceberg.jvm.ir.IcebergType;
 
 import java.util.*;
 
-public class EvaluateStackMapAttributePhase {
+public class CodegenPrepareStackMapAttributePhase {
 
     public void execute(CompilationUnit unit) {
         unit.methods.forEach(method -> {

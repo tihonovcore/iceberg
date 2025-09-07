@@ -9,7 +9,6 @@ public class IrVisitorBase implements IrVisitor {
 
     @Override
     public void visitIrClass(IrClass irClass) {
-        irClass.defaultConstructor.accept(this);
         irClass.methods.forEach(irFunction -> irFunction.accept(this));
         irClass.fields.values().forEach(irField -> irField.accept(this));
     }
