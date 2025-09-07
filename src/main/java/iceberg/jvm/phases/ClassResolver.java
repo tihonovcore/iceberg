@@ -20,7 +20,7 @@ public class ClassResolver {
 
     public ClassResolver(IcebergParser.FileContext file) {
         findAllClasses(file);
-        findAllFunctions(file);
+        findAllMemberDefinitions(file);
     }
 
     public IrClass getIrClass(String name) {
@@ -109,7 +109,7 @@ public class ClassResolver {
         return new IcebergType(importJavaClass(klass));
     }
 
-    private void findAllFunctions(IcebergParser.FileContext file) {
+    private void findAllMemberDefinitions(IcebergParser.FileContext file) {
         file.accept(new IcebergBaseVisitor<Void>() {
 
             IrClass currentClass = icebergIrClass;
@@ -119,10 +119,27 @@ public class ClassResolver {
                 var prev = currentClass;
                 try {
                     currentClass = allClasses.get(ctx.name.getText());
-                    return super.visitClassDefinitionStatement(ctx);
+
+                    ctx.defStatement()
+                        .forEach(this::defineField);
+                    ctx.functionDefinitionStatement()
+                        .forEach(fun -> fun.accept(this));
+
+                    return null;
                 } finally {
                     currentClass = prev;
                 }
+            }
+
+            private void defineField(IcebergParser.DefStatementContext ctx) {
+                //TODO: be ready to infer type from definition.expression()
+                //TODO: init field with definition.expression()
+
+                var fieldName = ctx.name.getText();
+                var type = getIcebergType(ctx.type.getText());
+                var irField = new IrField(currentClass, fieldName, type);
+
+                currentClass.fields.put(fieldName, irField);
             }
 
             @Override

@@ -250,12 +250,12 @@ public class ClassesTest extends Base {
 
     @Test
     @Disabled
-    void fieldTypedWithImportedClass() { //TODO
+    void fieldTypedWithImportedClass() {
         execute("""
             import java.util.ArrayList;
             
             class NonEmptyList {
-                def first: any
+                def first: string
                 def other: ArrayList
 
                 fun show() {
@@ -265,7 +265,7 @@ public class ClassesTest extends Base {
             }
             
             def list = new NonEmptyList;
-            list.any = "foo";
+            list.first = "foo";
             list.other = new ArrayList;
             list.other.add("bar");
             list.other.add("qux");
@@ -376,7 +376,7 @@ public class ClassesTest extends Base {
 
     @Test
     @Disabled
-    void highCoupling() { //TODO
+    void highCoupling() {
         execute("""
             class Foo {
                 def qux: Qux

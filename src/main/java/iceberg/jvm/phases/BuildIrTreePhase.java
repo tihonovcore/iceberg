@@ -6,6 +6,7 @@ import iceberg.antlr.IcebergLexer;
 import iceberg.antlr.IcebergParser;
 import iceberg.jvm.ir.*;
 import iceberg.jvm.ir.IcebergType;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.*;
@@ -76,14 +77,6 @@ public class BuildIrTreePhase {
                 try {
                     var irClass = classResolver.getIrClass(ctx.name.getText());
                     currentClass = irClass;
-
-                    ctx.defStatement().forEach(definition -> {
-                        //TODO: infer type from definition.expression()
-                        //TODO: init field with definition.expression()
-                        var type = classResolver.getIcebergType(definition.type.getText());
-                        var fieldName = definition.name.getText();
-                        irClass.fields.put(fieldName, new IrField(irClass, fieldName, type));
-                    });
 
                     ctx.functionDefinitionStatement().forEach(
                         definition -> definition.accept(this)
@@ -274,25 +267,28 @@ public class BuildIrTreePhase {
                 var left = ctx.left.accept(this);
                 if (left instanceof IrGetField irGetField) {
                     var expression = (IrExpression) ctx.right.accept(this);
-                    if (irGetField.type != expression.type) {
-                        throw new SemanticException("bad type on assign: " + ctx.getText());
-                    }
 
+                    assertAssignable(irGetField.type, expression.type, ctx);
                     return new IrPutField(irGetField.receiver, irGetField.irField, expression);
                 }
 
                 if (left instanceof IrReadVariable irReadVariable) {
                     var irVariable = irReadVariable.definition;
-
                     var expression = (IrExpression) ctx.right.accept(this);
-                    if (irVariable.type != expression.type) {
-                        throw new SemanticException("bad type on assign: " + ctx.getText());
-                    }
 
+                    assertAssignable(irVariable.type, expression.type, ctx);
                     return new IrAssignVariable(irVariable, expression);
                 }
 
                 throw new IllegalStateException();
+            }
+
+            private static void assertAssignable(
+                IcebergType to, IcebergType from, RuleContext ctx
+            ) {
+                if (!to.equals(from)) {
+                    throw new SemanticException("bad type on assign: " + ctx.getText());
+                }
             }
 
             @Override
@@ -471,6 +467,11 @@ public class BuildIrTreePhase {
                     var fieldName = ctx.ID().getText();
                     var receiver = (IrExpression) ctx.expression().accept(this);
                     var irField = receiver.type.irClass.fields.get(fieldName);
+                    if (irField == null) {
+                        throw new SemanticException(
+                            "unknown field '%s' at %s".formatted(fieldName, ctx.getText())
+                        );
+                    }
 
                     //NOTE: если это l-value, то IrGetField заменится на IrPutField
                     return new IrGetField(receiver, irField);
