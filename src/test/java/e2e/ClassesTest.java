@@ -213,7 +213,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void fieldTypedWithUserDefinedClass() {
         execute("""
             class X {
@@ -235,7 +234,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void fieldTypedWithImportedClass() {
         execute("""
             import java.util.ArrayList;
@@ -261,7 +259,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void recursiveType() {
         execute("""
             class Tree {

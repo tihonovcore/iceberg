@@ -517,13 +517,9 @@ public class CodegenPrepareCodeAttributePhase {
                     compilationUnit.constantPool.computeUtf8(irField.irClass.name)
                 );
 
-                //TODO: support all types
-                if (irGetField.type != IcebergType.i32) {
-                    throw new IllegalStateException("type not yet supported");
-                }
                 var field = compilationUnit.constantPool.computeNameAndType(
                     compilationUnit.constantPool.computeUtf8(irField.fieldName),
-                    compilationUnit.constantPool.computeUtf8("I")
+                    compilationUnit.constantPool.computeUtf8(irField.javaFieldDescriptor())
                 );
 
                 var fieldRef = compilationUnit.constantPool.computeFieldRef(klass, field);
@@ -542,13 +538,9 @@ public class CodegenPrepareCodeAttributePhase {
                     compilationUnit.constantPool.computeUtf8(irField.irClass.name)
                 );
 
-                //TODO: support all types
-                if (irPutField.type != IcebergType.i32) {
-                    throw new IllegalStateException("type not yet supported");
-                }
                 var field = compilationUnit.constantPool.computeNameAndType(
                     compilationUnit.constantPool.computeUtf8(irField.fieldName),
-                    compilationUnit.constantPool.computeUtf8("I")
+                    compilationUnit.constantPool.computeUtf8(irField.javaFieldDescriptor())
                 );
 
                 var fieldRef = compilationUnit.constantPool.computeFieldRef(klass, field);

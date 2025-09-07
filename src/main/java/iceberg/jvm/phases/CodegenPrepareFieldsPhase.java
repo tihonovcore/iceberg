@@ -1,6 +1,5 @@
 package iceberg.jvm.phases;
 
-import iceberg.jvm.ir.IcebergType;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.target.Field;
 
@@ -11,12 +10,7 @@ public class CodegenPrepareFieldsPhase {
             var field = new Field();
             field.flags = Field.AccessFlags.ACC_PUBLIC.value;
             field.name = unit.constantPool.computeUtf8(entry.getKey());
-
-            //TODO: support all types
-            if (entry.getValue().type != IcebergType.i32) {
-                throw new IllegalStateException("type not yet supported");
-            }
-            field.descriptor = unit.constantPool.computeUtf8("I");
+            field.descriptor = unit.constantPool.computeUtf8(entry.getValue().javaFieldDescriptor());
 
             unit.fields.add(field);
         }
