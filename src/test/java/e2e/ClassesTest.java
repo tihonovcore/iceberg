@@ -481,4 +481,26 @@ public class ClassesTest extends Base {
             """, null));
         assertThat(exception).hasMessage("incompatible types: java/util/ArrayList and java/util/HashMap");
     }
+
+    @Test
+    void methodRedefinition() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            class Foo {
+                fun foo() {}
+                fun foo() {}
+            }
+            """, null));
+        assertThat(exception).hasMessage("function 'foo' already exists in class Foo");
+    }
+
+    @Test
+    void fieldRedefinition() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            class Foo {
+                def x: i32
+                def x: i32
+            }
+            """, null));
+        assertThat(exception).hasMessage("field 'x' already exists in class Foo");
+    }
 }

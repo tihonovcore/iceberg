@@ -58,6 +58,11 @@ public class CompilationPipeline {
             var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
             for (var unit : compilationUnits) {
+                //TODO: попробовать отделить mid-level фазы от low-level
+                // (сначала делать mid, потом low), пример
+                // в GenerateDefaultConstructorPhase есть построение IR для конструкторов
+                // но в тоже время создается iceberg.jvm.target.Method
+
                 new GenerateDefaultConstructorPhase().execute(unit);
                 new GenerateMethodsPhase().execute(unit);
                 new GenerateFieldsPhase().execute(unit);

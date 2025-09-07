@@ -14,10 +14,9 @@ import java.util.*;
 public class BuildIrTreePhase {
 
     public IrFile execute(IcebergParser.FileContext file) {
-        var classResolver = new ClassResolver(file);
-
         return (IrFile) file.accept(new IcebergBaseVisitor<IR>() {
 
+            private final ClassResolver classResolver = new ClassResolver(file);
             private final List<Map<String, IrVariable>> scopes = new ArrayList<>();
 
             @Override
@@ -69,7 +68,7 @@ public class BuildIrTreePhase {
                 }
             }
 
-            IrClass currentClass = classResolver.getIcebergIrClass();
+            private IrClass currentClass = classResolver.getIcebergIrClass();
 
             @Override
             public IR visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {

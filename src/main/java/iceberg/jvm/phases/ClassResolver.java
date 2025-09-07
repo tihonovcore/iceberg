@@ -128,6 +128,12 @@ public class ClassResolver {
             @Override
             public Void visitFieldDefinition(IcebergParser.FieldDefinitionContext ctx) {
                 var fieldName = ctx.name.getText();
+                if (currentClass.fields.containsKey(fieldName)) {
+                    throw new SemanticException(
+                        "field '%s' already exists in class %s".formatted(fieldName, currentClass.name)
+                    );
+                }
+
                 var type = getIcebergType(ctx.type.getText());
                 var irField = new IrField(currentClass, fieldName, type);
 
@@ -149,7 +155,7 @@ public class ClassResolver {
                 var optional = currentClass.findMethod(functionName, parametersTypes);
                 if (optional.isPresent()) {
                     throw new SemanticException(
-                        "function '%s' already exists".formatted(functionName)
+                        "function '%s' already exists in class %s".formatted(functionName, currentClass.name)
                     );
                 }
 
