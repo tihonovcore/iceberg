@@ -6,6 +6,8 @@ import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 import iceberg.jvm.ir.IcebergType;
 
+import java.util.Collection;
+
 public class GenerateDefaultConstructorPhase {
 
     public void execute(CompilationUnit unit) {
@@ -21,8 +23,8 @@ public class GenerateDefaultConstructorPhase {
     private CodeAttribute createCodeAttribute(CompilationUnit unit) {
         var attribute = new CodeAttribute();
         attribute.attributeName = unit.constantPool.computeUtf8("Code");
-        attribute.maxStack = 1;
-        attribute.maxLocals = 1;
+        attribute.maxStack = 100;
+        attribute.maxLocals = 100;
 
         var objectIrClass = IcebergType.object.irClass;
         var objectConstructor = objectIrClass.methods.stream()
@@ -30,14 +32,27 @@ public class GenerateDefaultConstructorPhase {
             .findFirst().orElseThrow();
 
         var callSuperStatement = new IrSuperCall(objectConstructor);
+        var fieldInitializers = buildFieldInitializers(unit);
         var returnStatement = new IrReturn();
 
         var function = new IrFunction(IcebergType.string.irClass, "<init>", IcebergType.unit);
         function.irBody.statements.add(callSuperStatement);
+        function.irBody.statements.addAll(fieldInitializers);
         function.irBody.statements.add(returnStatement);
 
         attribute.function = function;
 
         return attribute;
+    }
+
+    private Collection<IrPutField> buildFieldInitializers(CompilationUnit unit) {
+        var irClass = unit.irClass;
+        return irClass.fields.values().stream()
+            .filter(irField -> irField.initializer != null)
+            .map(irField -> {
+                var receiver = new IrThis(irClass);
+                return new IrPutField(receiver, irField, irField.initializer);
+            })
+            .toList();
     }
 }

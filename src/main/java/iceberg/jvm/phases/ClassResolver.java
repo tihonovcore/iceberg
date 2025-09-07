@@ -127,8 +127,6 @@ public class ClassResolver {
 
             @Override
             public Void visitFieldDefinition(IcebergParser.FieldDefinitionContext ctx) {
-                //TODO: init field with definition.expression()
-
                 var fieldName = ctx.name.getText();
                 var type = getIcebergType(ctx.type.getText());
                 var irField = new IrField(currentClass, fieldName, type);

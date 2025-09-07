@@ -197,15 +197,16 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void fieldDefaultValue() {
         execute("""
             class X {
                 def t: i32 = 20
                 fun foo() {}
             }
+            
             def x = new X;
             print x.t;
+            
             x.t = 99;
             print x.t;
             """, "20\n99\n");
