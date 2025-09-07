@@ -378,7 +378,7 @@ public class CodeAttributeGenerationPhase {
                 output.writeU1(OpCodes.GETSTATIC.value);
                 output.writeU2(compilationUnit.constantPool.indexOf(fieldRef));
 
-                irPrint.arguments.forEach(e -> e.accept(this));
+                irPrint.argument.accept(this);
 
                 var methodRef = computeMethodRef(irPrint.function);
                 var index = compilationUnit.constantPool.indexOf(methodRef);

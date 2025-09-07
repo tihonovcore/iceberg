@@ -5,18 +5,18 @@ import java.util.List;
 
 public class IrMethodCall extends IrExpression {
 
-    public final IrFunction function;
     public final IrExpression receiver;
+    public final IrFunction function;
     public final List<IrExpression> arguments;
 
     public IrMethodCall(
-        IrFunction function,
         IrExpression receiver,
+        IrFunction function,
         IrExpression... arguments
     ) {
         super(function.returnType);
-        this.function = function;
         this.receiver = receiver;
+        this.function = function;
         this.arguments = Arrays.stream(arguments).toList();
     }
 

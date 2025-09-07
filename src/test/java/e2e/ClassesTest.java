@@ -503,4 +503,12 @@ public class ClassesTest extends Base {
             """, null));
         assertThat(exception).hasMessage("field 'x' already exists in class Foo");
     }
+
+    @Test
+    void createUndefinedClass() {
+        var exception = assertThrows(SemanticException.class, () -> execute("""
+            print (new X).toString();
+            """, null));
+        assertThat(exception).hasMessage("class 'X' is not defined");
+    }
 }

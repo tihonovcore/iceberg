@@ -168,10 +168,7 @@ public class BuildIrTreePhase {
                     );
                 }
 
-                return new IrStaticCall(
-                    optional.get(),
-                    arguments.toArray(arguments.toArray(new IrExpression[0]))
-                );
+                return new IrStaticCall(optional.get(), arguments);
             }
 
             @Override
@@ -231,7 +228,10 @@ public class BuildIrTreePhase {
                 } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
                     result = IcebergType.i32;
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
 
                 var operator = ctx.PLUS() != null
@@ -297,7 +297,7 @@ public class BuildIrTreePhase {
                     return new IrAssignVariable(irVariable, expression);
                 }
 
-                throw new IllegalStateException();
+                throw new IllegalStateException("impossible");
             }
 
             private static void assertAssignable(
@@ -349,7 +349,10 @@ public class BuildIrTreePhase {
                 } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
                     result = IcebergType.i32;
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
 
                 var operator = ctx.STAR() != null
@@ -378,7 +381,10 @@ public class BuildIrTreePhase {
                         return new IrBinaryExpression(right, left, operator, IcebergType.bool);
                     }
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
             }
 
@@ -393,7 +399,7 @@ public class BuildIrTreePhase {
                         .filter(fun -> fun.name.equals("equals"))
                         .findFirst().orElseThrow();
 
-                    var call = new IrMethodCall(stringEquals, left, right);
+                    var call = new IrMethodCall(left, stringEquals, right);
                     if (ctx.EQ() != null) {
                         return call;
                     }
@@ -410,7 +416,10 @@ public class BuildIrTreePhase {
 
                     return new IrUnaryExpression(binary, IcebergUnaryOperator.NOT, IcebergType.bool);
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
             }
 
@@ -420,7 +429,10 @@ public class BuildIrTreePhase {
                 if (value.type == IcebergType.i32 || value.type == IcebergType.i64) {
                     return new IrUnaryExpression(value, IcebergUnaryOperator.MINUS, value.type);
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s
+                        at %s""".formatted(value.type, ctx.getText())
+                    );
                 }
             }
 
@@ -430,7 +442,10 @@ public class BuildIrTreePhase {
                 if (value.type == IcebergType.bool) {
                     return new IrUnaryExpression(value, IcebergUnaryOperator.NOT, value.type);
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s
+                        at %s""".formatted(value.type, ctx.getText())
+                    );
                 }
             }
 
@@ -442,7 +457,10 @@ public class BuildIrTreePhase {
                 if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
                     return new IrBinaryExpression(left, right, IcebergBinaryOperator.OR, IcebergType.bool);
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
             }
 
@@ -454,19 +472,22 @@ public class BuildIrTreePhase {
                 if (left.type == IcebergType.bool && right.type == IcebergType.bool) {
                     return new IrBinaryExpression(left, right, IcebergBinaryOperator.AND, IcebergType.bool);
                 } else {
-                    throw new SemanticException();
+                    throw new SemanticException("""
+                        cannot apply operation to %s and %s
+                        at %s""".formatted(left.type, right.type, ctx.getText())
+                    );
                 }
             }
 
             @Override
             public IR visitNewExpression(IcebergParser.NewExpressionContext ctx) {
                 var className = ctx.className.getText();
+                if (classResolver.getIrClass(className) != null) {
                     var type = classResolver.getIcebergType(className);
-                if (type == null) {
-                    throw new SemanticException("class '%s' is not defined".formatted(className));
+                    return new IrNew(type);
                 }
 
-                return new IrNew(type);
+                throw new SemanticException("class '%s' is not defined".formatted(className));
             }
 
             //TODO: в случае с импортами
@@ -490,7 +511,8 @@ public class BuildIrTreePhase {
                         );
                     }
 
-                    //NOTE: если это l-value, то IrGetField заменится на IrPutField
+                    //NOTE: если выше окажется это l-value,
+                    //то IrGetField заменится на IrPutField
                     return new IrGetField(receiver, irField);
                 }
             }
@@ -516,8 +538,8 @@ public class BuildIrTreePhase {
                 var irFunction = optional.get();
 
                 return new IrMethodCall(
-                    irFunction,
                     receiver,
+                    irFunction,
                     arguments.toArray(arguments.toArray(new IrExpression[0]))
                 );
             }
@@ -542,6 +564,8 @@ public class BuildIrTreePhase {
                         for (int i = scopes.size() - 1; i >= 0; i--) {
                             var scope = scopes.get(i);
                             if (scope.containsKey(name)) {
+                                //NOTE: если выше окажется что это l-value,
+                                //то IrReadVariable заменится на IrAssignVariable
                                 yield new IrReadVariable(scope.get(name));
                             }
                         }

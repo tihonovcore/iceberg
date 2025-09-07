@@ -68,6 +68,11 @@ public class IcebergType {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return irClass.name;
+    }
+
     private static IcebergType buildJavaLangString() {
         var irClass = new IrClass("java/lang/String");
 

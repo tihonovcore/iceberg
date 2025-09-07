@@ -56,7 +56,7 @@ public class IrVisitorBase implements IrVisitor {
 
     @Override
     public void visitIrPrint(IrPrint irPrint) {
-        irPrint.arguments.forEach(argument -> argument.accept(this));
+        irPrint.argument.accept(this);
     }
 
     @Override

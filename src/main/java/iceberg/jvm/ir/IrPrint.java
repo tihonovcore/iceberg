@@ -1,20 +1,13 @@
 package iceberg.jvm.ir;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class IrPrint implements IR {
 
     public final IrFunction function;
-    //TODO: зачем несколько аргументов?
-    public final List<IrExpression> arguments;
+    public final IrExpression argument;
 
-    public IrPrint(
-        IrFunction function,
-        IrExpression... arguments
-    ) {
+    public IrPrint(IrFunction function, IrExpression argument) {
         this.function = function;
-        this.arguments = Arrays.stream(arguments).toList();
+        this.argument = argument;
     }
 
     @Override

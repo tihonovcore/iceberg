@@ -238,7 +238,7 @@ public class FunctionsTest extends Base {
         var exception = assertThrows(SemanticException.class, () -> execute("""
             fun foo() {}
             fun foo() {}""", null));
-        assertThat(exception).hasMessage("function 'foo' already exists");
+        assertThat(exception).hasMessage("function 'foo' already exists in class Iceberg");
     }
 
     @Test

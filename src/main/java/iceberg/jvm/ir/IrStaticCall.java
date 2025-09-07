@@ -1,6 +1,5 @@
 package iceberg.jvm.ir;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class IrStaticCall extends IrExpression {
@@ -10,11 +9,11 @@ public class IrStaticCall extends IrExpression {
 
     public IrStaticCall(
         IrFunction function,
-        IrExpression... arguments
+        List<IrExpression> arguments
     ) {
         super(function.returnType);
         this.function = function;
-        this.arguments = Arrays.stream(arguments).toList();
+        this.arguments = arguments;
     }
 
     @Override
