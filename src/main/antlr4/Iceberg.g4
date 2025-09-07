@@ -41,7 +41,11 @@ whileStatement
   ;
 
 classDefinitionStatement
-  : CLASS name=ID OPEN_BRACE defStatement* functionDefinitionStatement* CLOSE_BRACE
+  : CLASS name=ID OPEN_BRACE fieldDefinition* functionDefinitionStatement* CLOSE_BRACE
+  ;
+
+fieldDefinition
+  : DEF name=ID COLON type=ID (ASSIGN expression)?
   ;
 
 functionDefinitionStatement

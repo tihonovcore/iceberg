@@ -21,7 +21,7 @@ public class ClassesTest {
         var file = ParsingUtil.parse("""
             class Foo {
                 def x: i32
-                def y = "string"
+                def y: string = "string"
 
                 fun show() {
                     print x;
@@ -36,22 +36,24 @@ public class ClassesTest {
                   class
                   Foo
                   {
-                  IN DefStatementContext
+                  IN FieldDefinitionContext
                     def
                     x
                     :
                     i32
-                  OUT DefStatementContext
-                  IN DefStatementContext
+                  OUT FieldDefinitionContext
+                  IN FieldDefinitionContext
                     def
                     y
+                    :
+                    string
                     =
                     IN AtomExpressionContext
                       IN AtomContext
                         "string"
                       OUT AtomContext
                     OUT AtomExpressionContext
-                  OUT DefStatementContext
+                  OUT FieldDefinitionContext
                   IN FunctionDefinitionStatementContext
                     fun
                     show

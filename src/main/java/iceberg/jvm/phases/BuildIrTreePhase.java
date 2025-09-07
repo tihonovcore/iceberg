@@ -28,7 +28,7 @@ public class BuildIrTreePhase {
                     .map(irClass -> (IrClass) irClass.accept(this))
                     .toList();
 
-                //NOTE: bind user-defined functions to Iceberg class
+                //build bodies for top-level functions
                 ctx.statement().stream()
                     .map(IcebergParser.StatementContext::functionDefinitionStatement)
                     .filter(Objects::nonNull)
@@ -78,6 +78,9 @@ public class BuildIrTreePhase {
                     var irClass = classResolver.getIrClass(ctx.name.getText());
                     currentClass = irClass;
 
+                    ctx.fieldDefinition().forEach(
+                        definition -> definition.accept(this)
+                    );
                     ctx.functionDefinitionStatement().forEach(
                         definition -> definition.accept(this)
                     );
@@ -86,6 +89,21 @@ public class BuildIrTreePhase {
                 } finally {
                     currentClass = prev;
                 }
+            }
+
+            @Override
+            public IR visitFieldDefinition(IcebergParser.FieldDefinitionContext ctx) {
+                var fieldName = ctx.name.getText();
+                var irField = currentClass.fields.get(fieldName);
+
+                if (ctx.expression() != null) {
+                    var initializer = (IrExpression) ctx.expression().accept(this);
+
+                    assertAssignable(irField.type, initializer.type, ctx);
+                    irField.initializer = initializer;
+                }
+
+                return irField;
             }
 
             @Override

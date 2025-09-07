@@ -119,20 +119,14 @@ public class ClassResolver {
                 var prev = currentClass;
                 try {
                     currentClass = allClasses.get(ctx.name.getText());
-
-                    ctx.defStatement()
-                        .forEach(this::defineField);
-                    ctx.functionDefinitionStatement()
-                        .forEach(fun -> fun.accept(this));
-
-                    return null;
+                    return super.visitClassDefinitionStatement(ctx);
                 } finally {
                     currentClass = prev;
                 }
             }
 
-            private void defineField(IcebergParser.DefStatementContext ctx) {
-                //TODO: be ready to infer type from definition.expression()
+            @Override
+            public Void visitFieldDefinition(IcebergParser.FieldDefinitionContext ctx) {
                 //TODO: init field with definition.expression()
 
                 var fieldName = ctx.name.getText();
@@ -140,6 +134,8 @@ public class ClassResolver {
                 var irField = new IrField(currentClass, fieldName, type);
 
                 currentClass.fields.put(fieldName, irField);
+
+                return null;
             }
 
             @Override
