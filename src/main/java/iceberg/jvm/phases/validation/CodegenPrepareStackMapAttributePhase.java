@@ -1,6 +1,5 @@
 package iceberg.jvm.phases.validation;
 
-import iceberg.SemanticException;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
@@ -39,7 +38,7 @@ public class CodegenPrepareStackMapAttributePhase {
                 if (mapping.containsKey(parameter.type)) {
                     first.variables.add(mapping.get(parameter.type));
                 } else {
-                    throw new SemanticException("unknown type");
+                    first.variables.add(parameter.type.irClass.name);
                 }
             }
 
@@ -76,8 +75,9 @@ public class CodegenPrepareStackMapAttributePhase {
                 for (var type : snapshot.stack) {
                     if ("int".equals(type) || "boolean".equals(type)) {
                         full.stack.add(new StackMapAttribute.IntegerVariableInfo());
-                    //TODO: other types
-                    } else { //class
+                    } else if ("long".equals(type)) {
+                        full.stack.add(new StackMapAttribute.LongVariableInfo());
+                    } else {
                         var utf8 = unit.constantPool.computeUtf8(type);
                         var klass = unit.constantPool.computeKlass(utf8);
 
@@ -173,10 +173,9 @@ public class CodegenPrepareStackMapAttributePhase {
 
             switch (curr) {
                 case ALOAD_0 -> snapshot.push(snapshot.get((byte) 0));
-                //TODO: not necessary string
+                //TODO: not necessary string, better propagate IR to here
                 case ACONST_NULL -> snapshot.push("java/lang/String");
-                case ICONST_0 -> snapshot.push("int");
-                case ICONST_1 -> snapshot.push("int");
+                case ICONST_0, ICONST_1, BIPUSH, SIPUSH -> snapshot.push("int");
                 case LCONST_0 -> snapshot.push("long");
                 case RETURN, IRETURN, ARETURN, LRETURN -> snapshot.stack.clear();
                 case DUP -> {
@@ -191,9 +190,18 @@ public class CodegenPrepareStackMapAttributePhase {
 
                     snapshot.push(new String(name.bytes));
                 }
-                case GETSTATIC, GETFIELD, PUTFIELD -> {
+                case GETSTATIC -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     snapshot.push(load(constantPool, index).type);
+                }
+                case GETFIELD -> {
+                    snapshot.pop(); //receiver
+                    var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
+                    snapshot.push(load(constantPool, index).type);
+                }
+                case PUTFIELD -> {
+                    snapshot.pop(); //receiver
+                    snapshot.pop(); //value
                 }
                 case INVOKEVIRTUAL -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
@@ -220,23 +228,15 @@ public class CodegenPrepareStackMapAttributePhase {
                         snapshot.push(type.type);
                     }
                 }
-                case INVOKESPECIAL -> {
-                    snapshot.pop();
-                    //TODO: pop arguments
-                }
-                case BIPUSH -> snapshot.push("int");
-                case SIPUSH -> snapshot.push("int");
-                case LDC -> {
-                    snapshot.push(load(constantPool, code[i + 1]).type);
-                }
+                case INVOKESPECIAL -> snapshot.pop();
+                case LDC -> snapshot.push(load(constantPool, code[i + 1]).type);
                 case LDC_W, LDC_W2 -> {
                     var index = ((code[i + 1] & 0xFF) << 8) | (code[i + 2] & 0xFF);
                     var type = load(constantPool, index).type;
 
                     snapshot.push(type);
                 }
-                case IFEQ -> snapshot.pop();
-                case IFNE -> snapshot.pop();
+                case IFEQ, IFNE -> snapshot.pop();
                 case GOTO -> { /* do nothing */ }
                 case INEG -> {
                     snapshot.pop();
@@ -296,11 +296,8 @@ public class CodegenPrepareStackMapAttributePhase {
                 case RETURN, IRETURN, ARETURN, LRETURN -> 1;
                 case DUP -> 1;
                 case NEW -> 3;
-                case GETFIELD, PUTFIELD -> 3;
-                case GETSTATIC -> 3;
-                case INVOKEVIRTUAL -> 3;
-                case INVOKESTATIC -> 3;
-                case INVOKESPECIAL -> 3;
+                case GETSTATIC, GETFIELD, PUTFIELD -> 3;
+                case INVOKEVIRTUAL, INVOKESTATIC, INVOKESPECIAL -> 3;
                 case BIPUSH -> 2;
                 case SIPUSH -> 3;
                 case LDC -> 2;
@@ -309,10 +306,8 @@ public class CodegenPrepareStackMapAttributePhase {
                 case I2L -> 1;
                 case IADD, ISUB, IMUL, IDIV -> 1;
                 case LADD, LSUB, LMUL, LDIV -> 1;
-                case INEG -> 1;
-                case LNEG -> 1;
-                case IFEQ -> 3;
-                case IFNE -> 3;
+                case INEG, LNEG -> 1;
+                case IFEQ, IFNE -> 3;
                 case GOTO -> throw new IllegalStateException("Безусловный переход");
                 case IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPLE, IF_ICMPGT, IF_ICMPGE -> 3;
                 case LCMP -> 1;

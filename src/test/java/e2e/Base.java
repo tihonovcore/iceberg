@@ -2,7 +2,9 @@ package e2e;
 
 import iceberg.CompilationPipeline;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,18 +14,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class Base {
 
-    //TODO: все тесты с эксепшенами должны проверять текст ошибки
+    @TempDir
+    File workDirectory;
 
     @SneakyThrows
     void execute(String source, String expected) {
         for (var unit : CompilationPipeline.compile(source)) {
             var className = unit.irClass == null ? "Iceberg" : unit.irClass.name;
 
-            var path = Path.of("./src/test/java/e2e/%s.class".formatted(className));
+            var path = Path.of(workDirectory.getAbsolutePath(), className + ".class");
             Files.write(path, unit.bytes, CREATE, WRITE, TRUNCATE_EXISTING);
         }
 
-        var process = Runtime.getRuntime().exec("java -cp ./src/test/java/e2e Iceberg");
+        var process = Runtime.getRuntime().exec("java -cp %s Iceberg".formatted(workDirectory.getAbsolutePath()));
 
         int exitCode = process.waitFor();
         var out = new String(process.getInputStream().readAllBytes());
@@ -39,8 +42,9 @@ public class Base {
         }
     }
 
-    private static void printJavap() throws InterruptedException, IOException {
-        var process = Runtime.getRuntime().exec("javap -c -v ./src/test/java/e2e/Iceberg.class");
+    private void printJavap() throws InterruptedException, IOException {
+        var icebergClass = Path.of(workDirectory.getAbsolutePath(), "Iceberg.class");
+        var process = Runtime.getRuntime().exec("javap -c -v %s".formatted(icebergClass));
         process.waitFor();
 
         var out = new String(process.getInputStream().readAllBytes());

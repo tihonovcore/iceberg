@@ -1,7 +1,6 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -117,7 +116,6 @@ public class FunctionsTest extends Base {
     }
 
     @Test
-    @Disabled //TODO: не работает - есть goto после return за пределы функции
     void returnFromIf() {
         execute("""        
             fun positive(n: i32, fallback: bool): bool {

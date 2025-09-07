@@ -61,10 +61,7 @@ public class CodegenPrepareCodeAttributePhase {
 
             @Override
             public void visitIrFunction(IrFunction irFunction) {
-                //TODO: очень грязный if, надо переделать
-                // Тут мы проверяем, что метод не статический
-                // Метод статический <=> находится в классе Iceberg
-                if (!"Iceberg".equals(compilationUnit.irClass.name)) {
+                if (!irFunction.isJavaStatic()) {
                     var type = new IcebergType(irFunction.irClass);
                     var thisParameter = new IrVariable(type,null);
                     addToLocalVariables(thisParameter);
@@ -556,16 +553,34 @@ public class CodegenPrepareCodeAttributePhase {
 
                 irIfStatement.thenStatement.accept(this);
 
-                if (irIfStatement.elseStatement != null) {
+                if (irIfStatement.elseStatement == null) {
+                    toElseOrEnd.jump();
+                    return;
+                }
+
+                if (thenBlockEndsWithReturn(irIfStatement)) {
+                    toElseOrEnd.jump();
+                    irIfStatement.elseStatement.accept(this);
+                } else {
                     output.writeU1(OpCodes.GOTO.value);
                     var toEnd = output.lateInitJump();
 
                     toElseOrEnd.jump();
                     irIfStatement.elseStatement.accept(this);
                     toEnd.jump();
-                } else {
-                    toElseOrEnd.jump();
                 }
+            }
+
+            private boolean thenBlockEndsWithReturn(IrIfStatement irIfStatement) {
+                if (irIfStatement.thenStatement instanceof IrReturn) {
+                    return true;
+                }
+
+                if (irIfStatement.thenStatement instanceof IrBody irBody) {
+                    return !irBody.statements.isEmpty() && irBody.statements.getLast() instanceof IrReturn;
+                }
+
+                return false;
             }
 
             @Override

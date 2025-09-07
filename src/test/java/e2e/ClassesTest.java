@@ -1,7 +1,6 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -280,7 +279,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void userDefinedClassAsParameter__getField() {
         execute("""
             class Foo {
@@ -299,7 +297,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void userDefinedClassAsParameter__callMethod() {
         execute("""
             class Foo {
@@ -313,7 +310,7 @@ public class ClassesTest extends Base {
             }
             
             bar(new Foo);
-            """, "400\n");
+            """, "hello\n");
     }
 
     @Test
@@ -358,7 +355,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void highCoupling() {
         execute("""
             class Foo {
@@ -407,7 +403,6 @@ public class ClassesTest extends Base {
     }
 
     @Test
-    @Disabled
     void importedClassAsParameter__callMethod() {
         execute("""
             import java.util.ArrayList;
@@ -421,7 +416,7 @@ public class ClassesTest extends Base {
             build(list);
             
             print list.toString();
-            """, "400\n");
+            """, "[10, 20]\n");
     }
 
     @Test

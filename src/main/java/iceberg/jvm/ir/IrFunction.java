@@ -23,6 +23,10 @@ public class IrFunction implements IR {
     public final String name;
     public final IcebergType returnType;
 
+    public boolean isJavaStatic() {
+        return "Iceberg".equals(irClass.name) && !"<init>".equals(name);
+    }
+
     public String javaMethodDescriptor() {
         //TODO: добавление типа для массива проблематично. можно ли придумать что-то лучше?
         if ("Iceberg".equals(irClass.name) && "main".equals(name) && parameters.isEmpty()) {
