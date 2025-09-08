@@ -22,13 +22,13 @@ public class StatementsTest extends Base {
         return Stream.of(
             Arguments.of("print 10;", "10\n"),
             Arguments.of("def x = 0; print 10;", "10\n"),
-            Arguments.of("if (true) then print 1;", "1\n"),
-            Arguments.of("while (false) then print 1;", ""),
+            Arguments.of("if true then print 1;", "1\n"),
+            Arguments.of("while false then print 1;", ""),
             Arguments.of("fun foo() {}", ""),
             Arguments.of("class Foo {}", ""),
             Arguments.of("return;", ""),
             Arguments.of("""
-                if (true) then {
+                if true then {
                     print 99;
                     return;
                 }

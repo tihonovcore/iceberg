@@ -7,42 +7,86 @@ import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.CodeGenerator;
 import iceberg.jvm.phases.*;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.jar.*;
+import java.util.stream.Collectors;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 public class CompilationPipeline {
 
-    //TODO: доработать под cli, сделать jar
-    public static void main(String[] args) throws IOException, InvocationTargetException, IllegalAccessException {
-        var dummySource = """
-            print 5000; print 100;
-            print 123456789;
-            \tprint 0; print 9;
-            print false or true;
-            print "foo";
-            """;
-        var bytes = compile(dummySource).iterator().next().bytes;
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.out.println("""
+                Невалидное число аргументов
+                ice [-cp <path>] source.ib
+                ice [-cp <path>] -run source.ib
+                ice [-cp <path>] -jar source.ib
+                """);
+            return;
+        }
 
-        var path = Path.of("/Users/tihonovcore/IdeaProjects/iceberg/src/main/resources/Iceberg.class");
-        Files.write(path, bytes, CREATE, WRITE);
+        enum Mode { compile, run, jar }
+        var mode = Mode.valueOf(args[0].substring(1));
 
-        var classLoader = new Misc.ByteClassLoader();
-        var klass = classLoader.define(bytes);
+        var sourcePath = Path.of(args[1]);
+        var source = Files.readString(sourcePath);
 
-        var main = Arrays.stream(klass.getMethods())
-            .filter(method -> "main".equals(method.getName()))
-            .findAny().orElseThrow();
+        switch (mode) {
+            case run -> {
+                var classLoader = new Misc.ByteClassLoader();
+                var classes = compile(source).stream()
+                    .collect(Collectors.toMap(
+                        unit -> unit.irClass.name,
+                        unit -> classLoader.define(unit.irClass.name, unit.bytes)
+                    ));
 
-        Object[] arguments = new Object[1];
-        arguments[0] = new String[0];
-        main.invoke(null, arguments);
+                var icebergClass = classes.get("Iceberg");
+                var main = Arrays.stream(icebergClass.getMethods())
+                    .filter(method -> "main".equals(method.getName()))
+                    .findAny().orElseThrow();
+
+                Object[] arguments = new Object[1];
+                arguments[0] = new String[0];
+                main.invoke(null, arguments);
+            }
+            case compile -> compile(sourcePath, source);
+            case jar -> {
+                var paths = compile(sourcePath, source);
+                var sourceName = sourcePath.getFileName().toString().split("\\.ib")[0];
+
+                var jarName = sourceName + ".jar";
+                var jar = Paths.get(
+                    sourcePath.toAbsolutePath().getParent().toString(), jarName
+                );
+
+                writeJar(jar, paths);
+            }
+        }
+    }
+
+    private static Collection<Path> compile(Path sourcePath, String source) throws IOException {
+        var paths = new ArrayList<Path>();
+
+        for (var unit : compile(source)) {
+            var classFileName = unit.irClass.name + ".class";
+            var path = Paths.get(
+                sourcePath.toAbsolutePath().getParent().toString(),
+                classFileName
+            );
+            paths.add(path);
+
+            Files.write(path, unit.bytes, CREATE, TRUNCATE_EXISTING, WRITE);
+        }
+
+        return paths;
     }
 
     public static Collection<CompilationUnit> compile(String source) {
@@ -74,6 +118,25 @@ public class CompilationPipeline {
         } catch (CompilationException exception) {
             System.err.println(exception.getMessage());
             throw exception;
+        }
+    }
+
+    private static void writeJar(Path jarPath, Collection<Path> paths) throws IOException {
+        var manifest = new Manifest();
+        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "Iceberg");
+
+        try (
+            var fos = new FileOutputStream(jarPath.toFile());
+            var jos = new JarOutputStream(fos, manifest)
+        ) {
+            for (Path classFile : paths) {
+                var entryName = classFile.getFileName().toString();
+
+                jos.putNextEntry(new JarEntry(entryName));
+                Files.copy(classFile, jos);
+                jos.closeEntry();
+            }
         }
     }
 }

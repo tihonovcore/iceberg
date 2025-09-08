@@ -503,4 +503,21 @@ public class ClassesTest extends Base {
             """, null));
         assertThat(exception).hasMessage("class 'X' is not defined");
     }
+
+    @Test
+    void callMethodFromMethod() {
+        execute("""
+            class Foo {
+                fun foo() {
+                    this.bar();
+                }
+
+                fun bar() {
+                    print "hello";
+                }
+            }
+            
+            (new Foo).foo();
+            """, "hello\n");
+    }
 }

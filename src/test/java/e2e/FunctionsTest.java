@@ -277,7 +277,7 @@ public class FunctionsTest extends Base {
     void codeAfterReturn__nested() {
         var exception = assertThrows(SemanticException.class, () -> execute("""
             fun foo(): i32 {
-                if (true) then {
+                if true then {
                     return 99;
                     print 100;
                 }
@@ -354,28 +354,28 @@ public class FunctionsTest extends Base {
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true)
+                    if true
                     then print 10;
                     else print 99;
                 }
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true)
+                    if true
                     then return 10;
                     else print 99;
                 }
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true)
+                    if true
                     then print 10;
                     else return 99;
                 }
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true) then {
+                    if true then {
                         print 10;
                     } else {
                         print 99;
@@ -384,7 +384,7 @@ public class FunctionsTest extends Base {
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true) then {
+                    if true then {
                         print 10;
                     } else {
                         return 99;
@@ -393,7 +393,7 @@ public class FunctionsTest extends Base {
                 """),
             Arguments.of("""
                 fun foo(): i32 {
-                    if (true) then {
+                    if true then {
                         return 10;
                     } else {
                         print 99;

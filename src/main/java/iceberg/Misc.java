@@ -25,8 +25,8 @@ public class Misc {
 
     public static class ByteClassLoader extends ClassLoader {
 
-        public Class<?> define(byte[] bytes) {
-            return defineClass("Iceberg", bytes, 0, bytes.length);
+        public Class<?> define(String className, byte[] bytes) {
+            return defineClass(className, bytes, 0, bytes.length);
         }
     }
 }

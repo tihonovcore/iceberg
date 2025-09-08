@@ -22,7 +22,7 @@ public class CodegenPrepareStackMapAttributePhase {
 
             var first = new Snapshot();
             if ((method.flags & Method.AccessFlags.ACC_STATIC.value) == 0) {
-                first.variables.add("this");
+                first.variables.add(unit.irClass.name);
             }
 
             //fill local array with parameters
