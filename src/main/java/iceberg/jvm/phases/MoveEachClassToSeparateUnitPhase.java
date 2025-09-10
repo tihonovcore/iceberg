@@ -1,6 +1,6 @@
 package iceberg.jvm.phases;
 
-import iceberg.jvm.ir.IrFile;
+import iceberg.ir.IrFile;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.target.SourceAttribute;
 

@@ -3,7 +3,7 @@ package iceberg.jvm.phases;
 import iceberg.SemanticException;
 import iceberg.antlr.IcebergBaseVisitor;
 import iceberg.antlr.IcebergParser;
-import iceberg.jvm.ir.*;
+import iceberg.ir.*;
 import lombok.Getter;
 import org.antlr.v4.runtime.tree.ParseTree;
 

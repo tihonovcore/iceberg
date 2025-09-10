@@ -103,15 +103,15 @@ public class CompilationPipeline {
 
             for (var unit : compilationUnits) {
                 new GenerateDefaultConstructorPhase().execute(unit);
+            }
 
-                //codegen
+            //codegen
+            for (var unit : compilationUnits) {
                 new CodegenPrepareMethodsPhase().execute(unit);
                 new CodegenPrepareFieldsPhase().execute(unit);
                 new CodegenPrepareCodeAttributePhase().execute(unit);
                 new CodegenPrepareStackMapAttributePhase().execute(unit);
             }
-
-            //codegen
             CodeGenerator.codegen(compilationUnits);
 
             return compilationUnits;

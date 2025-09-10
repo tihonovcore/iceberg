@@ -1,7 +1,7 @@
 package iceberg.jvm.phases;
 
 import iceberg.SemanticException;
-import iceberg.jvm.ir.*;
+import iceberg.ir.*;
 
 import java.util.ArrayList;
 import java.util.List;

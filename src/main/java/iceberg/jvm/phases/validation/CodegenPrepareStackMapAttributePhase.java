@@ -6,7 +6,7 @@ import iceberg.jvm.OpCodes;
 import iceberg.jvm.cp.*;
 import iceberg.jvm.target.Method;
 import iceberg.jvm.target.StackMapAttribute;
-import iceberg.jvm.ir.IcebergType;
+import iceberg.ir.IcebergType;
 
 import java.util.*;
 

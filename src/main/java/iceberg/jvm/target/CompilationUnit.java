@@ -2,7 +2,7 @@ package iceberg.jvm.target;
 
 import iceberg.jvm.cp.ConstantPool;
 import iceberg.jvm.cp.Klass;
-import iceberg.jvm.ir.IrClass;
+import iceberg.ir.IrClass;
 
 import java.util.ArrayList;
 import java.util.List;

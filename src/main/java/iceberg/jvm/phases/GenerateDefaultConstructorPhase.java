@@ -1,8 +1,7 @@
 package iceberg.jvm.phases;
 
+import iceberg.ir.*;
 import iceberg.jvm.target.CompilationUnit;
-import iceberg.jvm.ir.*;
-import iceberg.jvm.ir.IcebergType;
 
 import java.util.Collection;
 

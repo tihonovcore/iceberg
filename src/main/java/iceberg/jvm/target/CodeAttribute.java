@@ -1,7 +1,7 @@
 package iceberg.jvm.target;
 
 import iceberg.jvm.cp.Utf8;
-import iceberg.jvm.ir.IrFunction;
+import iceberg.ir.IrFunction;
 
 import java.util.ArrayList;
 import java.util.List;

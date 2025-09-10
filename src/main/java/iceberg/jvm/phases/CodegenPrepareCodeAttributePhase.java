@@ -1,12 +1,11 @@
 package iceberg.jvm.phases;
 
+import iceberg.ir.*;
 import iceberg.jvm.ByteArray;
 import iceberg.jvm.cp.MethodRef;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
 import iceberg.jvm.OpCodes;
-import iceberg.jvm.ir.*;
-import iceberg.jvm.ir.IcebergType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

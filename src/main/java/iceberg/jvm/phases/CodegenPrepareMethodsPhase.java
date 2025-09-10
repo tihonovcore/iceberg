@@ -1,8 +1,8 @@
 package iceberg.jvm.phases;
 
+import iceberg.ir.IrFunction;
 import iceberg.jvm.target.CodeAttribute;
 import iceberg.jvm.target.CompilationUnit;
-import iceberg.jvm.ir.*;
 import iceberg.jvm.target.Method;
 
 public class CodegenPrepareMethodsPhase {
