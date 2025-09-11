@@ -1,6 +1,6 @@
 package e2e;
 
-import iceberg.CompilationPipeline;
+import iceberg.jvm.JvmCompiler;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,7 +19,7 @@ public class Base {
 
     @SneakyThrows
     void execute(String source, String expected) {
-        for (var unit : CompilationPipeline.compile(source)) {
+        for (var unit : JvmCompiler.compile(source)) {
             var className = unit.irClass == null ? "Iceberg" : unit.irClass.name;
 
             var path = Path.of(workDirectory.getAbsolutePath(), className + ".class");

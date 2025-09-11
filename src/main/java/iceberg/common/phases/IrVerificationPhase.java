@@ -1,4 +1,4 @@
-package iceberg.jvm.phases;
+package iceberg.common.phases;
 
 import iceberg.SemanticException;
 import iceberg.ir.*;
