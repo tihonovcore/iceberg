@@ -6,6 +6,7 @@ import iceberg.llvm.FunctionCfg;
 import iceberg.llvm.tac.*;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 public class CodeGenerationPhase {
 
@@ -28,7 +29,10 @@ public class CodeGenerationPhase {
             output.append("() {");
             output.append(System.lineSeparator());
 
-            functionCfg.bbs.values().forEach(basicBlock -> dumpBasicBlock(output, basicBlock));
+            //NOTE: label_0 should be first
+            functionCfg.bbs.values().stream()
+                .sorted(Comparator.comparing(o -> o.label))
+                .forEach(basicBlock -> dumpBasicBlock(output, basicBlock));
 
             output.append("}");
             output.append(System.lineSeparator());
@@ -131,6 +135,26 @@ public class CodeGenerationPhase {
             }
 
             @Override
+            public void visitTacJump(TacJump tacJump) {
+                output.append(indent);
+                output.append("br label %");
+                output.append(tacJump.gotoLabel);
+                output.append(System.lineSeparator());
+            }
+
+            @Override
+            public void visitTacJumpConditional(TacJumpConditional tacJumpConditional) {
+                output.append(indent);
+                output.append("br i1 ");
+                tacJumpConditional.condition.accept(this);
+                output.append(", label %");
+                output.append(tacJumpConditional.thenLabel);
+                output.append(", label %");
+                output.append(tacJumpConditional.elseLabel);
+                output.append(System.lineSeparator());
+            }
+
+            @Override
             public void visitTacNumber(TacNumber tacNumber) {
                 output.append(tacNumber.value);
             }
@@ -186,6 +210,42 @@ public class CodeGenerationPhase {
                     }
                 }
 
+                output.append(System.lineSeparator());
+            }
+
+            @Override
+            public void visitTacVarAllocate(TacVarAllocate tacVarAllocate) {
+                output.append(indent);
+                output.append(tacVarAllocate.target);
+                output.append(" = alloca ");
+                output.append(tacVarAllocate.target.type);
+                output.append(System.lineSeparator());
+            }
+
+            @Override
+            public void visitTacVarLoad(TacVarLoad tacVarLoad) {
+                output.append(indent);
+                output.append(tacVarLoad.target);
+                output.append(" = load ");
+                output.append(tacVarLoad.target.type);
+                output.append(", ");
+                output.append(tacVarLoad.memory.type);
+                output.append("* ");
+                output.append(tacVarLoad.memory);
+                output.append(System.lineSeparator());
+            }
+
+            @Override
+            public void visitTacVarStore(TacVarStore tacVarStore) {
+                output.append(indent);
+                output.append("store ");
+                output.append(tacVarStore.argument.type);
+                output.append(" ");
+                output.append(tacVarStore.argument);
+                output.append(", ");
+                output.append(tacVarStore.target.type);
+                output.append("* ");
+                output.append(tacVarStore.target);
                 output.append(System.lineSeparator());
             }
 

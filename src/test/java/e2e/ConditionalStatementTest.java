@@ -7,10 +7,11 @@ import run.compiler.Compiler;
 import java.util.stream.Stream;
 
 import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
 public class ConditionalStatementTest {
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void ifOnly(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -56,7 +57,7 @@ public class ConditionalStatementTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void ifElse(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }

@@ -5,7 +5,9 @@ import iceberg.llvm.FunctionTac;
 import iceberg.llvm.tac.*;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class BuildTacPhase {
 
@@ -80,6 +82,87 @@ public class BuildTacPhase {
             @Override
             public void visitIrBool(IrBool irBool) {
                 returned = new TacNumber(irBool.value ? 1 : 0, IcebergType.bool);
+            }
+
+            @Override
+            public void visitIrIfStatement(IrIfStatement irIfStatement) {
+                irIfStatement.condition.accept(this);
+                var condition = returned;
+
+                var fromCondition = new TacJumpConditional(condition);
+                currentFunction.tac.add(fromCondition);
+
+                fromCondition.thenOffset = currentFunction.tac.size();
+                irIfStatement.thenStatement.accept(this);
+
+                var fromThenBody = new TacJump();
+                currentFunction.tac.add(fromThenBody);
+
+                if (irIfStatement.elseStatement == null) {
+                    fromCondition.elseOffset = currentFunction.tac.size();
+                    fromThenBody.gotoOffset = currentFunction.tac.size();
+                    return;
+                }
+
+                fromCondition.elseOffset = currentFunction.tac.size();
+                irIfStatement.elseStatement.accept(this);
+
+                var fromElseBody = new TacJump();
+                currentFunction.tac.add(fromElseBody);
+
+                fromThenBody.gotoOffset = currentFunction.tac.size();
+                fromElseBody.gotoOffset = currentFunction.tac.size();
+            }
+
+            @Override
+            public void visitIrAssignVariable(IrAssignVariable irAssignVariable) {
+                var target = new TacVariable(
+                    allocated.get(irAssignVariable.definition),
+                    irAssignVariable.definition.type
+                );
+
+                irAssignVariable.expression.accept(this);
+                var argument = returned;
+
+                var store = new TacVarStore(target, argument);
+                currentFunction.tac.add(store);
+
+                returned = target;
+            }
+
+            @Override
+            public void visitIrReadVariable(IrReadVariable irReadVariable) {
+                var target = new TacVariable(synth(), irReadVariable.type);
+                var memory = new TacVariable(
+                    allocated.get(irReadVariable.definition),
+                    irReadVariable.definition.type
+                );
+
+                var load = new TacVarLoad(target, memory);
+                currentFunction.tac.add(load);
+
+                returned = target;
+            }
+
+            private final Map<IrVariable, String> allocated = new HashMap<>();
+
+            @Override
+            public void visitIrVariable(IrVariable irVariable) {
+                var target = new TacVariable(synth(), irVariable.type);
+                allocated.put(irVariable, target.name);
+
+                var alloc = new TacVarAllocate(target);
+                currentFunction.tac.add(alloc);
+
+                if (irVariable.initializer != null) {
+                    irVariable.initializer.accept(this);
+                    var argument = returned;
+
+                    var store = new TacVarStore(target, argument);
+                    currentFunction.tac.add(store);
+                }
+
+                returned = target;
             }
 
             @Override

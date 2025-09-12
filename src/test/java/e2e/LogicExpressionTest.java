@@ -1,11 +1,7 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import run.BackendTarget;
 import run.BackendTest;
 import run.ParameterizedBackendTest;
 import run.compiler.Compiler;
@@ -52,13 +48,6 @@ public class LogicExpressionTest {
             Arguments.of("print false or true and false;", "false\n"),
             Arguments.of("print false and true or false;", "false\n"),
 
-            Arguments.of("""
-                def a: string;
-                def b: string = "qux";
-                
-                print 4 > 2 or a == b;
-                """, "true\n"),
-
             Arguments.of("print not true;", "false\n"),
             Arguments.of("print not false;", "true\n"),
 
@@ -101,6 +90,16 @@ public class LogicExpressionTest {
             Arguments.of("print not 1;"),
             Arguments.of("print not \"foo\";")
         );
+    }
+
+    @BackendTest(JVM) //NOTE: no strings in LLVM
+    void nullCompare(Compiler compiler) {
+        compiler.execute("""
+            def a: string;
+            def b: string = "qux";
+
+            print 4 > 2 or a == b;
+            """, "true\n");
     }
 
     @BackendTest(JVM)
