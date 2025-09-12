@@ -213,33 +213,6 @@ public class BuildIrTreePhase {
             }
 
             @Override
-            public IR visitAdditionExpression(IcebergParser.AdditionExpressionContext ctx) {
-                var left = (IrExpression) ctx.left.accept(this);
-                var right = (IrExpression) ctx.right.accept(this);
-
-                IcebergType result;
-                if (left.type == IcebergType.i64 && right.type == IcebergType.i64) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i64 && right.type == IcebergType.i32) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i64) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
-                    result = IcebergType.i32;
-                } else {
-                    throw new SemanticException("""
-                        cannot apply operation to %s and %s
-                        at %s""".formatted(left.type, right.type, ctx.getText())
-                    );
-                }
-
-                var operator = ctx.PLUS() != null
-                    ? IcebergBinaryOperator.PLUS
-                    : IcebergBinaryOperator.SUB;
-                return new IrBinaryExpression(left, right, operator, result);
-            }
-
-            @Override
             public IR visitDefStatement(IcebergParser.DefStatementContext ctx) {
                 var name = ctx.name.getText();
                 for (var scope : scopes) {
@@ -307,6 +280,21 @@ public class BuildIrTreePhase {
                 }
             }
 
+            private static void assertIntegers(
+                IrExpression left, IrExpression right, RuleContext ctx
+            ) {
+                var integers = Set.of(IcebergType.i32, IcebergType.i64);
+                if (integers.contains(left.type) && integers.contains(right.type)) {
+                    return;
+                }
+
+                throw new SemanticException("""
+                    cannot apply operation to %s and %s
+                    at %s""".formatted(left.type, right.type, ctx.getText())
+                );
+            }
+
+
             @Override
             public IR visitIfStatement(IcebergParser.IfStatementContext ctx) {
                 var condition = (IrExpression) ctx.condition.accept(this);
@@ -334,30 +322,44 @@ public class BuildIrTreePhase {
             }
 
             @Override
+            public IR visitAdditionExpression(IcebergParser.AdditionExpressionContext ctx) {
+                var left = (IrExpression) ctx.left.accept(this);
+                var right = (IrExpression) ctx.right.accept(this);
+                var operator = ctx.PLUS() != null
+                    ? IcebergBinaryOperator.PLUS
+                    : IcebergBinaryOperator.SUB;
+
+                assertIntegers(left, right, ctx);
+                return buildArithmeticExpression(left, right, operator);
+            }
+
+
+            @Override
             public IR visitMultiplicationExpression(IcebergParser.MultiplicationExpressionContext ctx) {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);
-
-                IcebergType result;
-                if (left.type == IcebergType.i64 && right.type == IcebergType.i64) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i64 && right.type == IcebergType.i32) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i64) {
-                    result = IcebergType.i64;
-                } else if (left.type == IcebergType.i32 && right.type == IcebergType.i32) {
-                    result = IcebergType.i32;
-                } else {
-                    throw new SemanticException("""
-                        cannot apply operation to %s and %s
-                        at %s""".formatted(left.type, right.type, ctx.getText())
-                    );
-                }
-
                 var operator = ctx.STAR() != null
                     ? IcebergBinaryOperator.MULT
                     : IcebergBinaryOperator.DIV;
-                return new IrBinaryExpression(left, right, operator, result);
+
+                assertIntegers(left, right, ctx);
+                return buildArithmeticExpression(left, right, operator);
+            }
+
+            private IrBinaryExpression buildArithmeticExpression(
+                IrExpression left,
+                IrExpression right,
+                IcebergBinaryOperator operator
+            ) {
+                if (left.type.equals(IcebergType.i32) && right.type.equals(IcebergType.i64)) {
+                    left = new IrCast(left, IcebergType.i64);
+                }
+
+                if (left.type.equals(IcebergType.i64) && right.type.equals(IcebergType.i32)) {
+                    right = new IrCast(right, IcebergType.i64);
+                }
+
+                return new IrBinaryExpression(left, right, operator, left.type);
             }
 
             @Override
@@ -365,25 +367,27 @@ public class BuildIrTreePhase {
                 var left = (IrExpression) ctx.left.accept(this);
                 var right = (IrExpression) ctx.right.accept(this);
 
-                var integers = Set.of(IcebergType.i32, IcebergType.i64);
-                if (integers.contains(left.type) && integers.contains(right.type)) {
-                    IcebergBinaryOperator operator;
-                    if (ctx.GE() != null) operator = IcebergBinaryOperator.LE;
-                    else if (ctx.GT() != null) operator = IcebergBinaryOperator.LT;
-                    else if (ctx.LE() != null) operator = IcebergBinaryOperator.LE;
-                    else if (ctx.LT() != null) operator = IcebergBinaryOperator.LT;
-                    else throw new IllegalArgumentException();
+                assertIntegers(left, right, ctx);
 
-                    if (ctx.LT() != null || ctx.LE() != null) {
-                        return new IrBinaryExpression(left, right, operator, IcebergType.bool);
-                    } else {
-                        return new IrBinaryExpression(right, left, operator, IcebergType.bool);
-                    }
+                if (left.type.equals(IcebergType.i32) && right.type.equals(IcebergType.i64)) {
+                    left = new IrCast(left, IcebergType.i64);
+                }
+
+                if (left.type.equals(IcebergType.i64) && right.type.equals(IcebergType.i32)) {
+                    right = new IrCast(right, IcebergType.i64);
+                }
+
+                IcebergBinaryOperator operator;
+                if (ctx.GE() != null) operator = IcebergBinaryOperator.LE;
+                else if (ctx.GT() != null) operator = IcebergBinaryOperator.LT;
+                else if (ctx.LE() != null) operator = IcebergBinaryOperator.LE;
+                else if (ctx.LT() != null) operator = IcebergBinaryOperator.LT;
+                else throw new IllegalArgumentException();
+
+                if (ctx.LT() != null || ctx.LE() != null) {
+                    return new IrBinaryExpression(left, right, operator, IcebergType.bool);
                 } else {
-                    throw new SemanticException("""
-                        cannot apply operation to %s and %s
-                        at %s""".formatted(left.type, right.type, ctx.getText())
-                    );
+                    return new IrBinaryExpression(right, left, operator, IcebergType.bool);
                 }
             }
 
@@ -406,8 +410,15 @@ public class BuildIrTreePhase {
                     return new IrUnaryExpression(call, IcebergUnaryOperator.NOT, IcebergType.bool);
                 }
 
-                var integers = Set.of(IcebergType.i32, IcebergType.i64);
-                if (left.type == right.type || integers.containsAll(Set.of(left.type, right.type))) {
+                if (left.type.equals(IcebergType.i32) && right.type.equals(IcebergType.i64)) {
+                    left = new IrCast(left, IcebergType.i64);
+                }
+
+                if (left.type.equals(IcebergType.i64) && right.type.equals(IcebergType.i32)) {
+                    right = new IrCast(right, IcebergType.i64);
+                }
+
+                if (left.type.equals(right.type)) {
                     var binary = new IrBinaryExpression(left, right, IcebergBinaryOperator.EQ, IcebergType.bool);
                     if (ctx.EQ() != null) {
                         return binary;

@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import static java.nio.file.StandardOpenOption.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class Base {
+class Base {
 
     @TempDir
     File workDirectory;

@@ -131,6 +131,9 @@ public class ArithmeticExpressionTest extends Base {
             Arguments.of("print 222444666888 / 2;", "111222333444\n"),
             Arguments.of("print 2 / 111222333444;", "0\n"),
 
+            Arguments.of("print 222444666888 / 222444666888;", "1\n"),
+            Arguments.of("print -222444666888 / 222444666888;", "-1\n"),
+
             Arguments.of("print -222444666888 / 2;", "-111222333444\n"),
             Arguments.of("print 222444666888 / -2;", "-111222333444\n"),
             Arguments.of("print -222444666888 / -2;", "111222333444\n"),

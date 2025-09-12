@@ -208,18 +208,7 @@ public class CodegenPrepareCodeAttributePhase {
                 }
 
                 irExpression.left.accept(this);
-                if (irExpression.left.type != irExpression.right.type) {
-                    if (irExpression.left.type == IcebergType.i32) {
-                        output.writeU1(OpCodes.I2L.value);
-                    }
-                }
-
                 irExpression.right.accept(this);
-                if (irExpression.left.type != irExpression.right.type) {
-                    if (irExpression.right.type == IcebergType.i32) {
-                        output.writeU1(OpCodes.I2L.value);
-                    }
-                }
 
                 switch (irExpression.operator) {
                     case PLUS -> {
