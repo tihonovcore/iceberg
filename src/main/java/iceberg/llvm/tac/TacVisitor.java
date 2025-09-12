@@ -8,5 +8,6 @@ public interface TacVisitor {
     void visitTacNumber(TacNumber tacNumber);
     void visitTacPrint(TacPrint tacPrint);
     void visitTacReturn(TacReturn tacReturn);
+    void visitTacUnaryOperation(TacUnaryOperation tacUnaryOperation);
     void visitTacVariable(TacVariable tacVariable);
 }

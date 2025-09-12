@@ -50,6 +50,17 @@ public class BuildTacPhase {
             }
 
             @Override
+            public void visitIrUnaryExpression(IrUnaryExpression irExpression) {
+                irExpression.value.accept(this);
+                var argument = returned;
+
+                var target = new TacVariable(synth(), irExpression.type);
+                returned = target;
+
+                currentFunction.tac.add(new TacUnaryOperation(target, argument, irExpression.operator));
+            }
+
+            @Override
             public void visitIrCast(IrCast irCast) {
                 irCast.irExpression.accept(this);
                 var argument = returned;
@@ -63,6 +74,11 @@ public class BuildTacPhase {
             @Override
             public void visitIrNumber(IrNumber irNumber) {
                 returned = new TacNumber(irNumber.value, irNumber.type);
+            }
+
+            @Override
+            public void visitIrBool(IrBool irBool) {
+                returned = new TacNumber(irBool.value ? 1 : 0, IcebergType.bool);
             }
 
             @Override
