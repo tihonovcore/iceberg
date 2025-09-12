@@ -12,4 +12,9 @@ public class TacPrint implements TAC {
     public void accept(TacVisitor visitor) {
         visitor.visitTacPrint(this);
     }
+
+    @Override
+    public String toString() {
+        return "print " + argument;
+    }
 }

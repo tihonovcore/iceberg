@@ -15,4 +15,9 @@ public class TacNumber extends TacTyped {
     public void accept(TacVisitor visitor) {
         visitor.visitTacNumber(this);
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 }

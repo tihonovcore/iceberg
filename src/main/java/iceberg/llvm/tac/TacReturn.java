@@ -19,4 +19,9 @@ public class TacReturn implements TAC {
     public void accept(TacVisitor visitor) {
         visitor.visitTacReturn(this);
     }
+
+    @Override
+    public String toString() {
+        return argument == null ? "return" : "return " + argument;
+    }
 }

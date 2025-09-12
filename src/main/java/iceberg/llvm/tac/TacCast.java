@@ -14,4 +14,9 @@ public class TacCast implements TAC {
     public void accept(TacVisitor visitor) {
         visitor.visitTacCast(this);
     }
+
+    @Override
+    public String toString() {
+        return target + " = cast " + argument;
+    }
 }

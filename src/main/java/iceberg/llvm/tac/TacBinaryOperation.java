@@ -25,4 +25,9 @@ public class TacBinaryOperation implements TAC {
     public void accept(TacVisitor visitor) {
         visitor.visitTacBinaryOperation(this);
     }
+
+    @Override
+    public String toString() {
+        return target + " = " + left + " " + operator + " " + right;
+    }
 }

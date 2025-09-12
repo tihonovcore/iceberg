@@ -15,4 +15,9 @@ public class TacVariable extends TacTyped {
     public void accept(TacVisitor visitor) {
         visitor.visitTacVariable(this);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

@@ -22,4 +22,9 @@ public class TacUnaryOperation implements TAC {
     public void accept(TacVisitor visitor) {
         visitor.visitTacUnaryOperation(this);
     }
+
+    @Override
+    public String toString() {
+        return target + " = " + operator + " " + argument;
+    }
 }

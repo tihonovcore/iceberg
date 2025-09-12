@@ -45,10 +45,10 @@ public class CodeGenerationPhase {
                         case MULT -> "mul";
                         case DIV -> "sdiv";
                         case LE -> "icmp sle";
-                        case LT -> "icmp slt ";
+                        case LT -> "icmp slt";
                         case EQ -> throw new IllegalStateException("not yet implemented");
-                        case AND -> "and ";
-                        case OR -> "or ";
+                        case AND -> "and";
+                        case OR -> "or";
                     });
 
                     //TODO: support all types

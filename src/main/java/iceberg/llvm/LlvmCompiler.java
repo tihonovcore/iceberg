@@ -70,6 +70,12 @@ public class LlvmCompiler {
             new IrVerificationPhase().execute(irFile);
 
             var allTac = new BuildTacPhase(irFile).execute();
+            allTac.forEach(function -> {
+                for (int i = 0; i < function.tac.size(); i++) {
+                    System.out.println(i + " " + function.tac.get(i));
+                }
+            });
+
             var allCfg = allTac.stream()
                 .map(tacFunction -> new BuildCfgPhase(tacFunction).execute())
                 .toList();
