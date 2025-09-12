@@ -1,20 +1,22 @@
 package e2e;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.BackendTest;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
-public class PrintConstantsTest extends Base {
+import static run.BackendTarget.JVM;
 
-    @ParameterizedTest
-    @MethodSource
-    void number(String source, String expected) {
-        execute(source, expected);
+public class PrintConstantsTest {
+
+    @ParameterizedBackendTest(JVM)
+    void number(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> number() {
         return Stream.of(
             Arguments.of("print 0;", "0\n"),
@@ -37,12 +39,12 @@ public class PrintConstantsTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void bool(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void bool(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> bool() {
         return Stream.of(
             Arguments.of("print true;", "true\n"),
@@ -50,12 +52,12 @@ public class PrintConstantsTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void string(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void string(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> string() {
         return Stream.of(
             Arguments.of("""
@@ -98,9 +100,9 @@ public class PrintConstantsTest extends Base {
         );
     }
 
-    @Test
-    void multiline() {
-        execute("""
+    @BackendTest(JVM)
+    void multiline(Compiler compiler) {
+        compiler.execute("""
             print 123;
             print -123;
             print false;

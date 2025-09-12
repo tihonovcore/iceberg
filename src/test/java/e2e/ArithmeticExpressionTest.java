@@ -1,22 +1,24 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
-public class ArithmeticExpressionTest extends Base {
+public class ArithmeticExpressionTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void unary(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void unary(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> unary() {
         return Stream.of(
             Arguments.of("print -(100);", "-100\n"),
@@ -31,12 +33,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void addition(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void addition(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> addition() {
         return Stream.of(
             Arguments.of("print 2 + 4;", "6\n"),
@@ -54,12 +56,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void subtraction(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void subtraction(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> subtraction() {
         return Stream.of(
             Arguments.of("print 2 - 4;", "-2\n"),
@@ -81,12 +83,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void multiplication(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void multiplication(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> multiplication() {
         return Stream.of(
             Arguments.of("print 2 * 4;", "8\n"),
@@ -108,12 +110,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void division(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void division(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> division() {
         return Stream.of(
             Arguments.of("print 2 / 4;", "0\n"),
@@ -141,12 +143,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void complex(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void complex(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> complex() {
         return Stream.of(
             Arguments.of("print 2 + 2 * 2;", "6\n"),
@@ -175,12 +177,12 @@ public class ArithmeticExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void negative(String source) {
-        assertThrows(SemanticException.class, () -> execute(source, null));
+    @ParameterizedBackendTest({JVM, LLVM})
+    void negative(Compiler compiler, String source) {
+        assertThrows(SemanticException.class, () -> compiler.execute(source, null));
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> negative() {
         return Stream.of(
             Arguments.of("print --100;"),

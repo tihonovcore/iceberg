@@ -1,19 +1,22 @@
 package e2e;
 
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
-public class ComparationExpressionTest extends Base {
+import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
-    @ParameterizedTest
-    @MethodSource
-    void lt(String source, String expected) {
-        execute(source, expected);
+public class ComparationExpressionTest {
+
+    @ParameterizedBackendTest({JVM, LLVM})
+    void lt(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> lt() {
         return Stream.of(
             Arguments.of("print 100 < 101;", "true\n"),
@@ -33,12 +36,12 @@ public class ComparationExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void le(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void le(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> le() {
         return Stream.of(
             Arguments.of("print 100 <= 101;", "true\n"),
@@ -58,12 +61,12 @@ public class ComparationExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void gt(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void gt(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> gt() {
         return Stream.of(
             Arguments.of("print 100 > 101;", "false\n"),
@@ -85,12 +88,12 @@ public class ComparationExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void ge(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void ge(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> ge() {
         return Stream.of(
             Arguments.of("print 100 >= 101;", "false\n"),

@@ -1,23 +1,24 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
 
-public class StatementsTest extends Base {
+public class StatementsTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void positive(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void positive(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> positive() {
         return Stream.of(
             Arguments.of("print 10;", "10\n"),
@@ -57,13 +58,13 @@ public class StatementsTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void negative(String source, String expected) {
-        var exception = assertThrows(SemanticException.class, () -> execute(source, expected));
+    @ParameterizedBackendTest(JVM)
+    void negative(Compiler compiler, String source, String expected) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute(source, expected));
         assertThat(exception).hasMessageStartingWith("not a statement");
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> negative() {
         return Stream.of(
             Arguments.of("""

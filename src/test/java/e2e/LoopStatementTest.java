@@ -1,20 +1,22 @@
 package e2e;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.BackendTest;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
-public class LoopStatementTest extends Base {
+import static run.BackendTarget.JVM;
 
-    @ParameterizedTest
-    @MethodSource
-    void loop(String source, String expected) {
-        execute(source, expected);
+public class LoopStatementTest {
+
+    @ParameterizedBackendTest(JVM)
+    void loop(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> loop() {
         return Stream.of(
             Arguments.of("""
@@ -79,13 +81,13 @@ public class LoopStatementTest extends Base {
         );
     }
 
-    @Test
-    void perf() {
+    @BackendTest(JVM)
+    void perf(Compiler compiler) {
         //java 1B   420  426  459  423  421
         //java 10B 4417 4405 4451 4381 4397
         //ib   1B   558  559  593  554  550
         //ib   10B 4553 4531 4548 4535 4541
-        execute("""
+        compiler.execute("""
             def a: i64 = 1;
             def b: i64 = 1;
             

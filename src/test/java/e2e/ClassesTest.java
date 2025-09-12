@@ -1,24 +1,25 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.BackendTest;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
 
-public class ClassesTest extends Base {
+public class ClassesTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void definitions(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void definitions(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> definitions() {
         return Stream.of(
             Arguments.of("""
@@ -37,18 +38,18 @@ public class ClassesTest extends Base {
         );
     }
 
-    @Test
-    void construct() {
-        execute("""
+    @BackendTest(JVM)
+    void construct(Compiler compiler) {
+        compiler.execute("""
             class Foo {}
             def foo = new Foo;
             
             print "hello";""", "hello\n");
     }
 
-    @Test
-    void call() {
-        execute("""
+    @BackendTest(JVM)
+    void call(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 fun hi() {
                     print "hi";
@@ -59,9 +60,9 @@ public class ClassesTest extends Base {
             foo.hi();""", "hi\n");
     }
 
-    @Test
-    void chainedCall() {
-        execute("""
+    @BackendTest(JVM)
+    void chainedCall(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 fun hi() {
                     print "hi";
@@ -78,9 +79,9 @@ public class ClassesTest extends Base {
             bar.get().hi();""", "hi\n");
     }
 
-    @Test
-    void printReturnedValue() {
-        execute("""
+    @BackendTest(JVM)
+    void printReturnedValue(Compiler compiler) {
+        compiler.execute("""
             class Calendar {
                 fun year(): i32 {
                     return 2025;
@@ -92,9 +93,9 @@ public class ClassesTest extends Base {
             print cal.year();""", "2025\n");
     }
 
-    @Test
-    void evalReturnedValue() {
-        execute("""
+    @BackendTest(JVM)
+    void evalReturnedValue(Compiler compiler) {
+        compiler.execute("""
             class Calendar {
                 fun mm(): i32 {
                     return 5;
@@ -110,9 +111,9 @@ public class ClassesTest extends Base {
             print cal.mm() * 60 + cal.ss();""", "310\n");
     }
 
-    @Test
-    void show() {
-        execute("""
+    @BackendTest(JVM)
+    void show(Compiler compiler) {
+        compiler.execute("""
             class Show {
                 fun show(x: i32) {
                     print x;
@@ -123,9 +124,9 @@ public class ClassesTest extends Base {
             show.show(39);""", "39\n");
     }
 
-    @Test
-    void passParamsToInstanceMethod() {
-        execute("""
+    @BackendTest(JVM)
+    void passParamsToInstanceMethod(Compiler compiler) {
+        compiler.execute("""
             class Math {
                 fun sq(x: i32): i32 {
                     return x * x;
@@ -136,9 +137,9 @@ public class ClassesTest extends Base {
             print math.sq(3) + math.sq(4);""", "25\n");
     }
 
-    @Test
-    void fields() {
-        execute("""
+    @BackendTest(JVM)
+    void fields(Compiler compiler) {
+        compiler.execute("""
             class Rectangle {
                 def x: i32
                 def y: i32
@@ -154,9 +155,9 @@ public class ClassesTest extends Base {
             print req.x * req.y;""", "0\n0\n990\n");
     }
 
-    @Test
-    void getterSetter() {
-        execute("""
+    @BackendTest(JVM)
+    void getterSetter(Compiler compiler) {
+        compiler.execute("""
             class Square {
                 def x: i32
 
@@ -177,27 +178,27 @@ public class ClassesTest extends Base {
             print sq.area();""", "9\n16\n");
     }
 
-    @Test
-    void thisOutsideOfFunction() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void thisOutsideOfFunction(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             def sq = this;
             print sq;
             """, null));
         assertThat(exception).hasMessage("`this` outside of member-function");
     }
 
-    @Test
-    void thisOutsideOfMemberFunction() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void thisOutsideOfMemberFunction(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo() {
                 print this;
             }""", null));
         assertThat(exception).hasMessage("`this` outside of member-function");
     }
 
-    @Test
-    void fieldDefaultValue() {
-        execute("""
+    @BackendTest(JVM)
+    void fieldDefaultValue(Compiler compiler) {
+        compiler.execute("""
             class X {
                 def t: i32 = 20
                 fun foo() {}
@@ -211,9 +212,9 @@ public class ClassesTest extends Base {
             """, "20\n99\n");
     }
 
-    @Test
-    void fieldTypedWithUserDefinedClass() {
-        execute("""
+    @BackendTest(JVM)
+    void fieldTypedWithUserDefinedClass(Compiler compiler) {
+        compiler.execute("""
             class X {
                 def value: i32
             }
@@ -232,9 +233,9 @@ public class ClassesTest extends Base {
             """, "99\n");
     }
 
-    @Test
-    void fieldTypedWithImportedClass() {
-        execute("""
+    @BackendTest(JVM)
+    void fieldTypedWithImportedClass(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             class NonEmptyList {
@@ -257,9 +258,9 @@ public class ClassesTest extends Base {
             """, "foo\n[bar, qux]\n");
     }
 
-    @Test
-    void recursiveType() {
-        execute("""
+    @BackendTest(JVM)
+    void recursiveType(Compiler compiler) {
+        compiler.execute("""
             class Tree {
                 def data: i32
 
@@ -278,9 +279,9 @@ public class ClassesTest extends Base {
             """, "111\n");
     }
 
-    @Test
-    void userDefinedClassAsParameter__getField() {
-        execute("""
+    @BackendTest(JVM)
+    void userDefinedClassAsParameter__getField(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 def data: i32
             }
@@ -296,9 +297,9 @@ public class ClassesTest extends Base {
             """, "400\n");
     }
 
-    @Test
-    void userDefinedClassAsParameter__callMethod() {
-        execute("""
+    @BackendTest(JVM)
+    void userDefinedClassAsParameter__callMethod(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 fun show() {
                     print "hello";
@@ -313,9 +314,9 @@ public class ClassesTest extends Base {
             """, "hello\n");
     }
 
-    @Test
-    void userDefinedClassAsReturnType() {
-        execute("""
+    @BackendTest(JVM)
+    void userDefinedClassAsReturnType(Compiler compiler) {
+        compiler.execute("""
             class Point {
                 def x: i32
                 def y: i32
@@ -337,9 +338,9 @@ public class ClassesTest extends Base {
             """, "25\n");
     }
 
-    @Test
-    void lateInit() {
-        execute("""
+    @BackendTest(JVM)
+    void lateInit(Compiler compiler) {
+        compiler.execute("""
             class Point {
                 def x: i32
                 def y: i32
@@ -354,9 +355,9 @@ public class ClassesTest extends Base {
             """, "200\n");
     }
 
-    @Test
-    void highCoupling() {
-        execute("""
+    @BackendTest(JVM)
+    void highCoupling(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 def qux: Qux
                 def data: i32
@@ -402,9 +403,9 @@ public class ClassesTest extends Base {
             """, "10\n11\n110\n");
     }
 
-    @Test
-    void importedClassAsParameter__callMethod() {
-        execute("""
+    @BackendTest(JVM)
+    void importedClassAsParameter__callMethod(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             fun build(list: ArrayList) {
@@ -419,9 +420,9 @@ public class ClassesTest extends Base {
             """, "[10, 20]\n");
     }
 
-    @Test
-    void importedClassAsReturnType() {
-        execute("""
+    @BackendTest(JVM)
+    void importedClassAsReturnType(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             fun buildList(): ArrayList {
@@ -435,9 +436,9 @@ public class ClassesTest extends Base {
             """, "[10, 20]\n");
     }
 
-    @Test
-    void lateInitWithImportedClass() {
-        execute("""
+    @BackendTest(JVM)
+    void lateInitWithImportedClass(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             def list: ArrayList;
@@ -450,9 +451,9 @@ public class ClassesTest extends Base {
             """, "[10, 20]\n");
     }
 
-    @Test
-    void inconsistentType__userDefined() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void inconsistentType__userDefined(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             class Foo {}
             class Bar {}
             
@@ -462,9 +463,9 @@ public class ClassesTest extends Base {
         assertThat(exception).hasMessage("incompatible types: Foo and Bar");
     }
 
-    @Test
-    void inconsistentType__imported() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void inconsistentType__imported(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             import java.util.ArrayList;
             import java.util.HashMap;
             
@@ -474,9 +475,9 @@ public class ClassesTest extends Base {
         assertThat(exception).hasMessage("incompatible types: java/util/ArrayList and java/util/HashMap");
     }
 
-    @Test
-    void methodRedefinition() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void methodRedefinition(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             class Foo {
                 fun foo() {}
                 fun foo() {}
@@ -485,9 +486,9 @@ public class ClassesTest extends Base {
         assertThat(exception).hasMessage("function 'foo' already exists in class Foo");
     }
 
-    @Test
-    void fieldRedefinition() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void fieldRedefinition(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             class Foo {
                 def x: i32
                 def x: i32
@@ -496,17 +497,17 @@ public class ClassesTest extends Base {
         assertThat(exception).hasMessage("field 'x' already exists in class Foo");
     }
 
-    @Test
-    void createUndefinedClass() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void createUndefinedClass(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             print (new X).toString();
             """, null));
         assertThat(exception).hasMessage("class 'X' is not defined");
     }
 
-    @Test
-    void callMethodFromMethod() {
-        execute("""
+    @BackendTest(JVM)
+    void callMethodFromMethod(Compiler compiler) {
+        compiler.execute("""
             class Foo {
                 fun foo() {
                     this.bar();

@@ -1,23 +1,18 @@
-package llvm;
+package run.compiler;
 
-import iceberg.llvm.LlvmCompiler;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class Base {
-
-    @TempDir
-    File workDirectory;
-
+public class LlvmCompiler extends Compiler {
+    @Override
     @SneakyThrows
-    void execute(String source, String expected) {
+    protected void execute(File workDirectory, String source, String expectedOutput) {
         var fakeSourcePath = Path.of(workDirectory.getAbsolutePath(), "Iceberg.ib");
-        var objectPath = LlvmCompiler.compile(fakeSourcePath, source);
+        var objectPath = iceberg.llvm.LlvmCompiler.compile(fakeSourcePath, source);
 
         var process = Runtime.getRuntime().exec(objectPath.toAbsolutePath().toString());
 
@@ -26,7 +21,7 @@ class Base {
         var err = new String(process.getErrorStream().readAllBytes());
 
         assertThat(err).isBlank();
-        assertThat(out).isEqualTo(expected);
+        assertThat(out).isEqualTo(expectedOutput);
         assertThat(exitCode).isEqualTo(0);
     }
 }

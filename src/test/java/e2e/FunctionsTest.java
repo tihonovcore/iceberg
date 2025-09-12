@@ -1,24 +1,25 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.BackendTest;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
 
-public class FunctionsTest extends Base {
+public class FunctionsTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void noArgs(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void noArgs(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> noArgs() {
         return Stream.of(
             Arguments.of("""
@@ -49,12 +50,12 @@ public class FunctionsTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void args(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void args(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> args() {
         return Stream.of(
             Arguments.of("""
@@ -103,9 +104,9 @@ public class FunctionsTest extends Base {
         );
     }
 
-    @Test
-    void returnFromUnitFunction() {
-        execute("""        
+    @BackendTest(JVM)
+    void returnFromUnitFunction(Compiler compiler) {
+        compiler.execute("""        
             fun foo() {
                 print "foo";
                 return;
@@ -115,9 +116,9 @@ public class FunctionsTest extends Base {
             """, "foo\n");
     }
 
-    @Test
-    void returnFromIf() {
-        execute("""        
+    @BackendTest(JVM)
+    void returnFromIf(Compiler compiler) {
+        compiler.execute("""        
             fun positive(n: i32, fallback: bool): bool {
                 if n > 0 then return true;
                 else return fallback;
@@ -128,9 +129,9 @@ public class FunctionsTest extends Base {
             """, "false\ntrue\n");
     }
 
-    @Test
-    void fg() {
-        execute("""
+    @BackendTest(JVM)
+    void fg(Compiler compiler) {
+        compiler.execute("""
             fun f(n: i32): i32 {
                 if n == 1 then return 1;
 
@@ -150,9 +151,9 @@ public class FunctionsTest extends Base {
             """, "1\n2\n12\n48\n");
     }
 
-    @Test
-    void fac() {
-        execute("""
+    @BackendTest(JVM)
+    void fac(Compiler compiler) {
+        compiler.execute("""
             fun fac(n: i32): i32 {
                 if n == 1 then return 1;
 
@@ -167,9 +168,9 @@ public class FunctionsTest extends Base {
             """, "1\n2\n6\n24\n120\n");
     }
 
-    @Test
-    void fib() {
-        execute("""
+    @BackendTest(JVM)
+    void fib(Compiler compiler) {
+        compiler.execute("""
             fun fib(n: i32): i32 {
                 if n == 1 then return 1;
                 if n == 2 then return 1;
@@ -185,9 +186,9 @@ public class FunctionsTest extends Base {
             """, "1\n1\n2\n3\n5\n");
     }
 
-    @Test
-    void overload() {
-        execute("""
+    @BackendTest(JVM)
+    void overload(Compiler compiler) {
+        compiler.execute("""
             fun foo() {
                 print "foo()";
             }
@@ -206,9 +207,9 @@ public class FunctionsTest extends Base {
             """, "foo()\nfoo(n)\nfoo(n, s)\n");
     }
 
-    @Test
-    void loop() {
-        execute("""
+    @BackendTest(JVM)
+    void loop(Compiler compiler) {
+        compiler.execute("""
             fun foo(n: i32, s: string) {
                 def i = 0;
                 while i < n then {
@@ -220,9 +221,9 @@ public class FunctionsTest extends Base {
             """, "hello\nhello\nhello\n");
     }
 
-    @Test
-    void functionInsideFunction() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void functionInsideFunction(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun outer() {
                 fun nested() {}
                 nested();
@@ -231,40 +232,40 @@ public class FunctionsTest extends Base {
         assertThat(exception).hasMessage("function inside function");
     }
 
-    @Test
-    void redefinition() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void redefinition(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo() {}
             fun foo() {}""", null));
         assertThat(exception).hasMessage("function 'foo' already exists in class Iceberg");
     }
 
-    @Test
-    void invalidArgsNumber() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void invalidArgsNumber(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo() {}
             foo(1, 2, 3);""", null));
         assertThat(exception).hasMessage("function 'foo' not found");
     }
 
-    @Test
-    void invalidArgsTypes() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void invalidArgsTypes(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo(x: string, i: i32) {}
             foo(98, false);""", null));
         assertThat(exception).hasMessage("function 'foo' not found");
     }
 
 
-    @Test
-    void undefinedFunction() {
-        var exception = assertThrows(SemanticException.class, () -> execute("foo();", null));
+    @BackendTest(JVM)
+    void undefinedFunction(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("foo();", null));
         assertThat(exception).hasMessage("function 'foo' not found");
     }
 
-    @Test
-    void codeAfterReturn() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void codeAfterReturn(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo(): i32 {
                 return 99;
                 print 100;
@@ -273,9 +274,9 @@ public class FunctionsTest extends Base {
         assertThat(exception).hasMessage("return statement should be at last position in block");
     }
 
-    @Test
-    void codeAfterReturn__nested() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void codeAfterReturn__nested(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo(): i32 {
                 if true then {
                     return 99;
@@ -287,9 +288,9 @@ public class FunctionsTest extends Base {
         assertThat(exception).hasMessage("return statement should be at last position in block");
     }
 
-    @Test
-    void differentReturnTypes() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void differentReturnTypes(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo(): i32 {
                 return "string";
             }
@@ -300,9 +301,9 @@ public class FunctionsTest extends Base {
                 but was  java/lang/String""");
     }
 
-    @Test
-    void differentReturnTypes__unitFunction() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void differentReturnTypes__unitFunction(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo() {
                 return "string";
             }
@@ -313,9 +314,9 @@ public class FunctionsTest extends Base {
                 but was  java/lang/String""");
     }
 
-    @Test
-    void differentReturnTypes__unitReturn() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void differentReturnTypes__unitReturn(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo(): string {
                 return;
             }
@@ -326,9 +327,9 @@ public class FunctionsTest extends Base {
                 but was  unit""");
     }
 
-    @Test
-    void tooMuchReturnStatements() {
-        var exception = assertThrows(SemanticException.class, () -> execute("""
+    @BackendTest(JVM)
+    void tooMuchReturnStatements(Compiler compiler) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun foo() {
                 return;
                 return;
@@ -338,13 +339,13 @@ public class FunctionsTest extends Base {
         assertThat(exception).hasMessage("too much return statements in block");
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void explicitReturnWhenFunctionReturnTypeSpecified(String source) {
-        var exception = assertThrows(SemanticException.class, () -> execute(source, null));
+    @ParameterizedBackendTest(JVM)
+    void explicitReturnWhenFunctionReturnTypeSpecified(Compiler compiler, String source) {
+        var exception = assertThrows(SemanticException.class, () -> compiler.execute(source, null));
         assertThat(exception).hasMessage("some branches in 'foo' do not have return statement");
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> explicitReturnWhenFunctionReturnTypeSpecified() {
         return Stream.of(
             Arguments.of("""

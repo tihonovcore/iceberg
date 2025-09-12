@@ -1,19 +1,21 @@
 package e2e;
 
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
-public class EqualityExpressionTest extends Base {
+import static run.BackendTarget.JVM;
 
-    @ParameterizedTest
-    @MethodSource
-    void equals(String source, String expected) {
-        execute(source, expected);
+public class EqualityExpressionTest {
+
+    @ParameterizedBackendTest(JVM)
+    void equals(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> equals() {
         return Stream.of(
             Arguments.of("print 100 == 101;", "false\n"),
@@ -43,12 +45,12 @@ public class EqualityExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void notEquals(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void notEquals(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> notEquals() {
         return Stream.of(
             Arguments.of("print 100 != 101;", "true\n"),

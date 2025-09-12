@@ -5,20 +5,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import run.BackendTarget;
+import run.BackendTest;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
-public class LogicExpressionTest extends Base {
+public class LogicExpressionTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void logic(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest({JVM, LLVM})
+    void logic(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> logic() {
         return Stream.of(
             Arguments.of("print true or true;", "true\n"),
@@ -64,12 +70,12 @@ public class LogicExpressionTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void logic_negative(String source) {
-        assertThrows(SemanticException.class, () -> execute(source, null));
+    @ParameterizedBackendTest({JVM, LLVM})
+    void logic_negative(Compiler compiler, String source) {
+        assertThrows(SemanticException.class, () -> compiler.execute(source, null));
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> logic_negative() {
         return Stream.of(
             Arguments.of("print true or 6;"),
@@ -97,12 +103,12 @@ public class LogicExpressionTest extends Base {
         );
     }
 
-    @Test
-    void npe() {
+    @BackendTest(JVM)
+    void npe(Compiler compiler) {
         //NOTE: a == b is transformed into a.equals(b), so current implementation throws NPE
         //For simplicity we say that it is users responsibility for null checks
 
-        var error = assertThrows(AssertionError.class, () -> execute("""
+        var error = assertThrows(AssertionError.class, () -> compiler.execute("""
             def a: string;
             def b: string = "qux";
             

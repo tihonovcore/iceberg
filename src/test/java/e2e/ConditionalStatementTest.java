@@ -1,19 +1,21 @@
 package e2e;
 
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
-public class ConditionalStatementTest extends Base {
+import static run.BackendTarget.JVM;
 
-    @ParameterizedTest
-    @MethodSource
-    void ifOnly(String source, String expected) {
-        execute(source, expected);
+public class ConditionalStatementTest {
+
+    @ParameterizedBackendTest(JVM)
+    void ifOnly(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> ifOnly() {
         return Stream.of(
             Arguments.of("""
@@ -54,12 +56,12 @@ public class ConditionalStatementTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void ifElse(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void ifElse(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> ifElse() {
         return Stream.of(
             Arguments.of("""

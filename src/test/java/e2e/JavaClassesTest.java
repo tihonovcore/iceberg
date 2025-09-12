@@ -1,12 +1,15 @@
 package e2e;
 
-import org.junit.jupiter.api.Test;
+import run.BackendTest;
+import run.compiler.Compiler;
 
-public class JavaClassesTest extends Base {
+import static run.BackendTarget.JVM;
 
-    @Test
-    void create() {
-        execute("""
+public class JavaClassesTest {
+
+    @BackendTest(JVM)
+    void create(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             def list = new ArrayList;
@@ -14,9 +17,9 @@ public class JavaClassesTest extends Base {
             """, "[]\n");
     }
 
-    @Test
-    void add() {
-        execute("""
+    @BackendTest(JVM)
+    void add(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             def list = new ArrayList;
@@ -28,9 +31,9 @@ public class JavaClassesTest extends Base {
             """, "[10, 20, 30]\n");
     }
 
-    @Test
-    void sublist() {
-        execute("""
+    @BackendTest(JVM)
+    void sublist(Compiler compiler) {
+        compiler.execute("""
             import java.util.ArrayList;
             
             def list = new ArrayList;

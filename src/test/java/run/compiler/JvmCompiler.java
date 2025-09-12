@@ -1,29 +1,23 @@
-package e2e;
+package run.compiler;
 
-import iceberg.jvm.JvmCompiler;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static java.nio.file.StandardOpenOption.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class Base {
-
-    @TempDir
-    File workDirectory;
-
+public class JvmCompiler extends Compiler {
+    @Override
     @SneakyThrows
-    void execute(String source, String expected) {
-        for (var unit : JvmCompiler.compile(source)) {
+    protected void execute(File workDirectory, String source, String expected) {
+        for (var unit : iceberg.jvm.JvmCompiler.compile(source)) {
             var className = unit.irClass == null ? "Iceberg" : unit.irClass.name;
 
             var path = Path.of(workDirectory.getAbsolutePath(), className + ".class");
-            Files.write(path, unit.bytes, CREATE, WRITE, TRUNCATE_EXISTING);
+            java.nio.file.Files.write(path, unit.bytes, CREATE, WRITE, TRUNCATE_EXISTING);
         }
 
         var process = Runtime.getRuntime().exec("java -cp %s Iceberg".formatted(workDirectory.getAbsolutePath()));
@@ -37,12 +31,12 @@ class Base {
             assertThat(out).isEqualTo(expected);
             assertThat(exitCode).isEqualTo(0);
         } catch (AssertionError error) {
-            printJavap();
+            printJavap(workDirectory);
             throw error;
         }
     }
 
-    private void printJavap() throws InterruptedException, IOException {
+    private void printJavap(File workDirectory) throws InterruptedException, IOException {
         var icebergClass = Path.of(workDirectory.getAbsolutePath(), "Iceberg.class");
         var process = Runtime.getRuntime().exec("javap -c -v %s".formatted(icebergClass));
         process.waitFor();

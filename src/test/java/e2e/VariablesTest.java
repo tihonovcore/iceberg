@@ -1,22 +1,23 @@
 package e2e;
 
 import iceberg.SemanticException;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import run.ParameterizedBackendTest;
+import run.compiler.Compiler;
 
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static run.BackendTarget.JVM;
 
-public class VariablesTest extends Base {
+public class VariablesTest {
 
-    @ParameterizedTest
-    @MethodSource
-    void i32(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void i32(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> i32() {
         return Stream.of(
             Arguments.of("""
@@ -65,12 +66,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void bool(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void bool(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> bool() {
         return Stream.of(
             Arguments.of("""
@@ -101,12 +102,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void i64(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void i64(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> i64() {
         return Stream.of(
             Arguments.of("""
@@ -146,12 +147,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void string(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void string(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> string() {
         return Stream.of(
             Arguments.of("""
@@ -163,12 +164,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void typedInit(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void typedInit(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> typedInit() {
         return Stream.of(
             Arguments.of("""
@@ -231,12 +232,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void assign(String source, String expected) {
-        execute(source, expected);
+    @ParameterizedBackendTest(JVM)
+    void assign(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> assign() {
         return Stream.of(
             Arguments.of("""
@@ -251,12 +252,12 @@ public class VariablesTest extends Base {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource
-    void negative(String source) {
-        assertThrows(SemanticException.class, () -> execute(source, null));
+    @ParameterizedBackendTest(JVM)
+    void negative(Compiler compiler, String source) {
+        assertThrows(SemanticException.class, () -> compiler.execute(source, null));
     }
 
+    @SuppressWarnings("unused")
     static Stream<Arguments> negative() {
         return Stream.of(
             Arguments.of("""
