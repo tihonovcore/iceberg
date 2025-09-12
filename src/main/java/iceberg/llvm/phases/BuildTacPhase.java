@@ -1,6 +1,7 @@
 package iceberg.llvm.phases;
 
 import iceberg.ir.*;
+import iceberg.llvm.FunctionTac;
 import iceberg.llvm.tac.*;
 
 import java.util.Collection;
@@ -14,17 +15,17 @@ public class BuildTacPhase {
         this.irFile = irFile;
     }
 
-    public Collection<TacFunction> execute() {
-        var functions = new LinkedList<TacFunction>();
+    public Collection<FunctionTac> execute() {
+        var functions = new LinkedList<FunctionTac>();
 
         irFile.accept(new IrVisitorBase() {
 
-            private TacFunction currentFunction;
+            private FunctionTac currentFunction;
             private TacTyped returned; //TODO: think about IrVisitor<T>
 
             @Override
             public void visitIrFunction(IrFunction irFunction) {
-                functions.add(new TacFunction());
+                functions.add(new FunctionTac(irFunction));
                 currentFunction = functions.getLast();
 
                 irFunction.irBody.accept(this);

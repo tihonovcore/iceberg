@@ -75,6 +75,7 @@ public class LlvmCompiler {
                     System.out.println(i + " " + function.tac.get(i));
                 }
             });
+            System.out.println("======================================");
 
             var allCfg = allTac.stream()
                 .map(tacFunction -> new BuildCfgPhase(tacFunction).execute())

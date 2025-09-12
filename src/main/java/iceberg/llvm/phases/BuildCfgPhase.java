@@ -1,23 +1,26 @@
 package iceberg.llvm.phases;
 
 import iceberg.llvm.BasicBlock;
-import iceberg.llvm.tac.TacFunction;
+import iceberg.llvm.FunctionCfg;
+import iceberg.llvm.FunctionTac;
+
+import java.util.Map;
 
 public class BuildCfgPhase {
 
-    private final TacFunction function;
+    private final FunctionTac function;
 
-    public BuildCfgPhase(TacFunction function) {
+    public BuildCfgPhase(FunctionTac function) {
         this.function = function;
     }
 
-    public BasicBlock execute() {
+    public FunctionCfg execute() {
         var bb = new BasicBlock(synth());
 
         //TODO: build graph instead
         bb.tac.addAll(function.tac);
 
-        return bb;
+        return new FunctionCfg(function, Map.of(0, bb));
     }
 
     private int freeLabelIndex = 0;
