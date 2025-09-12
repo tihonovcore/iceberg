@@ -105,17 +105,10 @@ public class CodeGenerationPhase {
                     case OR -> "or";
                 });
 
-                //TODO: support all types
                 //TODO: assert that left.type.equals(right.type)
-                if (tacBinaryOperation.left.type.equals(IcebergType.bool)) {
-                    output.append(" i1 ");
-                } else if (tacBinaryOperation.left.type.equals(IcebergType.i32)) {
-                    output.append(" i32 ");
-                } else if (tacBinaryOperation.left.type.equals(IcebergType.i64)) {
-                    output.append(" i64 ");
-                } else {
-                    throw new IllegalStateException("not yet implemented");
-                }
+                output.append(" ");
+                output.append(mapType(tacBinaryOperation.left.type));
+                output.append(" ");
 
                 tacBinaryOperation.left.accept(this);
                 output.append(", ");
@@ -163,16 +156,11 @@ public class CodeGenerationPhase {
             public void visitTacPrint(TacPrint tacPrint) {
                 output.append(indent);
 
-                //TODO: support all types
-                if (tacPrint.argument.type.equals(IcebergType.bool)) {
-                    output.append("call void @print_i1(i1 ");
-                } else if (tacPrint.argument.type.equals(IcebergType.i32)) {
-                    output.append("call void @print_i32(i32 ");
-                } else if (tacPrint.argument.type.equals(IcebergType.i64)) {
-                    output.append("call void @print_i64(i64 ");
-                } else {
-                    throw new IllegalStateException("not yet implemented");
-                }
+                output.append("call void @print_");
+                output.append(mapType(tacPrint.argument.type));
+                output.append("(");
+                output.append(mapType(tacPrint.argument.type));
+                output.append(" ");
 
                 tacPrint.argument.accept(this);
                 output.append(")");
@@ -218,7 +206,7 @@ public class CodeGenerationPhase {
                 output.append(indent);
                 output.append(tacVarAllocate.target);
                 output.append(" = alloca ");
-                output.append(tacVarAllocate.target.type);
+                output.append(mapType(tacVarAllocate.target.type));
                 output.append(System.lineSeparator());
             }
 
@@ -227,9 +215,9 @@ public class CodeGenerationPhase {
                 output.append(indent);
                 output.append(tacVarLoad.target);
                 output.append(" = load ");
-                output.append(tacVarLoad.target.type);
+                output.append(mapType(tacVarLoad.target.type));
                 output.append(", ");
-                output.append(tacVarLoad.memory.type);
+                output.append(mapType(tacVarLoad.memory.type));
                 output.append("* ");
                 output.append(tacVarLoad.memory);
                 output.append(System.lineSeparator());
@@ -239,11 +227,11 @@ public class CodeGenerationPhase {
             public void visitTacVarStore(TacVarStore tacVarStore) {
                 output.append(indent);
                 output.append("store ");
-                output.append(tacVarStore.argument.type);
+                output.append(mapType(tacVarStore.argument.type));
                 output.append(" ");
                 output.append(tacVarStore.argument);
                 output.append(", ");
-                output.append(tacVarStore.target.type);
+                output.append(mapType(tacVarStore.target.type));
                 output.append("* ");
                 output.append(tacVarStore.target);
                 output.append(System.lineSeparator());
@@ -254,5 +242,18 @@ public class CodeGenerationPhase {
                 output.append(tacVariable.name);
             }
         }));
+    }
+
+    //TODO: support all types
+    private String mapType(IcebergType icebergType) {
+        if (icebergType.equals(IcebergType.bool)) {
+            return "i1";
+        } else if (icebergType.equals(IcebergType.i32)) {
+            return "i32";
+        } else if (icebergType.equals(IcebergType.i64)) {
+            return "i64";
+        } else {
+            throw new IllegalStateException("not yet implemented");
+        }
     }
 }

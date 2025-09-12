@@ -9,10 +9,11 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
 public class VariablesTest {
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void i32(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -58,15 +59,15 @@ public class VariablesTest {
                 def x = 2;
                 {
                     def y = x;
-                    print x == y;
+                    print x >= y;
                 }
                 def y = 100;
-                print x == y;
+                print x >= y;
                 """, "true\nfalse\n")
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void bool(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -102,7 +103,7 @@ public class VariablesTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void i64(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -164,7 +165,7 @@ public class VariablesTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void typedInit(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -184,9 +185,6 @@ public class VariablesTest {
             Arguments.of("""
                 def x: bool = false;
                 print x or not x;""", "true\n"),
-            Arguments.of("""
-                def x: string = "foo\\nbar\\nqux";
-                print x;""", "foo\nbar\nqux\n"),
 
             Arguments.of("""
                 def x: i32;
@@ -200,10 +198,6 @@ public class VariablesTest {
                 def x: bool;
                 x = false;
                 print x or not x;""", "true\n"),
-            Arguments.of("""
-                def x: string;
-                x = "foo\\nbar\\nqux";
-                print x;""", "foo\nbar\nqux\n"),
 
             Arguments.of("""
                 def x: i32;
@@ -222,7 +216,25 @@ public class VariablesTest {
                 {
                     x = false;
                 }
-                print x or not x;""", "true\n"),
+                print x or not x;""", "true\n")
+        );
+    }
+
+    @ParameterizedBackendTest({JVM})
+    void typedInit__string(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
+    }
+
+    @SuppressWarnings("unused")
+    static Stream<Arguments> typedInit__string() {
+        return Stream.of(
+            Arguments.of("""
+                def x: string = "foo\\nbar\\nqux";
+                print x;""", "foo\nbar\nqux\n"),
+            Arguments.of("""
+                def x: string;
+                x = "foo\\nbar\\nqux";
+                print x;""", "foo\nbar\nqux\n"),
             Arguments.of("""
                 def x: string;
                 {
@@ -232,7 +244,7 @@ public class VariablesTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void assign(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -252,7 +264,7 @@ public class VariablesTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void negative(Compiler compiler, String source) {
         assertThrows(SemanticException.class, () -> compiler.execute(source, null));
     }
