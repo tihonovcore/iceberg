@@ -6,8 +6,8 @@ import iceberg.llvm.FunctionTac;
 import iceberg.llvm.tac.TacJump;
 import iceberg.llvm.tac.TacJumpConditional;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class BuildCfgPhase {
 
@@ -17,38 +17,38 @@ public class BuildCfgPhase {
         this.function = function;
     }
 
-    private final Map<Integer, BasicBlock> bbs = new HashMap<>();
+    private final SortedMap<Integer, BasicBlock> bbs = new TreeMap<>();
 
     public FunctionCfg execute() {
-        dfs(0);
+        createBasicBlocks(0);
+        fillBasicBlocksWithInstructions();
 
         for (var basicBlock : bbs.values()) {
-            enrich(basicBlock);
+            buildEdgesFrom(basicBlock);
         }
 
         return new FunctionCfg(function, bbs);
     }
 
-    private void dfs(int start) {
+    private void createBasicBlocks(int start) {
         if (bbs.containsKey(start)) {
             return;
+        } else {
+            bbs.put(start, new BasicBlock(synth()));
         }
-
-        var bb = bbs.computeIfAbsent(start, __ -> new BasicBlock(synth()));
 
         int offset = start;
         while (offset < function.tac.size()) {
             var tac = function.tac.get(offset);
-            bb.tac.add(tac);
 
             if (tac instanceof TacJump jump) {
-                dfs(jump.gotoOffset);
+                createBasicBlocks(jump.gotoOffset);
                 return;
             }
 
             if (tac instanceof TacJumpConditional jumpConditional) {
-                dfs(jumpConditional.thenOffset);
-                dfs(jumpConditional.elseOffset);
+                createBasicBlocks(jumpConditional.thenOffset);
+                createBasicBlocks(jumpConditional.elseOffset);
                 return;
             }
 
@@ -56,7 +56,19 @@ public class BuildCfgPhase {
         }
     }
 
-    private void enrich(BasicBlock currentBlock) {
+    private void fillBasicBlocksWithInstructions() {
+        BasicBlock currentBlock = bbs.get(0);
+        for (int i = 0; i < function.tac.size(); i++) {
+            if (bbs.containsKey(i)) {
+                currentBlock = bbs.get(i);
+            }
+
+            var tac = function.tac.get(i);
+            currentBlock.tac.add(tac);
+        }
+    }
+
+    private void buildEdgesFrom(BasicBlock currentBlock) {
         currentBlock.tac.stream()
             .filter(TacJump.class::isInstance)
             .map(TacJump.class::cast)

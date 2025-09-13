@@ -8,10 +8,11 @@ import run.compiler.Compiler;
 import java.util.stream.Stream;
 
 import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
 public class PrintConstantsTest {
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void number(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -39,7 +40,7 @@ public class PrintConstantsTest {
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void bool(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }

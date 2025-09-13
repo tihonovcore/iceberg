@@ -6,7 +6,6 @@ import iceberg.llvm.FunctionCfg;
 import iceberg.llvm.tac.*;
 
 import java.util.Collection;
-import java.util.Comparator;
 
 public class CodeGenerationPhase {
 
@@ -29,9 +28,7 @@ public class CodeGenerationPhase {
             output.append("() {");
             output.append(System.lineSeparator());
 
-            //NOTE: label_0 should be first
-            functionCfg.bbs.values().stream()
-                .sorted(Comparator.comparing(o -> o.label))
+            functionCfg.bbs.values()
                 .forEach(basicBlock -> dumpBasicBlock(output, basicBlock));
 
             output.append("}");
@@ -100,7 +97,7 @@ public class CodeGenerationPhase {
                     case DIV -> "sdiv";
                     case LE -> "icmp sle";
                     case LT -> "icmp slt";
-                    case EQ -> throw new IllegalStateException("not yet implemented");
+                    case EQ -> "icmp eq";
                     case AND -> "and";
                     case OR -> "or";
                 });

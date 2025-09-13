@@ -8,10 +8,11 @@ import run.compiler.Compiler;
 import java.util.stream.Stream;
 
 import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
 public class LoopStatementTest {
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void loop(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -77,7 +78,22 @@ public class LoopStatementTest {
                 }
                 
                 print x;
-                """, "11000000\n")
+                """, "11000000\n"),
+            Arguments.of("""
+                def f = 1;
+                def s = 1;
+                
+                def i = 0;
+                while i < 10 then {
+                    print f;
+
+                    def tmp = f + s;
+                    f = s;
+                    s = tmp;
+
+                    i = i + 1;
+                }
+                """, "1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n")
         );
     }
 

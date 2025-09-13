@@ -7,10 +7,11 @@ import run.compiler.Compiler;
 import java.util.stream.Stream;
 
 import static run.BackendTarget.JVM;
+import static run.BackendTarget.LLVM;
 
 public class EqualityExpressionTest {
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void equals(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -39,13 +40,24 @@ public class EqualityExpressionTest {
             Arguments.of("print true == true and false;", "false\n"),
             Arguments.of("print true or true == false;", "true\n"),
             Arguments.of("print false or true == false;", "false\n"),
-            Arguments.of("print false or true == true;", "true\n"),
+            Arguments.of("print false or true == true;", "true\n")
+        );
+    }
+
+    @ParameterizedBackendTest(JVM)
+    void equals__strings(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
+    }
+
+    @SuppressWarnings("unused")
+    static Stream<Arguments> equals__strings() {
+        return Stream.of(
             Arguments.of("print \"foo\" == \"foo\";", "true\n"),
             Arguments.of("print \"foo\" == \"bar\";", "false\n")
         );
     }
 
-    @ParameterizedBackendTest(JVM)
+    @ParameterizedBackendTest({JVM, LLVM})
     void notEquals(Compiler compiler, String source, String expected) {
         compiler.execute(source, expected);
     }
@@ -74,7 +86,18 @@ public class EqualityExpressionTest {
             Arguments.of("print true != true and false;", "false\n"),
             Arguments.of("print true or true != false;", "true\n"),
             Arguments.of("print false or true != false;", "true\n"),
-            Arguments.of("print false or true != true;", "false\n"),
+            Arguments.of("print false or true != true;", "false\n")
+        );
+    }
+
+    @ParameterizedBackendTest(JVM)
+    void notEquals__strings(Compiler compiler, String source, String expected) {
+        compiler.execute(source, expected);
+    }
+
+    @SuppressWarnings("unused")
+    static Stream<Arguments> notEquals__strings() {
+        return Stream.of(
             Arguments.of("print \"foo\" != \"foo\";", "false\n"),
             Arguments.of("print \"foo\" != \"bar\";", "true\n")
         );

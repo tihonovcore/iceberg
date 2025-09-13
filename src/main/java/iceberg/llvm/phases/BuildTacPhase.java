@@ -115,6 +115,34 @@ public class BuildTacPhase {
             }
 
             @Override
+            public void visitIrLoop(IrLoop irLoop) {
+                //NOTE: if where are TACs before condition,
+                //they should unconditionally jump to condition bb
+                if (!currentFunction.tac.isEmpty()) {
+                    var jumpToConditionBlock = new TacJump();
+                    currentFunction.tac.add(jumpToConditionBlock);
+                    jumpToConditionBlock.gotoOffset = currentFunction.tac.size();
+                }
+
+                var conditionOffset = currentFunction.tac.size();
+
+                irLoop.condition.accept(this);
+                var condition = returned;
+
+                var fromCondition = new TacJumpConditional(condition);
+                currentFunction.tac.add(fromCondition);
+
+                fromCondition.thenOffset = currentFunction.tac.size();
+                irLoop.body.accept(this);
+
+                var fromBody = new TacJump();
+                currentFunction.tac.add(fromBody);
+                fromBody.gotoOffset = conditionOffset;
+
+                fromCondition.elseOffset = currentFunction.tac.size();
+            }
+
+            @Override
             public void visitIrAssignVariable(IrAssignVariable irAssignVariable) {
                 var target = new TacVariable(
                     allocated.get(irAssignVariable.definition),
