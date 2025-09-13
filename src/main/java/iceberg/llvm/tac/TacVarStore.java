@@ -17,6 +17,6 @@ public class TacVarStore implements TAC {
 
     @Override
     public String toString() {
-        return "store " + argument.type + " " + argument + ", " + argument.type + "* " + target;
+        return "store " + argument.type + " " + argument + ", " + target.type + "* " + target;
     }
 }

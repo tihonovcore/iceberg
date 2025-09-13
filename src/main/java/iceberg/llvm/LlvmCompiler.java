@@ -5,6 +5,7 @@ import iceberg.common.phases.DetectInvalidSyntaxPhase;
 import iceberg.common.phases.IrVerificationPhase;
 import iceberg.fe.CompilationException;
 import iceberg.fe.ParsingUtil;
+import iceberg.llvm.opt.cp.ConstantPropagation;
 import iceberg.llvm.phases.BuildCfgPhase;
 import iceberg.llvm.phases.BuildTacPhase;
 import iceberg.llvm.phases.CodeGenerationPhase;
@@ -70,16 +71,12 @@ public class LlvmCompiler {
             new IrVerificationPhase().execute(irFile);
 
             var allTac = new BuildTacPhase(irFile).execute();
-            allTac.forEach(function -> {
-                for (int i = 0; i < function.tac.size(); i++) {
-                    System.out.println(i + " " + function.tac.get(i));
-                }
-            });
-            System.out.println("======================================");
-
             var allCfg = allTac.stream()
                 .map(tacFunction -> new BuildCfgPhase(tacFunction).execute())
                 .toList();
+
+            //optimizations
+            allCfg.forEach(functionCfg -> new ConstantPropagation(functionCfg).execute());
 
             return new CodeGenerationPhase(allCfg).execute();
         } catch (CompilationException exception) {

@@ -20,6 +20,9 @@ public class BuildCfgPhase {
     private final SortedMap<Integer, BasicBlock> bbs = new TreeMap<>();
 
     public FunctionCfg execute() {
+        //TODO: normalize returns - для упрощения dataflow-анализа
+        // лучше иметь один блок с return
+
         createBasicBlocks(0);
         fillBasicBlocksWithInstructions();
 

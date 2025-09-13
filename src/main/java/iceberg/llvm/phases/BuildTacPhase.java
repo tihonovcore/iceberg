@@ -210,6 +210,14 @@ public class BuildTacPhase {
             }
         });
 
+        //debug print
+        functions.forEach(function -> {
+            for (int i = 0; i < function.tac.size(); i++) {
+                System.out.println(i + " " + function.tac.get(i));
+            }
+        });
+        System.out.println("======================================");
+
         return functions;
     }
 }
