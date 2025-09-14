@@ -1,0 +1,4 @@
+comment = 'Iceberg procedural language'
+default_version = '0.1'
+module_pathname = '$libdir/iceberg'
+relocatable = true
