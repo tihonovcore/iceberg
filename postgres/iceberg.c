@@ -7,6 +7,8 @@
 #include "access/htup_details.h"
 #include "executor/executor.h"   // для FCInfo и триггеров
 #include "commands/trigger.h"  
+#include "utils/lsyscache.h"
+#include "catalog/pg_type.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +20,7 @@ PG_MODULE_MAGIC;
 /* Главный entrypoint */
 PG_FUNCTION_INFO_V1(iceberg_call_handler);
 
-void interpret();
+void interpret(FunctionCallInfo fcinfo, char* src);
 
 Datum
 iceberg_call_handler(PG_FUNCTION_ARGS)
@@ -52,15 +54,33 @@ iceberg_call_handler(PG_FUNCTION_ARGS)
     elog(INFO, "Iceberg executing function %s(...):", NameStr(procStruct->proname));
     elog(INFO, "Source code: %s", src);
     elog(INFO, "===========================");
-    interpret(src);
+    interpret(fcinfo, src);
     elog(INFO, "===========================");
 
     ReleaseSysCache(procTuple);
 
-    PG_RETURN_NULL();
+    //TODO: read output
+    Oid ret_oid = get_func_rettype(fn_oid);
+    switch (ret_oid) {
+        case INT4OID: { // int4
+            PG_RETURN_INT32(42);
+        }
+        case INT8OID: { // int8
+            PG_RETURN_INT64(4200L);
+        }
+        case BOOLOID: { // bool
+            PG_RETURN_BOOL(true);
+        }
+        case TEXTOID: { // text
+            PG_RETURN_TEXT_P(cstring_to_text("hello"));
+        }
+        default: {
+            PG_RETURN_NULL();
+        }
+    }
 }
 
-void interpret(char* src) {
+void interpret(FunctionCallInfo fcinfo, char* src) {
 // создаём временный файл
   char tmp_filename[] = "/tmp/source.ibXXXXXX";
   int fd = mkstemp(tmp_filename);
@@ -82,9 +102,66 @@ void interpret(char* src) {
 
   // формируем команду
   char cmd[4096];
-  snprintf(cmd, sizeof(cmd),
-           "java -cp /usr/lib/iceberg/iceberg.jar iceberg.CompilationPipeline -run %s",
-           tmp_filename);
+  strcpy(cmd, "");
+
+  for (int i = 0; i < PG_NARGS(); i++) {
+      if (PG_ARGISNULL(i))
+          continue;
+
+      Oid argtype = get_fn_expr_argtype(fcinfo->flinfo, i);
+      char *typename = format_type_be(argtype);
+
+      switch (argtype) {
+          case INT4OID: {
+              int32 v = PG_GETARG_INT32(i);
+
+              char var[256];
+              snprintf(var, sizeof(var), "ARG%d='%d' ", i, v);
+              strcat(cmd, var);
+
+              break;
+          }
+          case INT8OID: {
+              int64 v = PG_GETARG_INT64(i);
+
+              char var[256];
+              snprintf(var, sizeof(var), "ARG%d='%lld' ", i, v);
+              strcat(cmd, var);
+
+              break;
+          }
+          case TEXTOID: {
+              text *t = PG_GETARG_TEXT_PP(i);
+
+              char var[256];
+              snprintf(var, sizeof(var), "ARG%d='%s' ", i, text_to_cstring(t));
+              strcat(cmd, var);
+
+              break;
+          }
+          case BOOLOID: {
+              char var[256];
+              if (PG_GETARG_BOOL(i)) {
+                  snprintf(var, sizeof(var), "ARG%d='true' ", i);
+              } else {
+                  snprintf(var, sizeof(var), "ARG%d='false' ", i);
+              }
+              strcat(cmd, var);
+
+              break;
+          }
+          default: {
+              elog(INFO, "Arg %d has unsupported type oid=%u", i, argtype);
+              break;
+          }
+      }
+  }
+
+  // добавляем запуск java
+  strcat(cmd, "java -cp /usr/lib/iceberg/iceberg.jar iceberg.CompilationPipeline -run ");
+  strcat(cmd, tmp_filename);
+
+  elog(INFO, cmd);
 
   // запускаем JAR
   FILE *fp = popen(cmd, "r");

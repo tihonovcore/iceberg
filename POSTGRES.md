@@ -1,7 +1,7 @@
 ### install
 ```shell
 mvn clean package -DskipTests=true
-cp target/*-with-dependencies ./postgres/iceberg.jar
+cp target/*-with-dependencies.jar ./postgres/iceberg.jar
 
 docker build -t pg-iceberg ./postgres
 docker-compose -f ./postgres/docker-compose.yml up -d
@@ -10,11 +10,9 @@ docker-compose -f ./postgres/docker-compose.yml up -d
 ### extension usage
 ```sql
 CREATE EXTENSION iceberg;
-
---check if extension added
-SELECT * FROM pg_language;
-
-CREATE OR REPLACE FUNCTION test_iceberg() RETURNS void AS $$
+```
+```sql
+CREATE OR REPLACE FUNCTION print_list() RETURNS void AS $$
     import java.util.ArrayList;
 
     def list = new ArrayList;
@@ -24,8 +22,12 @@ CREATE OR REPLACE FUNCTION test_iceberg() RETURNS void AS $$
     list.add("qux");
 
     print list;
+$$ LANGUAGE iceberg;
 
-    //fibonacci
+select print_list();
+```
+```sql
+CREATE OR REPLACE FUNCTION fibonacci() RETURNS void AS $$
     def f = 1;
     def s = 1;
                 
@@ -41,5 +43,23 @@ CREATE OR REPLACE FUNCTION test_iceberg() RETURNS void AS $$
     }
 $$ LANGUAGE iceberg;
 
-select test_iceberg();
+select fibonacci();
+```
+
+### passing parameters
+```sql
+CREATE or replace FUNCTION pass_arguments(
+    a int4, b int8, c text, d bool
+) RETURNS void AS $$
+    import iceberg.pg.Reader;
+
+    def reader = new Reader;
+
+    print reader.i32(0) + 10;
+    print reader.i64(1) + 100;
+    print reader.string(2);
+    print reader.bool(3) or true;
+$$ LANGUAGE iceberg;
+
+select pass_arguments(4, 40, 'qux', false);
 ```
