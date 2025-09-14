@@ -76,7 +76,10 @@ public class CodegenPrepareCodeAttributePhase {
             public void visitIrBody(IrBody irBody) {
                 scopes.add(new HashSet<>());
 
-                irBody.statements.forEach(s -> s.accept(this));
+                irBody.statements.forEach(statement -> {
+                    statement.accept(this);
+                    dropUnusedReturnValue(statement);
+                });
 
                 scopes.removeLast().forEach(irVariable -> {
                     indexes.remove(irVariable);
@@ -88,6 +91,24 @@ public class CodegenPrepareCodeAttributePhase {
                         indexes.remove(longPlaceholder);
                     }
                 });
+            }
+
+            private void dropUnusedReturnValue(IR statement) {
+                if (statement instanceof IrMethodCall call) {
+                    if (call.function.returnType.equals(IcebergType.unit)) {
+                        return;
+                    }
+
+                    output.writeU1(OpCodes.POP.value);
+                }
+
+                if (statement instanceof IrStaticCall call) {
+                    if (call.function.returnType.equals(IcebergType.unit)) {
+                        return;
+                    }
+
+                    output.writeU1(OpCodes.POP.value);
+                }
             }
 
             @Override

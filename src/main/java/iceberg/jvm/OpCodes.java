@@ -49,6 +49,7 @@ public enum OpCodes {
     LSTORE(0x37),
     LSUB(0x65),
     NEW(0xBB),
+    POP(0x57),
     PUTFIELD(0xB5),
     RETURN(0xB1),
     SIPUSH(0x11),

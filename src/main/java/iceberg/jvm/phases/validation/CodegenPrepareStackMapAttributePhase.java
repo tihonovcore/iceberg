@@ -236,7 +236,7 @@ public class CodegenPrepareStackMapAttributePhase {
 
                     snapshot.push(type);
                 }
-                case IFEQ, IFNE -> snapshot.pop();
+                case IFEQ, IFNE, POP -> snapshot.pop();
                 case GOTO -> { /* do nothing */ }
                 case INEG -> {
                     snapshot.pop();
@@ -291,18 +291,16 @@ public class CodegenPrepareStackMapAttributePhase {
 
             i += switch (curr) {
                 case ICONST_0, ICONST_1, LCONST_0 -> 1;
-                case ALOAD_0 -> 1;
-                case ACONST_NULL -> 1;
+                case ACONST_NULL, ALOAD_0 -> 1;
                 case RETURN, IRETURN, ARETURN, LRETURN -> 1;
-                case DUP -> 1;
+                case DUP, POP -> 1;
                 case NEW -> 3;
                 case GETSTATIC, GETFIELD, PUTFIELD -> 3;
                 case INVOKEVIRTUAL, INVOKESTATIC, INVOKESPECIAL -> 3;
                 case BIPUSH -> 2;
                 case SIPUSH -> 3;
                 case LDC -> 2;
-                case LDC_W -> 3;
-                case LDC_W2 -> 3;
+                case LDC_W, LDC_W2 -> 3;
                 case I2L -> 1;
                 case IADD, ISUB, IMUL, IDIV -> 1;
                 case LADD, LSUB, LMUL, LDIV -> 1;

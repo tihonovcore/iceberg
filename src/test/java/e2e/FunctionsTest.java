@@ -222,6 +222,24 @@ public class FunctionsTest {
     }
 
     @BackendTest(JVM)
+    void unusedReturnValue(Compiler compiler) {
+        compiler.execute("""
+            fun foo(): i32 {
+                return 100;
+            }
+            
+            
+            def i = 0;
+            while i < 5 then {
+                foo(); //returned i32 should be POPed
+                i = i + 1;
+            }
+
+            print "hello";
+            """, "hello\n");
+    }
+
+    @BackendTest(JVM)
     void functionInsideFunction(Compiler compiler) {
         var exception = assertThrows(SemanticException.class, () -> compiler.execute("""
             fun outer() {
