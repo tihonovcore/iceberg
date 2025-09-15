@@ -130,6 +130,11 @@ void preprocess(FunctionCallInfo fcinfo, char* src, char *out) {
             j += 13;
             break;
         }
+        default: {
+            strcat(out, "unit {\n    ");
+            j += 11;
+            break;
+        }
     }
 
     //create var for each param
