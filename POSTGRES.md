@@ -11,6 +11,45 @@ docker-compose -f ./postgres/docker-compose.yml up -d
 ```sql
 CREATE EXTENSION iceberg;
 ```
+После создания `EXTENSION` можно создавать и вызывать функции. <br>
+NOTE: `print` выводится в консоль, а не в `return` функции. 
+```sql
+CREATE OR REPLACE FUNCTION fibonacci(
+    n int4
+) RETURNS void AS $$
+    if n <= 0 then return;
+
+    def f = 1;
+    def s = 1;
+                
+    def i = 0;
+    while i < n - 1 then {
+        def tmp = f + s;
+        f = s;
+        s = tmp;
+
+        i = i + 1;
+    }
+
+    print f;
+$$ LANGUAGE iceberg;
+
+select fibonacci();
+```
+Поддерживаются аргументы `int4`, `int8`, `text`, `bool`:
+```sql
+CREATE OR REPLACE FUNCTION test_args(
+    a int4, b int8, c text, d bool
+) RETURNS void AS $$
+    print b + 10;
+    print a + 10;
+    print d or true;
+    print c;
+$$ LANGUAGE iceberg;
+
+select test_args(3, 14, 'qux', false);
+```
+Можно использовать стандартную библиотеку Java:
 ```sql
 CREATE OR REPLACE FUNCTION print_list() RETURNS void AS $$
     import java.util.ArrayList;
@@ -25,41 +64,4 @@ CREATE OR REPLACE FUNCTION print_list() RETURNS void AS $$
 $$ LANGUAGE iceberg;
 
 select print_list();
-```
-```sql
-CREATE OR REPLACE FUNCTION fibonacci() RETURNS void AS $$
-    def f = 1;
-    def s = 1;
-                
-    def i = 0;
-    while i < 10 then {
-        print f;
-
-        def tmp = f + s;
-        f = s;
-        s = tmp;
-
-        i = i + 1;
-    }
-$$ LANGUAGE iceberg;
-
-select fibonacci();
-```
-
-### passing parameters
-```sql
-CREATE or replace FUNCTION pass_arguments(
-    a int4, b int8, c text, d bool
-) RETURNS void AS $$
-    import iceberg.pg.Reader;
-
-    def reader = new Reader;
-
-    print reader.i32(0) + 10;
-    print reader.i64(1) + 100;
-    print reader.string(2);
-    print reader.bool(3) or true;
-$$ LANGUAGE iceberg;
-
-select pass_arguments(4, 40, 'qux', false);
 ```
