@@ -11,13 +11,12 @@ docker-compose -f ./postgres/docker-compose.yml up -d
 ```sql
 CREATE EXTENSION iceberg;
 ```
-После создания `EXTENSION` можно создавать и вызывать функции. <br>
-NOTE: `print` выводится в консоль, а не в `return` функции. 
+После создания `EXTENSION` можно создавать и вызывать функции: 
 ```sql
 CREATE OR REPLACE FUNCTION fibonacci(
     n int4
-) RETURNS void AS $$
-    if n <= 0 then return;
+) RETURNS int4 AS $$
+    if n <= 0 then return -1;
 
     def f = 1;
     def s = 1;
@@ -31,12 +30,12 @@ CREATE OR REPLACE FUNCTION fibonacci(
         i = i + 1;
     }
 
-    print f;
+    return f;
 $$ LANGUAGE iceberg;
 
 select fibonacci();
 ```
-Поддерживаются аргументы `int4`, `int8`, `text`, `bool`:
+Поддерживаемые типы `int4`, `int8`, `text`, `bool`:
 ```sql
 CREATE OR REPLACE FUNCTION test_args(
     a int4, b int8, c text, d bool

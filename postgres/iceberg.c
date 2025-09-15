@@ -25,7 +25,7 @@ PG_FUNCTION_INFO_V1(iceberg_call_handler);
 
 void preprocess(FunctionCallInfo fcinfo, char* src, char* out);
 void add_argument(FunctionCallInfo fcinfo, int kth, char* out, int* j);
-void interpret(FunctionCallInfo fcinfo, char* src);
+void interpret(FunctionCallInfo fcinfo, char* src, char* out);
 
 Datum
 iceberg_call_handler(PG_FUNCTION_ARGS)
@@ -60,27 +60,27 @@ iceberg_call_handler(PG_FUNCTION_ARGS)
     for (int i = 0; i < 16384; i++) {
         preprocessed[i] = '\0';
     }
-
     preprocess(fcinfo, src, preprocessed);
-    interpret(fcinfo, preprocessed);
+
+    char output[1024];
+    interpret(fcinfo, preprocessed, output);
     elog(INFO, "===========================");
 
     ReleaseSysCache(procTuple);
 
-    //TODO: read and parse output
     Oid ret_oid = get_func_rettype(fn_oid);
     switch (ret_oid) {
         case INT4OID: { // int4
-            PG_RETURN_INT32(42);
+            PG_RETURN_INT32(atoi(output));
         }
         case INT8OID: { // int8
-            PG_RETURN_INT64(4200L);
+            PG_RETURN_INT64(atoll(output));
         }
         case BOOLOID: { // bool
-            PG_RETURN_BOOL(true);
+            PG_RETURN_BOOL(strcasecmp(output, "true") == 0);
         }
         case TEXTOID: { // text
-            PG_RETURN_TEXT_P(cstring_to_text("hello"));
+            PG_RETURN_TEXT_P(cstring_to_text_with_len(output, strlen(output)));
         }
         default: {
             PG_RETURN_NULL();
@@ -104,6 +104,35 @@ void preprocess(FunctionCallInfo fcinfo, char* src, char *out) {
         }
     }
 
+    strcat(out, "fun __psql(): ");
+    j += 14;
+
+    Oid fn_oid = fcinfo->flinfo->fn_oid;
+    Oid ret_oid = get_func_rettype(fn_oid);
+    switch (ret_oid) {
+        case INT4OID: { // int4
+            strcat(out, "i32 {\n    ");
+            j += 10;
+            break;
+        }
+        case INT8OID: { // int8
+            strcat(out, "i64 {\n    ");
+            j += 10;
+            break;
+        }
+        case BOOLOID: { // bool
+            strcat(out, "bool {\n    ");
+            j += 11;
+            break;
+        }
+        case TEXTOID: { // text
+            strcat(out, "string {\n    ");
+            j += 13;
+            break;
+        }
+    }
+
+    //create var for each param
     for (int kth = 0; kth < PG_NARGS(); kth++) {
         add_argument(fcinfo, kth, out, &j);
     }
@@ -111,6 +140,9 @@ void preprocess(FunctionCallInfo fcinfo, char* src, char *out) {
     while (src[i - 1] != '\0') {
         out[j++] = src[i++];
     }
+
+    strcat(out, "}\n\n    print __psql();");
+    j += 22;
 
     elog(INFO, "preprocessed:");
     elog(INFO, out);
@@ -207,7 +239,7 @@ void add_argument(FunctionCallInfo fcinfo, int kth, char* out, int* j) {
     }
 }
 
-void interpret(FunctionCallInfo fcinfo, char* src) {
+void interpret(FunctionCallInfo fcinfo, char* src, char* out) {
 // создаём временный файл
   char tmp_filename[] = "/tmp/source.ibXXXXXX";
   int fd = mkstemp(tmp_filename);
@@ -250,6 +282,10 @@ void interpret(FunctionCallInfo fcinfo, char* src) {
           output[len-1] = '\0'; // удаляем перенос строки
       elog(INFO, output);
   }
+
+  //last statement is `print __psql();`
+  //so last printed line is returned value
+  strncpy(out, output, sizeof(output)-1);
 
   //TODO: если out плохой - вернуть ошибку в консоль (не в логи)
 
