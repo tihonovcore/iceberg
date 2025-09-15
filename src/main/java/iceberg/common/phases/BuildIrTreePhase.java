@@ -187,6 +187,9 @@ public class BuildIrTreePhase {
             @Override
             public IR visitPrintStatement(IcebergParser.PrintStatementContext ctx) {
                 var argument = (IrExpression) ctx.expression().accept(this);
+                if (argument.type.equals(IcebergType.unit)) {
+                    throw new SemanticException("impossible print");
+                }
 
                 var possibleSpecificParametersTypes = Set.of(
                     IcebergType.i32, IcebergType.i64,

@@ -146,8 +146,13 @@ void preprocess(FunctionCallInfo fcinfo, char* src, char *out) {
         out[j++] = src[i++];
     }
 
-    strcat(out, "}\n\n    print __psql();");
-    j += 22;
+    if (ret_oid == VOIDOID) {
+        strcat(out, "}\n\n    __psql();");
+        j += 16;
+    } else {
+        strcat(out, "}\n\n    print __psql();");
+        j += 22;
+    }
 
     elog(INFO, "preprocessed:");
     elog(INFO, out);

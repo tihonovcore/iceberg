@@ -35,7 +35,7 @@ $$ LANGUAGE iceberg;
 
 select fibonacci();
 ```
-Поддерживаемые типы `int4`, `int8`, `text`, `bool`:
+Поддерживаемые типы `int4`, `int8`, `text`, `bool` (и `void` для `return`):
 ```sql
 CREATE OR REPLACE FUNCTION test_args(
     a int4, b int8, c text, d bool
@@ -50,7 +50,7 @@ select test_args(3, 14, 'qux', false);
 ```
 Можно использовать стандартную библиотеку Java:
 ```sql
-CREATE OR REPLACE FUNCTION print_list() RETURNS void AS $$
+CREATE OR REPLACE FUNCTION list() RETURNS text AS $$
     import java.util.ArrayList;
 
     def list = new ArrayList;
@@ -59,8 +59,8 @@ CREATE OR REPLACE FUNCTION print_list() RETURNS void AS $$
     list.add("bar");
     list.add("qux");
 
-    print list;
+    return list.toString();
 $$ LANGUAGE iceberg;
 
-select print_list();
+select list();
 ```
