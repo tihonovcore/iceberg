@@ -22,6 +22,10 @@ public class CompilationPipeline {
         enum Mode { compile, run, jar, llvm }
         var mode = Mode.valueOf(args[0].substring(1));
 
+        if (args[1].startsWith("~")) {
+            args[1] = System.getProperty("user.home") + args[1].substring(1);
+        }
+
         var sourcePath = Path.of(args[1]);
         var source = Files.readString(sourcePath);
 
