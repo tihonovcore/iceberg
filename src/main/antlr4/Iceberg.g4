@@ -68,7 +68,7 @@ arguments
   ;
 
 returnStatement
-  : RETRUN expression?
+  : RETURN expression?
   ;
 
 block : OPEN_BRACE statement* CLOSE_BRACE;
@@ -126,7 +126,7 @@ IF     : 'if';
 THEN   : 'then';
 ELSE   : 'else';
 FUN    : 'fun';
-RETRUN : 'return';
+RETURN : 'return';
 CLASS  : 'class';
 NEW    : 'new';
 THIS   : 'this';
