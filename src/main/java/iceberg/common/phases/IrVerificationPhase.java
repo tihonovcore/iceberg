@@ -11,6 +11,10 @@ public class IrVerificationPhase {
     public void execute(IrFile irFile) {
         var functions = findAllFunctions(irFile);
 
+        //TODO: нужно иметь доступ к координатам в исходном коде,
+        // отдавать их в SemanticException, чтобы в плагине работала
+        // отрисовка ERROR и WARN
+
         functions.forEach(this::atMostOneReturnInBlock);
         functions.forEach(this::noCodeAfterReturn);
         functions.forEach(this::allReturnTypesAreTheSame);

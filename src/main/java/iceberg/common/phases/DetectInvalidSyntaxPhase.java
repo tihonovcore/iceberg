@@ -27,7 +27,7 @@ public class DetectInvalidSyntaxPhase {
             @Override
             public Object visitFunctionDefinitionStatement(IcebergParser.FunctionDefinitionStatementContext ctx) {
                 if (insideFunction) {
-                    throw new SemanticException("function inside function");
+                    throw new SemanticException("function inside function", ctx);
                 }
 
                 try {
@@ -52,7 +52,7 @@ public class DetectInvalidSyntaxPhase {
                     }
                 }
 
-                throw new SemanticException("bad l-value:\n" + ctx.getText());
+                throw new SemanticException("bad l-value:\n" + ctx.getText(), ctx);
             }
 
             @Override
@@ -78,14 +78,14 @@ public class DetectInvalidSyntaxPhase {
                     }
                 }
 
-                throw new SemanticException("not a statement\n" + ctx.getText());
+                throw new SemanticException("not a statement\n" + ctx.getText(), ctx);
             }
 
             @Override
             public Object visitUnaryMinusExpression(IcebergParser.UnaryMinusExpressionContext ctx) {
                 var number = ctx.atom().NUMBER();
                 if (number != null && number.getText().startsWith("-")) {
-                    throw new SemanticException("invalid syntax");
+                    throw new SemanticException("invalid syntax", ctx);
                 }
 
                 return super.visitUnaryMinusExpression(ctx);
@@ -98,7 +98,7 @@ public class DetectInvalidSyntaxPhase {
                     if (insideClass && insideFunction) {
                         return super.visitTerminal(node);
                     } else {
-                        throw new SemanticException("`this` outside of member-function");
+                        throw new SemanticException("`this` outside of member-function", node);
                     }
                 }
 
