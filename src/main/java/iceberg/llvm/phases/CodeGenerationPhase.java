@@ -17,8 +17,14 @@ public class CodeGenerationPhase {
 
     public String execute() {
         var output = new StringBuilder();
+
         //TODO: вычислять target на основе System.getProperty("os.arch") и тому подобному
-        output.append("target triple = \"arm64-apple-macosx15.0.0\"");
+        if ("Mac OS X".equals(System.getProperty("os.name"))) {
+            output.append("target triple = \"arm64-apple-macosx15.0.0\"");
+        } else {
+            //NOTE: dirty support for GitHub runners
+            output.append("target triple = \"x86_64-pc-linux-gnu\"");
+        }
         output.append(System.lineSeparator());
         output.append(System.lineSeparator());
 
