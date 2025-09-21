@@ -52,7 +52,7 @@ public class DetectInvalidSyntaxPhase {
                     }
                 }
 
-                throw new SemanticException("bad l-value:\n" + ctx.getText(), ctx);
+                throw new SemanticException("bad l-value:\n" + ctx.getText(), ctx.left);
             }
 
             @Override

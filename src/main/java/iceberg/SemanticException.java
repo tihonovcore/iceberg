@@ -20,13 +20,13 @@ public class SemanticException extends RuntimeException {
         super(message);
 
         this.start = ctx.getStart().getStartIndex();
-        this.stop = ctx.getStop().getStopIndex();
+        this.stop = ctx.getStop().getStopIndex() + 1;
     }
 
     public SemanticException(String message, TerminalNode node) {
         super(message);
 
         this.start = node.getSymbol().getStartIndex();
-        this.stop = node.getSymbol().getStopIndex();
+        this.stop = node.getSymbol().getStopIndex() + 1;
     }
 }
