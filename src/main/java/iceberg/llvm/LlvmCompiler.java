@@ -3,8 +3,7 @@ package iceberg.llvm;
 import iceberg.common.phases.BuildIrTreePhase;
 import iceberg.common.phases.DetectInvalidSyntaxPhase;
 import iceberg.common.phases.IrVerificationPhase;
-import iceberg.fe.CompilationException;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import iceberg.llvm.opt.cp.ConstantPropagation;
 import iceberg.llvm.phases.BuildCfgPhase;
 import iceberg.llvm.phases.BuildTacPhase;
@@ -61,27 +60,20 @@ public class LlvmCompiler {
     }
 
     private static String compile(String source) {
-        try {
-            var file = ParsingUtil.parse(source);
+        var astFile = new ParseSourcePhase().execute(source);
+        new DetectInvalidSyntaxPhase().execute(astFile);
 
-            //compilation process
-            new DetectInvalidSyntaxPhase().execute(file);
+        var irFile = new BuildIrTreePhase().execute(astFile);
+        new IrVerificationPhase().execute(irFile);
 
-            var irFile = new BuildIrTreePhase().execute(file);
-            new IrVerificationPhase().execute(irFile);
+        var allTac = new BuildTacPhase(irFile).execute();
+        var allCfg = allTac.stream()
+            .map(tacFunction -> new BuildCfgPhase(tacFunction).execute())
+            .toList();
 
-            var allTac = new BuildTacPhase(irFile).execute();
-            var allCfg = allTac.stream()
-                .map(tacFunction -> new BuildCfgPhase(tacFunction).execute())
-                .toList();
+        //optimizations
+        allCfg.forEach(functionCfg -> new ConstantPropagation(functionCfg).execute());
 
-            //optimizations
-            allCfg.forEach(functionCfg -> new ConstantPropagation(functionCfg).execute());
-
-            return new CodeGenerationPhase(allCfg).execute();
-        } catch (CompilationException exception) {
-            System.err.println(exception.getMessage());
-            throw exception;
-        }
+        return new CodeGenerationPhase(allCfg).execute();
     }
 }

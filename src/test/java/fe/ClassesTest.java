@@ -1,7 +1,7 @@
 package fe;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ public class ClassesTest {
 
     @Test
     void classDefinition() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             class Foo {
                 def x: i32
                 def y: string = "string"
@@ -98,7 +98,7 @@ public class ClassesTest {
 
     @Test
     void read() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             print user.salary + user.bonuses();
             
             bar("user", user, user.age, user.findRelatives());
@@ -196,7 +196,7 @@ public class ClassesTest {
 
     @Test
     void write() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             user.age = 100;
             user.show();
             

@@ -1,7 +1,7 @@
 package fe;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class DefStatementsTest {
 
     @Test
     void defWithInit() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             def x = 100;
             """);
         assertThat(dump(file)).isEqualTo("""
@@ -43,7 +43,7 @@ class DefStatementsTest {
 
     @Test
     void defWithType() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             def x: bool;
             """);
         assertThat(dump(file)).isEqualTo("""
@@ -64,7 +64,7 @@ class DefStatementsTest {
 
     @Test
     void defWithTypeAndInit() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             def x: bool = true or false;
             """);
         assertThat(dump(file)).isEqualTo("""

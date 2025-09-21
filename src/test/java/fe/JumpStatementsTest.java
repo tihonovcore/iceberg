@@ -1,7 +1,7 @@
 package fe;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class JumpStatementsTest {
 
     @Test
     void ifOnly() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             if 2 > 2 + 2 then print 3000;
             """);
         assertThat(dump(file)).isEqualTo("""
@@ -68,7 +68,7 @@ class JumpStatementsTest {
 
     @Test
     void ifElse() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             if 2 > 2 + 2
             then print 3000;
             else print 2000;
@@ -132,7 +132,7 @@ class JumpStatementsTest {
 
     @Test
     void ifIfElseElse() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             if 2 > 2 + 2
             then if 3 > 3 + 3
                  then print 3000;
@@ -237,7 +237,7 @@ class JumpStatementsTest {
 
     @Test
     void ifElseBlocks() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             if 2 > 2 + 2 then {
                 print 3000;
                 print 2000;
@@ -363,7 +363,7 @@ class JumpStatementsTest {
 
     @Test
     void simpleWhile() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             while 2 > 2 + 2 then print "foo";
             """);
         assertThat(dump(file)).isEqualTo("""
@@ -413,7 +413,7 @@ class JumpStatementsTest {
 
     @Test
     void whileBlock() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             while 2 > 2 + 2 then {
                 print "foo";
                 print "bar";

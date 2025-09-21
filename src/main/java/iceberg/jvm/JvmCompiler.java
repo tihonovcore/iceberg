@@ -4,8 +4,7 @@ import iceberg.Misc;
 import iceberg.common.phases.BuildIrTreePhase;
 import iceberg.common.phases.DetectInvalidSyntaxPhase;
 import iceberg.common.phases.IrVerificationPhase;
-import iceberg.fe.CompilationException;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import iceberg.jvm.phases.*;
 import iceberg.jvm.phases.validation.CodegenPrepareStackMapAttributePhase;
 import iceberg.jvm.target.CompilationUnit;
@@ -29,35 +28,28 @@ import static java.nio.file.StandardOpenOption.*;
 public class JvmCompiler {
 
     public static Collection<CompilationUnit> compile(String source) {
-        try {
-            var file = ParsingUtil.parse(source);
+        var astFile = new ParseSourcePhase().execute(source);
+        new DetectInvalidSyntaxPhase().execute(astFile);
 
-            //compilation process
-            new DetectInvalidSyntaxPhase().execute(file);
+        var irFile = new BuildIrTreePhase().execute(astFile);
+        new IrVerificationPhase().execute(irFile);
 
-            var irFile = new BuildIrTreePhase().execute(file);
-            new IrVerificationPhase().execute(irFile);
+        var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
 
-            var compilationUnits = new MoveEachClassToSeparateUnitPhase().execute(irFile);
-
-            for (var unit : compilationUnits) {
-                new GenerateDefaultConstructorPhase().execute(unit);
-            }
-
-            //codegen
-            for (var unit : compilationUnits) {
-                new CodegenPrepareMethodsPhase().execute(unit);
-                new CodegenPrepareFieldsPhase().execute(unit);
-                new CodegenPrepareCodeAttributePhase().execute(unit);
-                new CodegenPrepareStackMapAttributePhase().execute(unit);
-            }
-            CodeGenerator.codegen(compilationUnits);
-
-            return compilationUnits;
-        } catch (CompilationException exception) {
-            System.err.println(exception.getMessage());
-            throw exception;
+        for (var unit : compilationUnits) {
+            new GenerateDefaultConstructorPhase().execute(unit);
         }
+
+        //codegen
+        for (var unit : compilationUnits) {
+            new CodegenPrepareMethodsPhase().execute(unit);
+            new CodegenPrepareFieldsPhase().execute(unit);
+            new CodegenPrepareCodeAttributePhase().execute(unit);
+            new CodegenPrepareStackMapAttributePhase().execute(unit);
+        }
+        CodeGenerator.codegen(compilationUnits);
+
+        return compilationUnits;
     }
 
     @SneakyThrows

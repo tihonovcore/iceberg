@@ -1,7 +1,7 @@
 package fe;
 
 import iceberg.antlr.IcebergParser;
-import iceberg.fe.ParsingUtil;
+import iceberg.common.phases.ParseSourcePhase;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ public class FunctionsTest {
 
     @Test
     void noReturnType() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             fun foo() {
                 print(100);
             }
@@ -63,7 +63,7 @@ public class FunctionsTest {
 
     @Test
     void returnType() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             fun foo(): i32 {
                 return 10 + 10;
             }
@@ -112,7 +112,7 @@ public class FunctionsTest {
 
     @Test
     void parameters() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             fun foo(a: i32, b: i32): i32 {
                 return a + b;
             }
@@ -172,7 +172,7 @@ public class FunctionsTest {
 
     @Test
     void call() {
-        var file = ParsingUtil.parse("""
+        var file = new ParseSourcePhase().execute("""
             foo();
             def f = foo();
             

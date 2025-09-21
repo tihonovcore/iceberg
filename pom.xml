@@ -26,6 +26,7 @@
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.3</surefire-plugin.version>
         <assembly-plugin.version>3.7.1</assembly-plugin.version>
+        <source-plugin.version>3.3.1</source-plugin.version>
         <jacoco-plugin.version>0.8.13</jacoco-plugin.version>
     </properties>
 
@@ -135,6 +136,20 @@
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
