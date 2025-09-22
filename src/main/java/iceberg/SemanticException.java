@@ -8,10 +8,7 @@ public class SemanticException extends RuntimeException {
     public int start = -1;
     public int stop = -1;
 
-    public SemanticException() {
-        super();
-    }
-
+    @Deprecated
     public SemanticException(String message) {
         super(message);
     }

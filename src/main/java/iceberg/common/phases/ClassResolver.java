@@ -55,7 +55,7 @@ public class ClassResolver {
                 try {
                     klass = Class.forName(fqn);
                 } catch (ClassNotFoundException e) {
-                    throw new SemanticException("unknown class: " + fqn);
+                    throw new SemanticException("unknown class: " + fqn, ctx);
                 }
 
                 importJavaClass(klass);
@@ -67,7 +67,7 @@ public class ClassResolver {
             public Object visitClassDefinitionStatement(IcebergParser.ClassDefinitionStatementContext ctx) {
                 var name = ctx.name.getText();
                 if (allClasses.containsKey(name)) {
-                    throw new SemanticException("class already exists");
+                    throw new SemanticException("class already exists", ctx);
                 }
 
                 allClasses.put(name, new IrClass(name));
@@ -147,7 +147,7 @@ public class ClassResolver {
                 var fieldName = ctx.name.getText();
                 if (currentClass.fields.containsKey(fieldName)) {
                     throw new SemanticException(
-                        "field '%s' already exists in class %s".formatted(fieldName, currentClass.name)
+                        "field '%s' already exists in class %s".formatted(fieldName, currentClass.name), ctx
                     );
                 }
 
@@ -172,7 +172,7 @@ public class ClassResolver {
                 var optional = currentClass.findMethod(functionName, parametersTypes);
                 if (optional.isPresent()) {
                     throw new SemanticException(
-                        "function '%s' already exists in class %s".formatted(functionName, currentClass.name)
+                        "function '%s' already exists in class %s".formatted(functionName, currentClass.name), ctx
                     );
                 }
 
