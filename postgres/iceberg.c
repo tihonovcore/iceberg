@@ -27,6 +27,30 @@ void preprocess(FunctionCallInfo fcinfo, char* src, char* out);
 void add_argument(FunctionCallInfo fcinfo, int kth, char* out, int* j);
 void interpret(FunctionCallInfo fcinfo, char* src, char* out);
 
+//TODO: есть более качественное решение
+// * переписать хэндлер на работу с LLVM
+//   * скрипт компилировать в бинарь только один раз
+//   * использовать эту версию пока не помеяется код в PSQL-функции
+//   * бинарь подключать динамически и вызывать отсюда как обычную функцию
+// * ДАЛЕЕ ЛИБО
+//   * сделать шаблон функции таким
+//     fun __psql(x: i32, y: string): i32 {
+//   * и докинуть в бинарь хэндлер
+//     Datum __call(Datum *args) {
+//       int32 x = DatumGetInt32(args[0]);
+//       char* y = DatumGetInt32(args[1]);
+//       int32 res = __psql(x, y);
+//       return Int32GetDatum(res);
+//     }
+// * ЛИБО
+//   * добавить в Iceberg поддержку массивов
+//   * шаблон функции должен быть таким
+//     fun __psql(args[any]): i32 {
+//         def x = args[0] as i32;
+//         def y = args[1] as string;
+//         // source code
+//     }
+
 Datum
 iceberg_call_handler(PG_FUNCTION_ARGS)
 {
