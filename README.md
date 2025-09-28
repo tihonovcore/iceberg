@@ -168,27 +168,27 @@ class LinkedList {
 }
 
 def list = new LinkedList;
-print list;
+print list;           // []
 
 list.add("foo");
-print list;
+print list;           // [foo]
 
 list.add("qux");
-print list;
+print list;           // [foo, qux]
 
 list.add("bar");
-print list;
+print list;           // [foo, qux, bar]
 
-print list.get(0);
-print list.get(1);
-print list.get(2);
+print list.get(0);    // foo
+print list.get(1);    // qux
+print list.get(2);    // bar
 
 list.set(0, "alpha");
-print list;
+print list;           // [alpha, qux, bar]
 
 list.set(1, "beta");
-print list;
+print list;           // [alpha, beta, bar]
 
 list.set(2, "gamma");
-print list;
+print list;           // [alpha, beta, gamma]
 ```
