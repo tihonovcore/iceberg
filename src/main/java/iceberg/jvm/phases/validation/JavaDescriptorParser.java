@@ -29,6 +29,8 @@ public class JavaDescriptorParser {
         //TODO: decode descriptor - for int it will be I (not int)
         return switch (typeDescriptor) {
             case "I" -> new JavaType("int");
+            case "L" -> new JavaType("long");
+            case "Z" -> new JavaType("boolean");
             default -> new JavaType(typeDescriptor.substring(1, typeDescriptor.length() - 1));
         };
     }

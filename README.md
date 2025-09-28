@@ -109,3 +109,86 @@ def scanner = handler.scanner();
 def x: i32 = scanner.nextInt();
 print x;
 ```
+
+### list implementation
+Пример реализации связного списка
+```iceberg
+import java.lang.StringBuilder;
+
+class Node {
+  def value: string
+
+  def next: Node
+  def hasNext: bool = false
+}
+
+class LinkedList {
+  def head: Node = new Node
+
+  fun add(value: string) {
+    def next = new Node;
+    next.value = value;
+
+    def curr = this.head;
+    while curr.hasNext then curr = curr.next;
+
+    curr.next = next;
+    curr.hasNext = true;
+  }
+
+  fun get(i: i32): string {
+    return this.find(this.head.next, i).value;
+  }
+
+  fun set(i: i32, value: string) {
+    this.find(this.head.next, i).value = value;
+  }
+
+  fun find(from: Node, i: i32): Node {
+    if i == 0 then return from;
+    else return this.find(from.next, i - 1);
+  }
+
+  fun toString(): string {
+    def sb = new StringBuilder;
+    sb.append("[");
+    def curr = this.head;
+    while curr.hasNext then {
+      curr = curr.next;
+      sb.append(curr.value);
+
+      if curr.hasNext then {
+        sb.append(", ");
+      }
+    }
+    sb.append("]");
+    
+    return sb.toString();
+  }
+}
+
+def list = new LinkedList;
+print list;
+
+list.add("foo");
+print list;
+
+list.add("qux");
+print list;
+
+list.add("bar");
+print list;
+
+print list.get(0);
+print list.get(1);
+print list.get(2);
+
+list.set(0, "alpha");
+print list;
+
+list.set(1, "beta");
+print list;
+
+list.set(2, "gamma");
+print list;
+```
